@@ -44,3 +44,31 @@
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
 }
+
+:root[data-density="compact"] {
+  --space-3: 10px;
+  --space-4: 13px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-8: 26px;
+  --space-10: 34px;
+}
+
+:root[data-density="comfortable"] {
+  --space-3: 14px;
+  --space-4: 18px;
+  --space-5: 23px;
+  --space-6: 27px;
+  --space-8: 36px;
+  --space-10: 44px;
+}
+
+:root[data-font-size="large"] { font-size: 18px; }
+:root[data-font-size="xlarge"] { font-size: 20px; }
+
+:root[data-contrast="high"] {
+  --color-text-secondary: #d2dce1;
+  --color-text-tertiary: #aebbc3;
+  --color-line-subtle: rgba(220, 239, 248, 0.34);
+  --color-line-strong: rgba(226, 243, 250, 0.68);
+}

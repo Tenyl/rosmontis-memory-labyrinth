@@ -17,6 +17,7 @@ export default function OperatorsPage() {
   return (
     <section className="route-page operators-route" aria-labelledby="operators-page-title">
       <PageHeader
+        id="operators-page-title"
         code="03"
         title="干员与小队"
         description="读取迷迭香的跑团属性、意识医疗监测与战术能力，并追踪所有随行干员的本回合状态。"

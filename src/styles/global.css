@@ -52,6 +52,23 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+p,
+li,
+dd,
+blockquote,
+code,
+button,
+a {
+  overflow-wrap: anywhere;
+}
+
+button,
+a[href],
+input,
+select {
+  min-height: 40px;
+}
+
 button {
   color: inherit;
 }
@@ -179,4 +196,13 @@ a {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+[data-motion="reduced"] *,
+[data-motion="reduced"] *::before,
+[data-motion="reduced"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

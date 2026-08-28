@@ -55,6 +55,7 @@ export default function MemoryPage() {
   return (
     <section className="route-page memory-route" aria-labelledby="memory-page-title">
       <PageHeader
+        id="memory-page-title"
         code="02"
         title="意识战场"
         description="在表层记忆中定位战术节点，向下侵入深层潜意识，或向左右未解析战局建立可追溯路径。"
@@ -82,14 +83,14 @@ export default function MemoryPage() {
       </div>
 
       <div className="memory-workbench">
-        <main className="memory-primary">
+        <div className="memory-primary">
           {memoryMap.viewMode === 'graph' ? (
             <MemoryGraph nodes={memoryMap.nodes} edges={memoryMap.edges} selectedNodeId={memoryMap.selectedNodeId} onSelect={selectMemoryNode} />
           ) : (
             <MemoryList nodes={memoryMap.nodes} selectedNodeId={memoryMap.selectedNodeId} onSelect={selectMemoryNode} />
           )}
           <div className="memory-access-note"><ListDashes size={16} aria-hidden /><span>所有拓扑节点均可通过“战术列表”以键盘完整访问。</span></div>
-        </main>
+        </div>
         <MemoryInspector node={selectedNode} onExpand={setExpansionDirection} onEnter={enterNode} onNotify={notify} />
       </div>
 

@@ -49,7 +49,7 @@ export default function ArchivePage() {
 
   return (
     <section className="route-page archive-route" aria-labelledby="archive-page-title">
-      <PageHeader code="04" title="情报档案库" description="收录 LLM 在跑团过程中生成的线索、NPC、地点、事件与证物，并保持来源、冲突与玩家批注可追溯。" meta={`${unread} UNREAD / ${archive.records.length} RECORDS`} />
+      <PageHeader id="archive-page-title" code="04" title="情报档案库" description="收录 LLM 在跑团过程中生成的线索、NPC、地点、事件与证物，并保持来源、冲突与玩家批注可追溯。" meta={`${unread} UNREAD / ${archive.records.length} RECORDS`} />
 
       <div className="archive-view-tabs" role="tablist" aria-label="档案工作区视图">
         <button id="archive-view-records" type="button" role="tab" aria-label="档案记录" aria-selected={archive.view === 'records'} className={archive.view === 'records' ? 'is-active' : ''} onClick={() => setArchiveView('records')}><Archive size={17} aria-hidden />档案记录<small aria-hidden="true">{archive.records.length}</small></button>

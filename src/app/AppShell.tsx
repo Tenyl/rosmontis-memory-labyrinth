@@ -38,7 +38,17 @@ export function AppShell() {
   const navigate = useNavigate();
   const session = useGameStore(selectSession);
   const unreadArchiveCount = useGameStore(selectUnreadArchiveCount);
+  const preferences = useGameStore((state) => state.ui.preferences);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.density = preferences.density;
+    root.dataset.motion = preferences.motion;
+    root.dataset.fontSize = preferences.fontSize;
+    root.dataset.contrast = preferences.highContrast ? 'high' : 'standard';
+    root.dataset.textSpeed = preferences.textSpeed;
+  }, [preferences]);
 
   useEffect(() => {
     const handleShortcut = (event: globalThis.KeyboardEvent) => {
@@ -60,7 +70,7 @@ export function AppShell() {
 
   return (
     <div className="terminal-shell">
-      <a className="skip-link" href="#main-content">跳至主内容</a>
+      <a id="global-skip-to-content" className="skip-link" href="#main-content">跳至主内容</a>
       <aside className="terminal-sidebar" aria-label="终端主导航">
         <div className="terminal-brand">
           <div className="brand-mark" aria-hidden="true"><span>R</span><i /></div>

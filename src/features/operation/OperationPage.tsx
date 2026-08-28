@@ -70,6 +70,7 @@ export default function OperationPage() {
   return (
     <section className="route-page operation-route" aria-labelledby="operation-page-title">
       <PageHeader
+        id="operation-page-title"
         code="01"
         title="作战主控台"
         description="解析剧情、执行战术指令并监控小队状态。本地叙事模型将每次行动同步为可追溯的战术记录。"
@@ -77,7 +78,7 @@ export default function OperationPage() {
       />
 
       <div className="operation-workbench">
-        <main className="operation-primary">
+        <div className="operation-primary">
           <NarrativeStream
             entries={narrative.entries}
             activeEntryId={narrative.activeEntryId}
@@ -95,7 +96,7 @@ export default function OperationPage() {
             onPause={pauseGeneration}
             onResume={resumeGeneration}
           />
-        </main>
+        </div>
         <TacticalOverview session={session} operators={operators} />
       </div>
 
