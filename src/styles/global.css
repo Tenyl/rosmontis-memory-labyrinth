@@ -1,0 +1,182 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+  background: var(--color-background-deep);
+  font-family: var(--font-interface);
+  font-size: 16px;
+  color: var(--color-text-primary);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgba(142, 215, 247, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142, 215, 247, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 78% 8%, rgba(126, 240, 189, 0.07), transparent 34%),
+    radial-gradient(circle at 18% 76%, rgba(142, 215, 247, 0.08), transparent 38%),
+    var(--color-background-deep);
+  background-size: 40px 40px, 40px 40px, auto, auto, auto;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+textarea,
+select,
+[tabindex]:not([tabindex="-1"]) {
+  touch-action: manipulation;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  color: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-memory-blue);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px rgba(142, 215, 247, 0.15);
+}
+
+::selection {
+  background: var(--color-memory-blue);
+  color: var(--color-background-deep);
+}
+
+.skip-link {
+  position: fixed;
+  z-index: var(--layer-toast);
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-memory-blue);
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+  transform: translateY(-180%);
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.app-root {
+  position: relative;
+  min-height: 100dvh;
+  isolation: isolate;
+}
+
+.app-root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 0 57%, rgba(142, 215, 247, 0.035) 57% 57.1%, transparent 57.1%);
+}
+
+.bootstrap-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 88px;
+  padding: var(--space-4) clamp(20px, 5vw, 72px);
+  border-bottom: 1px solid var(--color-line-subtle);
+  background: var(--color-surface-glass);
+  backdrop-filter: blur(18px);
+}
+
+.bootstrap-header strong {
+  display: block;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  letter-spacing: 0.06em;
+}
+
+.brand-mark {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-background-deep);
+  background: var(--color-text-primary);
+  font: 800 1.5rem/1 var(--font-data);
+  clip-path: polygon(0 0, 78% 0, 100% 22%, 100% 100%, 22% 100%, 0 78%);
+}
+
+.brand-mark i {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 7px;
+  height: 7px;
+  background: var(--color-arts-green);
+}
+
+.eyebrow,
+.system-code {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-secondary);
+  font: 500 0.68rem/1.4 var(--font-data);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.bootstrap-main {
+  width: min(880px, calc(100% - 40px));
+  margin: clamp(56px, 12vh, 140px) auto;
+  padding: clamp(28px, 5vw, 56px);
+  border: 1px solid var(--color-line-subtle);
+  border-top-color: var(--color-memory-blue);
+  background: rgba(13, 17, 22, 0.92);
+  box-shadow: var(--shadow-base);
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+}
+
+.bootstrap-main p {
+  margin: var(--space-6) 0 0;
+  color: var(--color-text-primary);
+  font-size: clamp(1.3rem, 4vw, 2.3rem);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
