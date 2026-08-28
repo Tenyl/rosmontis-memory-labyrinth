@@ -24,3 +24,12 @@ test('opens a completed squad dossier', async () => {
   expect(dialog).toBeVisible();
   expect(within(dialog).getByText('下一行动')).toBeVisible();
 });
+
+test('opens the role and persona workspace without changing route', async () => {
+  const user = userEvent.setup();
+  renderApp('/operators');
+  await user.click(await screen.findByRole('tab', { name: '角色与身份' }));
+  expect(await screen.findByRole('heading', { name: '角色与身份' })).toBeVisible();
+  expect(screen.getByRole('article', { name: '角色卡 迷迭香' })).toBeVisible();
+  expect(window.location.pathname).toBe('/operators');
+});

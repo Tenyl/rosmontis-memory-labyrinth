@@ -1,3 +1,4 @@
+import { IdentificationCard, UsersThree } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -6,11 +7,13 @@ import type { Operator } from '../../types/game';
 import { OperatorDialog } from './OperatorDialog';
 import { RosmontisProfile } from './RosmontisProfile';
 import { SquadRoster } from './SquadRoster';
+import { CharacterManager } from '../tavern/characters/CharacterManager';
 import './operators.css';
 
 export default function OperatorsPage() {
   const operatorsState = useGameStore((state) => state.operators);
   const [selectedOperator, setSelectedOperator] = useState<Operator | null>(null);
+  const [workspace, setWorkspace] = useState<'squad' | 'identities'>('squad');
   const rosmontis = operatorsState.byId.rosmontis;
   const squad = operatorsState.squadOrder.slice(1).map((id) => operatorsState.byId[id]).filter(Boolean);
 
@@ -24,10 +27,14 @@ export default function OperatorsPage() {
         meta="4 ONLINE / FORMATION A"
         actions={<StatusBadge label="小队链路正常" tone="success" />}
       />
-      <div className="operators-stack">
+      <div className="operators-view-tabs" role="tablist" aria-label="干员工作区视图">
+        <button id="operators-view-squad" type="button" role="tab" aria-selected={workspace === 'squad'} onClick={() => setWorkspace('squad')}><UsersThree size={17} aria-hidden />战术小队</button>
+        <button id="tavern-tab-characters" type="button" role="tab" aria-selected={workspace === 'identities'} onClick={() => setWorkspace('identities')}><IdentificationCard size={17} aria-hidden />角色与身份</button>
+      </div>
+      {workspace === 'squad' ? <div className="operators-stack">
         {rosmontis ? <RosmontisProfile operator={rosmontis} /> : null}
         <SquadRoster operators={squad} formation={operatorsState.formation} onOpen={setSelectedOperator} />
-      </div>
+      </div> : <CharacterManager />}
       <OperatorDialog operator={selectedOperator} onClose={() => setSelectedOperator(null)} />
     </section>
   );

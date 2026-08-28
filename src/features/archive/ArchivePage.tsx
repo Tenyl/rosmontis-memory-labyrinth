@@ -1,4 +1,4 @@
-import { Archive, Brain, Graph } from '@phosphor-icons/react';
+import { Archive, Books, Brain, Graph } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
@@ -8,6 +8,7 @@ import { ArchiveFilters } from './ArchiveFilters';
 import { ArchiveGrid } from './ArchiveGrid';
 import { ArchiveRelationGraph } from './ArchiveRelationGraph';
 import { ReasoningBoard } from './ReasoningBoard';
+import { LorebookManager } from '../tavern/lorebooks/LorebookManager';
 import './archive.css';
 
 export default function ArchivePage() {
@@ -22,6 +23,7 @@ export default function ArchivePage() {
   const linkArchiveRecords = useGameStore((state) => state.linkArchiveRecords);
   const [selectedRecord, setSelectedRecord] = useState<ArchiveRecord | null>(null);
   const [relationSelection, setRelationSelection] = useState<string[]>([]);
+  const [workspace, setWorkspace] = useState<'archive' | 'lorebooks'>('archive');
 
   const counts = {
     全部: archive.records.length,
@@ -52,14 +54,16 @@ export default function ArchivePage() {
       <PageHeader id="archive-page-title" code="04" title="情报档案库" description="收录 LLM 在跑团过程中生成的线索、NPC、地点、事件与证物，并保持来源、冲突与玩家批注可追溯。" meta={`${unread} UNREAD / ${archive.records.length} RECORDS`} />
 
       <div className="archive-view-tabs" role="tablist" aria-label="档案工作区视图">
-        <button id="archive-view-records" type="button" role="tab" aria-label="档案记录" aria-selected={archive.view === 'records'} className={archive.view === 'records' ? 'is-active' : ''} onClick={() => setArchiveView('records')}><Archive size={17} aria-hidden />档案记录<small aria-hidden="true">{archive.records.length}</small></button>
-        <button id="archive-view-relations" type="button" role="tab" aria-label="关系图" aria-selected={archive.view === 'relations'} className={archive.view === 'relations' ? 'is-active' : ''} onClick={() => setArchiveView('relations')}><Graph size={17} aria-hidden />关系图<small aria-hidden="true">{archive.links.length}</small></button>
-        <button id="archive-view-reasoning" type="button" role="tab" aria-label="推理台" aria-selected={archive.view === 'reasoning'} className={archive.view === 'reasoning' ? 'is-active' : ''} onClick={() => setArchiveView('reasoning')}><Brain size={17} aria-hidden />推理台<small aria-hidden="true">{archive.records.filter((record) => record.pinned).length}</small></button>
+        <button id="archive-view-records" type="button" role="tab" aria-label="档案记录" aria-selected={workspace === 'archive' && archive.view === 'records'} className={workspace === 'archive' && archive.view === 'records' ? 'is-active' : ''} onClick={() => { setWorkspace('archive'); setArchiveView('records'); }}><Archive size={17} aria-hidden />档案记录<small aria-hidden="true">{archive.records.length}</small></button>
+        <button id="archive-view-relations" type="button" role="tab" aria-label="关系图" aria-selected={workspace === 'archive' && archive.view === 'relations'} className={workspace === 'archive' && archive.view === 'relations' ? 'is-active' : ''} onClick={() => { setWorkspace('archive'); setArchiveView('relations'); }}><Graph size={17} aria-hidden />关系图<small aria-hidden="true">{archive.links.length}</small></button>
+        <button id="archive-view-reasoning" type="button" role="tab" aria-label="推理台" aria-selected={workspace === 'archive' && archive.view === 'reasoning'} className={workspace === 'archive' && archive.view === 'reasoning' ? 'is-active' : ''} onClick={() => { setWorkspace('archive'); setArchiveView('reasoning'); }}><Brain size={17} aria-hidden />推理台<small aria-hidden="true">{archive.records.filter((record) => record.pinned).length}</small></button>
+        <button id="tavern-tab-lorebooks" type="button" role="tab" aria-label="世界书" aria-selected={workspace === 'lorebooks'} className={workspace === 'lorebooks' ? 'is-active' : ''} onClick={() => setWorkspace('lorebooks')}><Books size={17} aria-hidden />世界书<small aria-hidden="true">LLM</small></button>
       </div>
 
-      {archive.view === 'records' ? <><ArchiveFilters query={archive.query} kind={archive.kindFilter} sort={archive.sort} counts={counts} onQuery={setArchiveQuery} onKind={setArchiveKindFilter} onSort={setArchiveSort} /><ArchiveGrid records={visibleRecords} onOpen={openRecord} onTogglePin={toggleArchivePin} /></> : null}
-      {archive.view === 'relations' ? <ArchiveRelationGraph records={archive.records} links={archive.links} selectedIds={relationSelection} onToggleSelect={toggleRelationSelection} onCreateLink={() => { if (relationSelection.length === 2) linkArchiveRecords(relationSelection[0], relationSelection[1]); setRelationSelection([]); }} /> : null}
-      {archive.view === 'reasoning' ? <ReasoningBoard records={archive.records} /> : null}
+      {workspace === 'archive' && archive.view === 'records' ? <><ArchiveFilters query={archive.query} kind={archive.kindFilter} sort={archive.sort} counts={counts} onQuery={setArchiveQuery} onKind={setArchiveKindFilter} onSort={setArchiveSort} /><ArchiveGrid records={visibleRecords} onOpen={openRecord} onTogglePin={toggleArchivePin} /></> : null}
+      {workspace === 'archive' && archive.view === 'relations' ? <ArchiveRelationGraph records={archive.records} links={archive.links} selectedIds={relationSelection} onToggleSelect={toggleRelationSelection} onCreateLink={() => { if (relationSelection.length === 2) linkArchiveRecords(relationSelection[0], relationSelection[1]); setRelationSelection([]); }} /> : null}
+      {workspace === 'archive' && archive.view === 'reasoning' ? <ReasoningBoard records={archive.records} /> : null}
+      {workspace === 'lorebooks' ? <LorebookManager /> : null}
 
       <ArchiveDialog record={selectedRecord ? archive.records.find((record) => record.id === selectedRecord.id) ?? selectedRecord : null} allRecords={archive.records} onClose={() => setSelectedRecord(null)} onSaveNote={saveArchiveNote} />
     </section>

@@ -21,3 +21,12 @@ test('builds a hypothesis from pinned evidence and exposes conflicts', async () 
   expect(screen.getByText('支持证据')).toBeVisible();
   expect(screen.getByText('冲突证据')).toBeVisible();
 });
+
+test('opens worldbook management inside the archive route', async () => {
+  const user = userEvent.setup();
+  renderApp('/archive');
+  await user.click(await screen.findByRole('tab', { name: '世界书' }));
+  expect(await screen.findByRole('heading', { name: '世界书索引' })).toBeVisible();
+  expect(screen.getByText('罗德岛行动协议')).toBeVisible();
+  expect(window.location.pathname).toBe('/archive');
+});
