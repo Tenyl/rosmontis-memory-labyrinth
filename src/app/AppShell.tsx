@@ -9,11 +9,12 @@ import {
   WarningDiamond,
   WifiHigh,
 } from '@phosphor-icons/react';
-import { Suspense, type ComponentType } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { Suspense, type ComponentType, useEffect, useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { selectSession, selectUnreadArchiveCount } from '../store/selectors';
 import { NotificationCenter } from '../components/NotificationCenter';
+import { ShortcutDialog } from '../components/ShortcutDialog';
 import './app-shell.css';
 import '../components/components.css';
 
@@ -34,8 +35,28 @@ const navItems: NavItem[] = [
 ];
 
 export function AppShell() {
+  const navigate = useNavigate();
   const session = useGameStore(selectSession);
   const unreadArchiveCount = useGameStore(selectUnreadArchiveCount);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+
+  useEffect(() => {
+    const handleShortcut = (event: globalThis.KeyboardEvent) => {
+      const target = event.target;
+      const isTyping = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable);
+      if (isTyping) return;
+      if (event.key === '?') {
+        event.preventDefault();
+        setShortcutsOpen(true);
+      } else if (event.key === '/') {
+        event.preventDefault();
+        navigate('/operation');
+        window.setTimeout(() => document.getElementById('operation-command-input')?.focus(), 0);
+      }
+    };
+    document.addEventListener('keydown', handleShortcut);
+    return () => document.removeEventListener('keydown', handleShortcut);
+  }, [navigate]);
 
   return (
     <div className="terminal-shell">
@@ -92,7 +113,7 @@ export function AppShell() {
           <div className="topbar-statuses">
             <span className="connection-status"><WifiHigh size={17} aria-hidden />{session.connection}</span>
             <span className="risk-status"><WarningDiamond size={17} aria-hidden />全局风险 {session.globalRisk}</span>
-            <button id="global-shortcuts-open" className="topbar-icon-button" type="button" aria-label="打开快捷键说明">
+            <button id="global-shortcuts-open" className="topbar-icon-button" type="button" aria-label="打开快捷键说明" onClick={() => setShortcutsOpen(true)}>
               <Keyboard size={20} aria-hidden />
             </button>
             <time className="terminal-clock" dateTime="03:27:16">03:27:16</time>
@@ -103,6 +124,7 @@ export function AppShell() {
         </main>
       </div>
       <NotificationCenter />
+      <ShortcutDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   );
 }

@@ -11,6 +11,7 @@ import type {
   MemoryNode,
   NarrativeOutcome,
   NotificationItem,
+  UiPreferences,
 } from '../types/game';
 
 interface GameActions {
@@ -32,6 +33,7 @@ interface GameActions {
   saveArchiveNote: (recordId: string, note: string) => void;
   markArchiveRead: (recordId: string) => void;
   linkArchiveRecords: (sourceId: string, targetId: string) => void;
+  setUiPreference: <K extends keyof UiPreferences>(key: K, value: UiPreferences[K]) => void;
   setOperatorStress: (operatorId: string, stress: number) => void;
   addArchiveRecord: (record: ArchiveRecord) => void;
   addNotification: (item: NotificationItem) => void;
@@ -405,6 +407,13 @@ export const useGameStore = create<GameStore>()(
             },
           };
         }),
+      setUiPreference: (key, value) =>
+        set((state) => ({
+          ui: {
+            ...state.ui,
+            preferences: { ...state.ui.preferences, [key]: value },
+          },
+        })),
       setOperatorStress: (operatorId, stress) =>
         set((state) => {
           const operator = state.operators.byId[operatorId];
