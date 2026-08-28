@@ -1,0 +1,66 @@
+.terminal-dialog#tavern-orchestrator-dialog { justify-self: end; width: min(1120px, calc(100vw - 288px)); height: 100dvh; max-height: 100dvh; border-right: 0; clip-path: polygon(0 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px)); animation-name: tavern-drawer-in; }
+#tavern-orchestrator-dialog .dialog-body { display: flex; padding: 0; }
+.tavern-orchestrator { display: grid; min-width: 0; flex: 1; grid-template-columns: 220px minmax(0, 1fr); }
+.tavern-orchestrator-sidebar { display: flex; min-width: 0; flex-direction: column; border-right: 1px solid var(--color-line-subtle); background: rgba(5, 9, 12, .72); }
+.tavern-runtime-mark { display: flex; min-height: 84px; align-items: center; gap: var(--space-3); padding: var(--space-4); border-bottom: 1px solid var(--color-line-subtle); }
+.tavern-runtime-mark > svg { flex: 0 0 auto; color: var(--color-arts-green); filter: drop-shadow(0 0 10px rgba(126, 240, 189, .28)); }
+.tavern-runtime-mark strong, .tavern-runtime-mark small { display: block; }
+.tavern-runtime-mark strong { font-size: .74rem; }
+.tavern-runtime-mark small { margin-top: 5px; color: var(--color-text-tertiary); font: 500 .54rem/1 var(--font-data); letter-spacing: .1em; }
+.tavern-entity-tabs { display: grid; gap: 2px; padding: var(--space-3); }
+.tavern-entity-tabs button { display: grid; min-height: 62px; align-items: center; gap: var(--space-3); grid-template-columns: 20px minmax(0, 1fr) auto; padding: var(--space-3); border: 1px solid transparent; background: transparent; color: var(--color-text-secondary); text-align: left; cursor: pointer; transition: border-color var(--motion-fast), background var(--motion-fast), color var(--motion-fast); }
+.tavern-entity-tabs button:hover { border-color: var(--color-line-subtle); color: var(--color-text-primary); }
+.tavern-entity-tabs button.is-active { border-color: rgba(142, 215, 247, .26); background: linear-gradient(90deg, var(--color-memory-blue-soft), transparent); color: var(--color-text-primary); }
+.tavern-entity-tabs strong, .tavern-entity-tabs small { display: block; }
+.tavern-entity-tabs strong { font-size: .72rem; }
+.tavern-entity-tabs small { margin-top: 4px; color: var(--color-text-tertiary); font: 500 .5rem/1 var(--font-data); letter-spacing: .08em; }
+.tavern-entity-tabs i { color: var(--color-memory-blue); font: normal 500 .62rem/1 var(--font-data); }
+.tavern-storage-status { display: grid; min-height: 64px; align-items: center; gap: var(--space-3); grid-template-columns: auto minmax(0, 1fr) auto; margin: auto var(--space-3) var(--space-3); padding: var(--space-3); border: 1px solid var(--color-line-subtle); color: var(--color-text-tertiary); }
+.tavern-storage-status span, .tavern-storage-status strong { display: block; }
+.tavern-storage-status span { font-size: .56rem; }
+.tavern-storage-status strong { margin-top: 4px; color: var(--color-text-secondary); font: 500 .58rem/1 var(--font-data); }
+.tavern-storage-status > svg:last-child { color: var(--color-arts-green); }
+.tavern-orchestrator-content { min-width: 0; overflow: auto; padding: clamp(20px, 3vw, 38px); }
+.tavern-panel-stack { display: grid; gap: var(--space-5); animation: tavern-panel-in var(--motion-standard) var(--ease-out) both; }
+.tavern-section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-5); padding-bottom: var(--space-5); border-bottom: 1px solid var(--color-line-subtle); }
+.tavern-section-heading h3 { margin: var(--space-3) 0 var(--space-2); font-size: clamp(1.15rem, 2vw, 1.55rem); }
+.tavern-section-heading p { max-width: 58ch; margin: 0; color: var(--color-text-secondary); font-size: .72rem; line-height: 1.6; }
+.tavern-session-list, .tavern-entity-inventory { display: grid; gap: var(--space-3); }
+.tavern-session-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; border: 1px solid var(--color-line-subtle); background: rgba(255,255,255,.018); transition: border-color var(--motion-fast), background var(--motion-fast); }
+.tavern-session-card:hover, .tavern-session-card.is-active { border-color: rgba(142, 215, 247, .36); background: var(--color-memory-blue-soft); }
+.session-load { display: grid; min-width: 0; min-height: 82px; align-items: center; gap: var(--space-4); grid-template-columns: 52px minmax(0, 1fr) 68px; padding: var(--space-4); border: 0; background: transparent; color: var(--color-text-primary); text-align: left; cursor: pointer; }
+.session-index { color: var(--color-memory-blue); font: 500 .54rem/1 var(--font-data); letter-spacing: .08em; }
+.session-load strong, .session-load small { display: block; }
+.session-load strong { overflow: hidden; font-size: .8rem; text-overflow: ellipsis; white-space: nowrap; }
+.session-load small { margin-top: 6px; color: var(--color-text-tertiary); font-size: .6rem; }
+.session-count { text-align: right; }
+.session-count b { display: block; font: 500 1.1rem/1 var(--font-data); }
+.session-count small { margin-top: 5px; font: 500 .48rem/1 var(--font-data); letter-spacing: .06em; }
+.session-actions { display: flex; align-items: center; gap: 2px; padding: var(--space-3); border-left: 1px solid var(--color-line-subtle); }
+.session-actions button, .tavern-variable-row > button { display: grid; width: 40px; height: 40px; place-items: center; border: 1px solid transparent; background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.session-actions button:hover:not(:disabled), .tavern-variable-row > button:hover { border-color: var(--color-memory-blue); background: var(--color-memory-blue-soft); color: var(--color-text-primary); }
+.session-actions button:disabled { cursor: not-allowed; opacity: .3; }
+.tavern-compact-form { display: grid; gap: var(--space-3); }
+.tavern-compact-form label, .tavern-variable-row label { color: var(--color-text-secondary); font-size: .68rem; font-weight: 600; }
+.tavern-compact-form input, .tavern-variable-row input { width: 100%; min-height: 46px; border: 1px solid var(--color-line-strong); background: rgba(0,0,0,.24); color: var(--color-text-primary); padding: 0 var(--space-3); }
+.tavern-compact-form small { color: var(--color-text-tertiary); font-size: .64rem; line-height: 1.55; }
+.tavern-form-error { margin: 0; padding: var(--space-3); border-left: 2px solid var(--color-danger-red); background: var(--color-danger-soft); color: #ffb7b9; font-size: .68rem; }
+.tavern-danger-copy { display: flex; gap: var(--space-4); padding: var(--space-4); border: 1px solid rgba(255,107,111,.32); background: var(--color-danger-soft); }
+.tavern-danger-copy > svg { flex: 0 0 auto; color: var(--color-danger-red); }
+.tavern-danger-copy p { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: .7rem; line-height: 1.65; }
+.terminal-button.is-danger { border-color: var(--color-danger-red); background: var(--color-danger-soft); color: #ffd6d7; }
+.tavern-variable-grid { display: grid; gap: 2px; background: var(--color-line-subtle); }
+.tavern-variable-row { display: grid; align-items: end; gap: var(--space-3); grid-template-columns: minmax(140px, .8fr) minmax(180px, 1.2fr) 40px; padding: var(--space-3); background: var(--color-surface-primary); }
+.tavern-variable-row > div { display: grid; gap: var(--space-2); }
+.tavern-panel-actions { display: flex; justify-content: flex-end; }
+.tavern-empty-state { padding: var(--space-8); border: 1px dashed var(--color-line-strong); color: var(--color-text-secondary); font-size: .74rem; text-align: center; }
+.tavern-next-stage { padding: 8px 10px; border: 1px solid var(--color-line-subtle); color: var(--color-text-tertiary); font: 500 .54rem/1 var(--font-data); }
+.tavern-entity-inventory article { display: grid; min-height: 76px; align-items: center; gap: var(--space-4); grid-template-columns: 32px minmax(0, 1fr) auto; padding: var(--space-4); border: 1px solid var(--color-line-subtle); }
+.tavern-entity-inventory article > span, .tavern-entity-inventory article > small { color: var(--color-text-tertiary); font: 500 .56rem/1 var(--font-data); }
+.tavern-entity-inventory strong { font-size: .78rem; }
+.tavern-entity-inventory p { margin: 6px 0 0; color: var(--color-text-secondary); font-size: .66rem; line-height: 1.55; }
+@keyframes tavern-drawer-in { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: none; } }
+@keyframes tavern-panel-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (max-width: 1023px) { .terminal-dialog#tavern-orchestrator-dialog { width: calc(100vw - 24px); } }
+@media (max-width: 767px) { .terminal-dialog#tavern-orchestrator-dialog { width: 100%; height: calc(100dvh - 16px); } .tavern-orchestrator { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); } .tavern-orchestrator-sidebar { border-right: 0; border-bottom: 1px solid var(--color-line-subtle); } .tavern-runtime-mark, .tavern-storage-status { display: none; } .tavern-entity-tabs { display: flex; overflow-x: auto; padding: var(--space-2); } .tavern-entity-tabs button { min-width: 112px; min-height: 50px; } .tavern-orchestrator-content { padding: var(--space-4); } .tavern-section-heading { align-items: stretch; flex-direction: column; } .tavern-session-card { grid-template-columns: 1fr; } .session-actions { justify-content: flex-end; border-top: 1px solid var(--color-line-subtle); border-left: 0; } .tavern-variable-row { grid-template-columns: 1fr 40px; } .tavern-variable-row > div { grid-column: 1; } .tavern-variable-row > button { grid-column: 2; grid-row: 1 / span 2; align-self: center; } }
+@media (prefers-reduced-motion: reduce) { .terminal-dialog#tavern-orchestrator-dialog, .tavern-panel-stack { animation: none; } }

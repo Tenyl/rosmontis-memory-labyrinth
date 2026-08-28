@@ -1,5 +1,6 @@
 import {
   Archive,
+  Books,
   ClockCounterClockwise,
   Command,
   Graph,
@@ -15,6 +16,8 @@ import { useGameStore } from '../store/gameStore';
 import { selectSession, selectUnreadArchiveCount } from '../store/selectors';
 import { NotificationCenter } from '../components/NotificationCenter';
 import { ShortcutDialog } from '../components/ShortcutDialog';
+import { TavernOrchestrator } from '../features/tavern/components/TavernOrchestrator';
+import { useTavern } from '../features/tavern/runtime/useTavern';
 import './app-shell.css';
 import '../components/components.css';
 
@@ -39,7 +42,9 @@ export function AppShell() {
   const session = useGameStore(selectSession);
   const unreadArchiveCount = useGameStore(selectUnreadArchiveCount);
   const preferences = useGameStore((state) => state.ui.preferences);
+  const tavern = useTavern();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [tavernOpen, setTavernOpen] = useState(false);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -121,6 +126,10 @@ export function AppShell() {
             <span>{session.chapter}</span>
           </div>
           <div className="topbar-statuses">
+            <button id="global-tavern-open" className="tavern-topbar-button" type="button" aria-label="打开酒馆编排" onClick={() => setTavernOpen(true)}>
+              <Books size={18} aria-hidden />
+              <span><strong>{tavern.activeChat?.name ?? '载入酒馆'}</strong><small>{tavern.transportMode === 'local' ? '本地模拟' : '远程模型'} / {tavern.activeCharacter?.name ?? '未选角色'}</small></span>
+            </button>
             <span className="connection-status"><WifiHigh size={17} aria-hidden />{session.connection}</span>
             <span className="risk-status"><WarningDiamond size={17} aria-hidden />全局风险 {session.globalRisk}</span>
             <button id="global-shortcuts-open" className="topbar-icon-button" type="button" aria-label="打开快捷键说明" onClick={() => setShortcutsOpen(true)}>
@@ -135,6 +144,7 @@ export function AppShell() {
       </div>
       <NotificationCenter />
       <ShortcutDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <TavernOrchestrator open={tavernOpen} onClose={() => setTavernOpen(false)} />
     </div>
   );
 }
