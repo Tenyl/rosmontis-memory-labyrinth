@@ -1,0 +1,117 @@
+.operators-stack { display: grid; gap: var(--space-4); }
+.rosmontis-profile,.squad-roster { position: relative; border: 1px solid var(--color-line-subtle); background: linear-gradient(145deg,rgba(19,25,31,.9),rgba(8,12,16,.97)); box-shadow: var(--shadow-base); }
+.rosmontis-profile::before,.squad-roster::before { content: ""; position: absolute; inset: -1px auto auto -1px; width: 110px; height: 1px; background: var(--color-memory-blue); }
+.rosmontis-identity { position: relative; display: grid; align-items: center; gap: clamp(20px,3vw,38px); grid-template-columns: auto minmax(0,1fr) auto; min-height: 190px; padding: clamp(24px,3vw,42px); overflow: hidden; border-bottom: 1px solid var(--color-line-subtle); }
+.rosmontis-identity::after { content: "RSM / 04"; position: absolute; right: 8%; bottom: -23px; color: transparent; font: 800 clamp(5rem,10vw,10rem)/1 var(--font-data); letter-spacing: -.1em; -webkit-text-stroke: 1px rgba(142,215,247,.07); pointer-events: none; }
+.operator-sigil { position: relative; display: grid; width: 112px; height: 132px; place-items: center; border: 1px solid var(--color-line-strong); background: radial-gradient(circle at 50% 42%,rgba(142,215,247,.19),transparent 40%),linear-gradient(145deg,rgba(142,215,247,.08),transparent); clip-path: polygon(0 0,78% 0,100% 18%,100% 100%,22% 100%,0 82%); }
+.operator-sigil::before,.operator-sigil::after { content: ""; position: absolute; width: 55%; height: 55%; border: 1px solid rgba(142,215,247,.34); transform: rotate(45deg); }
+.operator-sigil::after { width: 30%; height: 30%; border-color: var(--color-arts-green); }
+.operator-sigil>i { position: absolute; inset: 8px; border: 1px dashed rgba(142,215,247,.18); }
+.operator-sigil>span { z-index: 1; font: 800 2.1rem/1 var(--font-data); }
+.operator-sigil>b { position: absolute; right: 8px; bottom: 8px; color: var(--color-memory-blue); font: 500 .6rem/1 var(--font-data); }
+.rosmontis-identity-copy { z-index: 1; }
+.rosmontis-identity-copy h2 { margin: var(--space-3) 0 var(--space-2); font-size: clamp(2rem,4vw,3.2rem); letter-spacing: -.05em; }
+.rosmontis-identity-copy p { margin: 0; color: var(--color-text-secondary); font-size: .78rem; }
+.rosmontis-identity-copy>div { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
+.operator-clearance { z-index: 1; display: grid; gap: var(--space-2); min-width: 146px; padding: var(--space-4); border: 1px solid rgba(126,240,189,.3); background: var(--color-arts-green-soft); }
+.operator-clearance svg { color: var(--color-arts-green); }
+.operator-clearance span { color: var(--color-text-tertiary); font-size: .6rem; }
+.operator-clearance strong { font: 600 .72rem/1 var(--font-data); }
+.rosmontis-monitoring { display: grid; grid-template-columns: minmax(0,1.12fr) minmax(0,.88fr); }
+.vital-hero,.rpg-attributes { min-width: 0; padding: clamp(24px,3vw,38px); }
+.vital-hero { border-right: 1px solid var(--color-line-subtle); }
+.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-6); }
+.section-heading h3 { margin: var(--space-3) 0 0; font-size: .96rem; }
+.section-heading>svg { color: var(--color-memory-blue); }
+.vital-rings { display: grid; gap: var(--space-5); grid-template-columns: repeat(2,minmax(0,1fr)); }
+.vital-ring { --ring-value: 50%; position: relative; display: grid; aspect-ratio: 1.9/1; min-height: 160px; place-items: center; align-content: center; overflow: hidden; border: 1px solid var(--color-line-subtle); background: radial-gradient(circle at 50% 100%,rgba(142,215,247,.12),transparent 58%),rgba(255,255,255,.012); text-align: center; }
+.vital-ring::before { content: ""; position: absolute; width: 160px; height: 160px; border-radius: 50%; background: conic-gradient(from 270deg,var(--color-memory-blue) var(--ring-value),var(--color-line-subtle) 0); -webkit-mask: radial-gradient(transparent 62%,#000 63%); mask: radial-gradient(transparent 62%,#000 63%); opacity: .7; transform: translateY(46%); }
+.vital-ring.is-stress::before { background: conic-gradient(from 270deg,var(--color-warning-amber) var(--ring-value),var(--color-line-subtle) 0); }
+.vital-ring span,.vital-ring small { z-index: 1; color: var(--color-text-tertiary); font-size: .64rem; }
+.vital-ring strong { z-index: 1; margin: var(--space-3) 0 var(--space-2); font: 600 clamp(1.3rem,3vw,2rem)/1 var(--font-data); }
+.stress-trend { margin-top: var(--space-5); padding: var(--space-4); border: 1px solid var(--color-line-subtle); }
+.stress-trend>div { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+.stress-trend span { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-tertiary); font: 500 .58rem/1 var(--font-data); }
+.stress-trend strong { color: var(--color-warning-amber); font-size: .66rem; }
+.stress-trend svg { width: 100%; height: 74px; margin-top: var(--space-3); overflow: visible; }
+.trend-area { fill: rgba(241,200,117,.08); }
+.trend-line { fill: none; stroke: var(--color-warning-amber); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.stress-trend circle { fill: var(--color-warning-amber); }
+.medical-note { display: flex; gap: var(--space-3); margin-top: var(--space-4); padding: var(--space-4); border-left: 2px solid var(--color-arts-green); background: var(--color-arts-green-soft); }
+.medical-note>svg { flex: 0 0 auto; color: var(--color-arts-green); }
+.medical-note strong { font-size: .68rem; }
+.medical-note p { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: .66rem; line-height: 1.65; }
+.attribute-grid { display: grid; gap: 1px; grid-template-columns: repeat(2,1fr); background: var(--color-line-subtle); }
+.attribute-grid>div { position: relative; min-height: 112px; overflow: hidden; padding: var(--space-4); background: var(--color-surface-primary); }
+.attribute-grid>div.is-highlighted { background: linear-gradient(135deg,var(--color-memory-blue-soft),var(--color-surface-primary)); }
+.attribute-grid span,.attribute-grid small { display: block; color: var(--color-text-tertiary); font: 500 .57rem/1 var(--font-data); }
+.attribute-grid strong { display: block; margin: var(--space-3) 0 var(--space-2); font: 600 1.55rem/1 var(--font-data); }
+.attribute-grid i { position: absolute; right: 0; bottom: 0; left: 0; height: 2px; transform-origin: left; background: var(--color-memory-blue); }
+.operator-traits { margin-top: var(--space-5); }
+.operator-traits ul { display: flex; flex-wrap: wrap; gap: var(--space-2); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+.operator-traits li { display: flex; align-items: center; gap: 7px; padding: 9px var(--space-3); border: 1px solid var(--color-line-subtle); color: var(--color-text-secondary); font-size: .65rem; }
+.operator-traits li svg { color: var(--color-memory-blue); }
+.rosmontis-capabilities { display: grid; grid-template-columns: repeat(3,1fr); border-top: 1px solid var(--color-line-subtle); }
+.rosmontis-capabilities>section { min-width: 0; padding: var(--space-5) clamp(20px,2vw,30px); border-right: 1px solid var(--color-line-subtle); }
+.rosmontis-capabilities>section:last-child { border-right: 0; }
+.rosmontis-capabilities h3 { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-4); color: var(--color-memory-blue); font-size: .72rem; }
+.rosmontis-capabilities ul { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.rosmontis-capabilities li { display: grid; align-items: center; gap: var(--space-2); grid-template-columns: 22px minmax(0,1fr) auto; padding: var(--space-3); background: rgba(255,255,255,.018); font-size: .66rem; }
+.rosmontis-capabilities li>span,.rosmontis-capabilities li>small { color: var(--color-text-tertiary); font: 500 .55rem/1 var(--font-data); }
+.temporary-state p { margin: 0 0 var(--space-5); color: var(--color-text-secondary); font-size: .7rem; line-height: 1.65; }
+.squad-roster-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding: var(--space-6); border-bottom: 1px solid var(--color-line-subtle); }
+.squad-roster-header h2 { margin: var(--space-3) 0 var(--space-2); font-size: 1.05rem; }
+.squad-roster-header p { margin: 0; color: var(--color-text-tertiary); font-size: .66rem; }
+.formation-diagram { position: relative; display: grid; width: 92px; height: 42px; grid-template-columns: repeat(3,1fr); }
+.formation-diagram::before { content: ""; position: absolute; top: 50%; right: 0; left: 0; height: 1px; background: var(--color-line-strong); }
+.formation-diagram i { z-index: 1; width: 12px; height: 12px; align-self: center; justify-self: center; border: 1px solid var(--color-memory-blue); background: var(--color-surface-primary); transform: rotate(45deg); }
+.formation-diagram i:first-child { grid-column: 2; grid-row: 1; }
+.formation-diagram i:nth-child(2) { grid-column: 1; grid-row: 2; }
+.formation-diagram i:nth-child(3) { grid-column: 2; grid-row: 2; }
+.formation-diagram i:nth-child(4) { grid-column: 3; grid-row: 2; }
+.squad-card-grid { display: grid; grid-template-columns: repeat(3,1fr); }
+.squad-card { min-width: 0; padding: var(--space-5); border-right: 1px solid var(--color-line-subtle); }
+.squad-card:last-child { border-right: 0; }
+.squad-card>header { display: grid; align-items: start; gap: var(--space-3); grid-template-columns: auto minmax(0,1fr); }
+.operator-sigil.is-squad { width: 58px; height: 66px; }
+.operator-sigil.is-squad::before { width: 48%; height: 48%; }
+.operator-sigil.is-squad::after { display: none; }
+.operator-sigil.is-squad>span { font-size: 1rem; }
+.operator-sigil.is-squad.is-amiya { border-color: var(--color-arts-green); }
+.operator-sigil.is-squad.is-hibiscus { border-color: var(--color-memory-blue); }
+.operator-sigil.is-squad.is-cuora { border-color: var(--color-warning-amber); }
+.squad-card h3 { margin: var(--space-2) 0 3px; font-size: .9rem; }
+.squad-card header p { margin: 0; color: var(--color-text-tertiary); font-size: .62rem; }
+.operator-condition { grid-column: 1/-1; display: flex; align-items: center; gap: 7px; color: var(--color-arts-green); font-size: .62rem; }
+.operator-condition i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.operator-condition.is-warning { color: var(--color-warning-amber); }
+.squad-meters { display: grid; gap: var(--space-4); margin: var(--space-5) 0; }
+.squad-tactical-data { display: grid; gap: 1px; margin: 0; background: var(--color-line-subtle); }
+.squad-tactical-data div { display: grid; align-items: center; gap: var(--space-3); grid-template-columns: minmax(0,1fr) auto; padding: var(--space-3); background: var(--color-surface-primary); }
+.squad-tactical-data dt { display: flex; align-items: center; gap: 6px; color: var(--color-text-tertiary); font-size: .6rem; }
+.squad-tactical-data dd { margin: 0; color: var(--color-text-secondary); font: 500 .62rem/1 var(--font-data); }
+.squad-card>button { display: flex; width: 100%; min-height: 42px; align-items: center; justify-content: space-between; margin-top: var(--space-4); padding: 0 var(--space-4); border: 1px solid var(--color-line-subtle); background: transparent; color: var(--color-text-secondary); font-size: .68rem; cursor: pointer; }
+.squad-card>button:hover { border-color: var(--color-memory-blue); background: var(--color-memory-blue-soft); color: var(--color-text-primary); }
+.squad-footer { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-line-subtle); color: var(--color-text-tertiary); font-size: .62rem; }
+.squad-footer svg { color: var(--color-arts-green); }
+.squad-footer i { width: 1px; height: 16px; margin-inline: var(--space-2); background: var(--color-line-strong); }
+.operator-dialog-content { display: grid; gap: var(--space-5); }
+.operator-dialog-identity { display: flex; align-items: center; gap: var(--space-4); }
+.operator-dialog-identity strong { display: block; margin: var(--space-2) 0; font-size: 1.3rem; }
+.operator-dialog-identity p { margin: 0; color: var(--color-text-tertiary); font-size: .7rem; }
+.operator-dialog-vitals { display: grid; gap: var(--space-5); grid-template-columns: repeat(2,1fr); padding: var(--space-4); border: 1px solid var(--color-line-subtle); }
+.operator-dialog-next { display: grid; gap: 1px; grid-template-columns: repeat(3,1fr); margin: 0; background: var(--color-line-subtle); }
+.operator-dialog-next div { padding: var(--space-4); background: var(--color-surface-primary); }
+.operator-dialog-next dt { color: var(--color-text-tertiary); font-size: .6rem; }
+.operator-dialog-next dd { margin: var(--space-2) 0 0; font: 600 .72rem/1.4 var(--font-data); }
+.operator-dialog-sections { display: grid; gap: var(--space-3); grid-template-columns: repeat(2,1fr); }
+.operator-dialog-sections section { padding: var(--space-4); border: 1px solid var(--color-line-subtle); }
+.operator-dialog-sections h3 { display: flex; align-items: center; gap: var(--space-2); margin: 0 0 var(--space-3); color: var(--color-memory-blue); font-size: .7rem; }
+.operator-dialog-sections ul { margin: 0; padding-left: var(--space-5); color: var(--color-text-secondary); font-size: .66rem; line-height: 1.8; }
+.operator-dialog-sections p { margin: 0; color: var(--color-text-secondary); font-size: .66rem; line-height: 1.7; }
+.operator-status-source { padding: var(--space-4); border-left: 2px solid var(--color-arts-green); background: var(--color-arts-green-soft); }
+.operator-status-source span { color: var(--color-arts-green); font-size: .65rem; }
+.operator-status-source p { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: .66rem; }
+@media (max-width: 1180px) { .rosmontis-monitoring { grid-template-columns: 1fr; } .vital-hero { border-right: 0; border-bottom: 1px solid var(--color-line-subtle); } .rosmontis-capabilities { grid-template-columns: 1fr 1fr; } .rosmontis-capabilities>section:nth-child(2) { border-right: 0; } .rosmontis-capabilities>section:last-child { grid-column: 1/-1; border-top: 1px solid var(--color-line-subtle); } .squad-card-grid { grid-template-columns: 1fr; } .squad-card { border-right: 0; border-bottom: 1px solid var(--color-line-subtle); } .squad-card:last-child { border-bottom: 0; } }
+@media (max-width: 767px) { .rosmontis-identity { grid-template-columns: auto minmax(0,1fr); padding: var(--space-5); } .operator-sigil { width: 76px; height: 92px; } .operator-clearance { grid-column: 1/-1; } .vital-hero,.rpg-attributes { padding: var(--space-5); } .vital-rings { grid-template-columns: 1fr; } .rosmontis-capabilities { grid-template-columns: 1fr; } .rosmontis-capabilities>section { border-right: 0; border-bottom: 1px solid var(--color-line-subtle); } .rosmontis-capabilities>section:last-child { grid-column: auto; border-top: 0; border-bottom: 0; } .squad-roster-header { padding: var(--space-5); } .formation-diagram { display: none; } .operator-dialog-next,.operator-dialog-sections { grid-template-columns: 1fr; } }
+@media (max-width: 420px) { .rosmontis-identity { grid-template-columns: 1fr; } .operator-sigil.is-rosmontis { width: 66px; height: 74px; } .attribute-grid { grid-template-columns: 1fr; } .operator-dialog-vitals { grid-template-columns: 1fr; } }
