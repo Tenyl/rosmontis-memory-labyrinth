@@ -2,7 +2,7 @@
  * Prompt Assembler
  */
 
-import type { ChatPreset, Lorebook, ChatMessage, MatchedEntry } from './types';
+import type { CharacterCard, ChatPreset, Lorebook, ChatMessage, MatchedEntry, Persona } from './types';
 import { createLorebookEngine } from './lorebook-engine';
 import { formatVariablesForPrompt } from './variables';
 
@@ -11,8 +11,10 @@ export interface AssembleOptions {
   history: ChatMessage[];
   preset: ChatPreset;
   lorebooks: Lorebook[];
-  userName: string;
-  characterName: string;
+  userName?: string;
+  characterName?: string;
+  character?: CharacterCard;
+  persona?: Persona;
   variables?: Record<string, string | number>;
   extraVariables?: Record<string, any>;
   formatPrompt?: string;
@@ -25,7 +27,9 @@ export interface AssembleResult {
 }
 
 export function assemblePrompt(options: AssembleOptions): AssembleResult {
-  const { userInput, history, preset, lorebooks, userName, characterName, variables, extraVariables, formatPrompt } = options;
+  const { userInput, history, preset, lorebooks, character, persona, variables, extraVariables, formatPrompt } = options;
+  const userName = persona?.name ?? options.userName ?? '用户';
+  const characterName = character?.name ?? options.characterName ?? '角色';
 
   const allMatchedEntries: MatchedEntry[] = [];
   const scanText = userInput + ' ' + history.slice(-3).map(m => m.content).join(' ');
@@ -74,19 +78,21 @@ export function assemblePrompt(options: AssembleOptions): AssembleResult {
     }
     // Character / scenario placeholders (can be filled when character cards are implemented)
     if (identifier === 'charDescription') {
-      return preset.settings.character_description || null;
+      return character
+        ? [character.description, character.systemPrompt].filter(Boolean).join('\n\n') || null
+        : preset.settings.character_description || null;
     }
     if (identifier === 'charPersonality') {
-      return preset.settings.character_personality || null;
+      return character?.personality || preset.settings.character_personality || null;
     }
     if (identifier === 'scenario') {
-      return preset.settings.scenario || null;
+      return character?.scenario || preset.settings.scenario || null;
     }
     if (identifier === 'personaDescription') {
-      return preset.settings.persona_description || null;
+      return persona?.description || preset.settings.persona_description || null;
     }
     if (identifier === 'dialogueExamples') {
-      return preset.settings.dialogue_examples || null;
+      return character?.messageExample || preset.settings.dialogue_examples || null;
     }
     if (identifier === 'groupNudge') {
       return preset.settings.group_nudge_prompt || null;
@@ -158,6 +164,13 @@ export function assemblePrompt(options: AssembleOptions): AssembleResult {
 
   if (formatPrompt) {
     systemAccumulator += (systemAccumulator ? '\n\n' : '') + formatPrompt;
+  }
+
+  if (character?.postHistoryInstructions) {
+    systemAccumulator += (systemAccumulator ? '\n\n' : '') + replaceMacros(
+      character.postHistoryInstructions,
+      { userName, characterName, userInput, variables },
+    );
   }
 
   if (systemAccumulator) {

@@ -3,17 +3,19 @@
  */
 
 import Dexie, { Table } from 'dexie';
-import type { Lorebook, ChatPreset, AppSettings, ChatSession } from './types';
+import type { Lorebook, ChatPreset, AppSettings, ChatSession, CharacterCard, Persona } from './types';
 import { DEFAULT_SETTINGS } from './types';
 
 const DB_NAME = 'SillyTavernWebDB';
-const DB_VERSION = 3;
+export const DB_VERSION = 4;
 
 class AppDatabase extends Dexie {
   lorebooks!: Table<Lorebook>;
   presets!: Table<ChatPreset>;
   settings!: Table<AppSettings>;
   chats!: Table<ChatSession>;
+  characters!: Table<CharacterCard>;
+  personas!: Table<Persona>;
 
   constructor() {
     super(DB_NAME);
@@ -47,6 +49,21 @@ class AppDatabase extends Dexie {
         await tx.table('settings').put(s);
       }
     });
+    this.version(4).stores({
+      lorebooks: 'id, name, updatedAt',
+      presets: 'id, name, updatedAt',
+      settings: 'key',
+      chats: 'id, name, updatedAt, parentChatId',
+      characters: 'id, name, updatedAt',
+      personas: 'id, name, updatedAt',
+    }).upgrade(async tx => {
+      const settings = await tx.table('settings').toCollection().toArray();
+      for (const item of settings) {
+        if (item.activeCharacterId === undefined) item.activeCharacterId = null;
+        if (item.activePersonaId === undefined) item.activePersonaId = null;
+        await tx.table('settings').put(item);
+      }
+    });
   }
 }
 
@@ -62,22 +79,13 @@ export function getDatabase(): AppDatabase {
 export async function initializeDatabase(): Promise<void> {
   const db = getDatabase();
 
-  const presetCount = await db.presets.count();
-  if (presetCount === 0) {
-    const { createDefaultPreset } = await import('./types');
-    const defaultPreset = createDefaultPreset();
-    await db.presets.add({
-      ...defaultPreset,
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    } as ChatPreset);
-  }
-
   const settingsCount = await db.settings.count();
   if (settingsCount === 0) {
     await db.settings.put({ ...DEFAULT_SETTINGS, key: 'settings' });
   }
+
+  const { seedDefaultTavernContent } = await import('./default-content');
+  await seedDefaultTavernContent();
 }
 
 export async function clearAllData(): Promise<void> {
@@ -93,15 +101,19 @@ export interface FullBackup {
   presets: ChatPreset[];
   settings: AppSettings[];
   chats: ChatSession[];
+  characters: CharacterCard[];
+  personas: Persona[];
 }
 
 export async function exportAllData(): Promise<FullBackup> {
   const db = getDatabase();
-  const [lorebooks, presets, settings, chats] = await Promise.all([
+  const [lorebooks, presets, settings, chats, characters, personas] = await Promise.all([
     db.lorebooks.toArray(),
     db.presets.toArray(),
     db.settings.toArray(),
     db.chats.toArray(),
+    db.characters.toArray(),
+    db.personas.toArray(),
   ]);
   return {
     version: DB_VERSION,
@@ -110,6 +122,8 @@ export async function exportAllData(): Promise<FullBackup> {
     presets,
     settings,
     chats,
+    characters,
+    personas,
   };
 }
 
@@ -118,15 +132,19 @@ export async function importAllData(backup: FullBackup): Promise<void> {
     throw new Error('备份格式无效');
   }
   const db = getDatabase();
-  await db.transaction('rw', db.lorebooks, db.presets, db.settings, db.chats, async () => {
+  await db.transaction('rw', [db.lorebooks, db.presets, db.settings, db.chats, db.characters, db.personas], async () => {
     await db.lorebooks.clear();
     await db.presets.clear();
     await db.settings.clear();
     await db.chats.clear();
+    await db.characters.clear();
+    await db.personas.clear();
     if (Array.isArray(backup.lorebooks)) await db.lorebooks.bulkPut(backup.lorebooks);
     if (Array.isArray(backup.presets)) await db.presets.bulkPut(backup.presets);
     if (Array.isArray(backup.settings)) await db.settings.bulkPut(backup.settings);
     if (Array.isArray(backup.chats)) await db.chats.bulkPut(backup.chats);
+    if (Array.isArray(backup.characters)) await db.characters.bulkPut(backup.characters);
+    if (Array.isArray(backup.personas)) await db.personas.bulkPut(backup.personas);
   });
 }
 
@@ -185,4 +203,30 @@ export async function setVariables(chatId: string, variables: Record<string, any
   chat.variables = variables;
   chat.updatedAt = Date.now();
   await db.chats.put(chat);
+}
+
+export async function getCharacters(): Promise<CharacterCard[]> {
+  return getDatabase().characters.orderBy('name').toArray();
+}
+
+export async function saveCharacter(character: CharacterCard): Promise<string> {
+  await getDatabase().characters.put(character);
+  return character.id;
+}
+
+export async function deleteCharacter(id: string): Promise<void> {
+  await getDatabase().characters.delete(id);
+}
+
+export async function getPersonas(): Promise<Persona[]> {
+  return getDatabase().personas.orderBy('name').toArray();
+}
+
+export async function savePersona(persona: Persona): Promise<string> {
+  await getDatabase().personas.put(persona);
+  return persona.id;
+}
+
+export async function deletePersona(id: string): Promise<void> {
+  await getDatabase().personas.delete(id);
 }

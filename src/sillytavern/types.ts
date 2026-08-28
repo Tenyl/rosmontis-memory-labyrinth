@@ -117,6 +117,61 @@ export interface MatchedEntry {
   matchedKeywords: string[];
 }
 
+// ========== Character and Persona Types ==========
+
+export interface CharacterCard {
+  id: string;
+  name: string;
+  description: string;
+  personality: string;
+  scenario: string;
+  firstMessage: string;
+  messageExample: string;
+  creatorNotes: string;
+  systemPrompt: string;
+  postHistoryInstructions: string;
+  alternateGreetings: string[];
+  tags: string[];
+  creator: string;
+  characterVersion: string;
+  extensions: Record<string, unknown>;
+  avatar?: string;
+  lorebookId?: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface Persona {
+  id: string;
+  name: string;
+  description: string;
+  avatar?: string;
+  variables: Record<string, string | number>;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SillyTavernCharacterCardV2 {
+  spec: 'chara_card_v2';
+  spec_version: string;
+  data: {
+    name: string;
+    description: string;
+    personality: string;
+    scenario: string;
+    first_mes: string;
+    mes_example: string;
+    creator_notes: string;
+    system_prompt: string;
+    post_history_instructions: string;
+    alternate_greetings: string[];
+    tags: string[];
+    creator: string;
+    character_version: string;
+    extensions: Record<string, unknown>;
+  };
+}
+
 // ========== Preset Types ==========
 
 /** SillyTavern-compatible chat completion preset.
@@ -156,6 +211,8 @@ export interface AppSettings {
   apiMode: 'single' | 'dual';
   activePresetId: string | null;
   activeLorebookIds: string[];
+  activeCharacterId: string | null;
+  activePersonaId: string | null;
   userName: string;
   characterName: string;
   theme: 'dark' | 'light';
@@ -190,6 +247,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   apiMode: 'single',
   activePresetId: null,
   activeLorebookIds: [],
+  activeCharacterId: null,
+  activePersonaId: null,
   userName: '用户',
   characterName: 'AI',
   theme: 'dark',
@@ -226,6 +285,10 @@ export interface ChatSession {
   messages: ChatMessage[];
   characterName: string;
   userName: string;
+  characterId?: string | null;
+  personaId?: string | null;
+  parentChatId?: string | null;
+  branchedFromMessageId?: string | null;
   presetId: string | null;
   lorebookIds: string[];
   variables: Record<string, any>;
