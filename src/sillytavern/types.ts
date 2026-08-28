@@ -213,6 +213,7 @@ export interface AppSettings {
   activeLorebookIds: string[];
   activeCharacterId: string | null;
   activePersonaId: string | null;
+  activeChatId: string | null;
   userName: string;
   characterName: string;
   theme: 'dark' | 'light';
@@ -249,6 +250,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   activeLorebookIds: [],
   activeCharacterId: null,
   activePersonaId: null,
+  activeChatId: null,
   userName: '用户',
   characterName: 'AI',
   theme: 'dark',

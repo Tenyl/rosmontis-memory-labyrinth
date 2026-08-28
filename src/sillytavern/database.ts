@@ -61,6 +61,7 @@ class AppDatabase extends Dexie {
       for (const item of settings) {
         if (item.activeCharacterId === undefined) item.activeCharacterId = null;
         if (item.activePersonaId === undefined) item.activePersonaId = null;
+        if (item.activeChatId === undefined) item.activeChatId = null;
         await tx.table('settings').put(item);
       }
     });

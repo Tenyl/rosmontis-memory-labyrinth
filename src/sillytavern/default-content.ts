@@ -241,6 +241,7 @@ export async function seedDefaultTavernContent(): Promise<void> {
   const shouldUpdateSettings =
     nextSettings.activeCharacterId === null ||
     nextSettings.activePersonaId === null ||
+    nextSettings.activeChatId === null ||
     nextSettings.activePresetId === null ||
     nextSettings.activeLorebookIds.length === 0;
   if (shouldUpdateSettings) {
@@ -248,6 +249,7 @@ export async function seedDefaultTavernContent(): Promise<void> {
       ...nextSettings,
       activeCharacterId: nextSettings.activeCharacterId ?? DEFAULT_CHARACTER_ID,
       activePersonaId: nextSettings.activePersonaId ?? DEFAULT_PERSONA_ID,
+      activeChatId: nextSettings.activeChatId ?? DEFAULT_CHAT_ID,
       activePresetId: nextSettings.activePresetId ?? DEFAULT_PRESET_ID,
       activeLorebookIds: nextSettings.activeLorebookIds.length > 0 ? nextSettings.activeLorebookIds : [...DEFAULT_LOREBOOK_IDS],
       characterName: nextSettings.characterName === 'AI' ? '迷迭香' : nextSettings.characterName,
