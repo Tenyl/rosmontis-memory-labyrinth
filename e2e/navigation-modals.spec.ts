@@ -3,7 +3,6 @@ import { expect, test, type Page } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => window.localStorage.clear());
 });
-
 async function closesWithEscapeAndRestoresFocus(page: Page, triggerId: string, dialogName: string) {
   const trigger = page.locator(`#${triggerId}`);
   await trigger.click();
@@ -57,4 +56,3 @@ test('设置恢复确认弹层支持键盘关闭', async ({ page }) => {
   await page.goto('/settings');
   await closesWithEscapeAndRestoresFocus(page, 'settings-reset-open', '确认恢复演示');
 });
-

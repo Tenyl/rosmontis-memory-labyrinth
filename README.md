@@ -37,4 +37,3 @@ pnpm build
 ```
 
 完整验收记录见 [前端验收报告](docs/verification/2026-08-28-frontend-audit.md)。
-

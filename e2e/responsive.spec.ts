@@ -42,11 +42,9 @@ test('375 像素意识战场默认切换为战术列表', async ({ page }) => {
   await expect(page.getByRole('heading', { name: '节点战术列表' })).toBeVisible();
   await expect(page.locator('#memory-view-switch-list')).toHaveAttribute('aria-pressed', 'true');
 });
-
 test('减少动效偏好通过设置页实时应用到根节点', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto('/settings');
   await page.getByRole('radio', { name: '减少动效' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
 });
-

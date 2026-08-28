@@ -24,7 +24,6 @@ test.each(routes)('%s 具有清晰的页面地标与控件名称', async (path, 
   )];
   controls.forEach((control) => expect(control).toHaveAccessibleName());
 });
-
 test('提供键盘跳转入口和可感知的全局导航状态', async () => {
   const { container } = renderApp('/operation');
   await screen.findByRole('heading', { level: 1, name: '作战主控台' });
@@ -33,4 +32,3 @@ test('提供键盘跳转入口和可感知的全局导航状态', async () => {
   expect(screen.getByRole('navigation', { name: '主要功能' })).toBeInTheDocument();
   expect(container.querySelector('#nav-operation-open')).toHaveAttribute('aria-current', 'page');
 });
-
