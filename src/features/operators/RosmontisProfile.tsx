@@ -40,12 +40,12 @@ export function RosmontisProfile({ operator }: RosmontisProfileProps) {
         <section className="vital-hero" aria-labelledby="operator-vitals-title">
           <div className="section-heading"><div><span className="panel-code">NEURAL MONITORING</span><h3 id="operator-vitals-title">精神与医疗监测</h3></div><Heartbeat size={20} aria-hidden /></div>
           <div className="vital-rings">
-            <div className="vital-ring is-sanity" style={{ '--ring-value': `${operator.sanity ?? 0}%` } as React.CSSProperties}><span>理智稳定度</span><strong>{operator.sanity}%</strong><small>稳定区间</small></div>
-            <div className="vital-ring is-stress" style={{ '--ring-value': `${operator.stress}%` } as React.CSSProperties}><span>精神负荷</span><strong>{operator.stress} / 100</strong><small>较 10 分钟前 +6</small></div>
+            <div className="vital-ring is-sanity" role="meter" aria-label="迷迭香理智稳定度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={operator.sanity ?? 0} style={{ '--ring-value': `${operator.sanity ?? 0}%` } as React.CSSProperties}><span>理智稳定度</span><strong>{operator.sanity}%</strong><small>稳定区间</small></div>
+            <div className="vital-ring is-stress" role="meter" aria-label="迷迭香精神负荷" aria-valuemin={0} aria-valuemax={100} aria-valuenow={operator.stress} style={{ '--ring-value': `${operator.stress}%` } as React.CSSProperties}><span>精神负荷</span><strong>{operator.stress} / 100</strong><small>较 10 分钟前 +6</small></div>
           </div>
           <div className="stress-trend">
             <div><span><Waveform size={15} aria-hidden />负荷趋势 / 10 MIN</span><strong>缓慢上升</strong></div>
-            <svg viewBox="0 0 420 74" role="img" aria-label="精神负荷在十分钟内由 31 上升至 41">
+            <svg viewBox="0 0 420 74" role="img" aria-label={`精神负荷在十分钟内由 31 上升至 ${operator.stress}`}>
               <path className="trend-area" d="M0 65 L45 62 L90 59 L135 60 L180 48 L225 51 L270 39 L315 35 L365 21 L420 17 L420 74 L0 74 Z" />
               <path className="trend-line" d="M0 65 L45 62 L90 59 L135 60 L180 48 L225 51 L270 39 L315 35 L365 21 L420 17" />
               <circle cx="420" cy="17" r="4" />

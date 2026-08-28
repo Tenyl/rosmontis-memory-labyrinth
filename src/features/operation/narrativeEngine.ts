@@ -1,4 +1,4 @@
-import type { NarrativeEngine, NarrativeOutcome } from '../../types/game';
+import type { NarrativeEngine, NarrativeOutcome, UiPreferences } from '../../types/game';
 
 export interface NarrativeScheduler {
   schedule(callback: () => void, delayMs: number): ReturnType<typeof setTimeout>;
@@ -34,13 +34,21 @@ const outcome: NarrativeOutcome = {
   archiveRecordId: 'archive-deep-chorus',
 };
 
+const timingBySpeed: Record<UiPreferences['textSpeed'], { initial: number; chunk: number }> = {
+  instant: { initial: 0, chunk: 0 },
+  standard: { initial: 120, chunk: 180 },
+  immersive: { initial: 300, chunk: 520 },
+};
+
 export function createLocalNarrativeEngine(
   scheduler: NarrativeScheduler = defaultScheduler,
+  textSpeed: UiPreferences['textSpeed'] = 'standard',
 ): NarrativeEngine {
   let activeHandle: ReturnType<typeof setTimeout> | null = null;
   let paused = false;
   let cancelled = false;
   let resumeCurrent: (() => void) | null = null;
+  const timing = timingBySpeed[textSpeed];
 
   const cancelHandle = () => {
     if (activeHandle !== null) scheduler.cancel(activeHandle);
@@ -76,10 +84,10 @@ export function createLocalNarrativeEngine(
 
           onChunk(chunks[index]);
           index += 1;
-          activeHandle = scheduler.schedule(emitNext, 180);
+          activeHandle = scheduler.schedule(emitNext, timing.chunk);
         };
 
-        activeHandle = scheduler.schedule(emitNext, 120);
+        activeHandle = scheduler.schedule(emitNext, timing.initial);
       });
     },
     pause() {

@@ -42,6 +42,8 @@ export function Dialog({
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
@@ -54,16 +56,19 @@ export function Dialog({
     const handleEscape = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape' && closeOnEscape) {
         event.preventDefault();
-        onClose();
+        onCloseRef.current();
       }
     };
 
     document.addEventListener('keydown', handleEscape);
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      triggerRef.current?.focus();
+      const trigger = triggerRef.current;
+      window.queueMicrotask(() => {
+        if (trigger?.isConnected) trigger.focus();
+      });
     };
-  }, [closeOnEscape, onClose, open]);
+  }, [closeOnEscape, open]);
 
   if (!open) return null;
 

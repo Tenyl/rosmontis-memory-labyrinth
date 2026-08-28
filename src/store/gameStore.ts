@@ -43,6 +43,27 @@ interface GameActions {
 
 export type GameStore = GameDataState & GameActions;
 
+function buildPersistedState(state: GameStore): GameDataState {
+  const ui = { ...state.ui, activeDialog: null, notifications: [] };
+  if (!state.ui.preferences.autosave) {
+    const demo = buildDemoState();
+    return {
+      ...demo,
+      ui: { ...demo.ui, preferences: state.ui.preferences, activeDialog: null, notifications: [] },
+    };
+  }
+
+  return {
+    session: state.session,
+    narrative: state.narrative,
+    memoryMap: state.memoryMap,
+    operators: state.operators,
+    archive: state.archive,
+    actionLog: state.actionLog,
+    ui,
+  };
+}
+
 export const useGameStore = create<GameStore>()(
   persist(
     (set) => ({
@@ -460,15 +481,7 @@ export const useGameStore = create<GameStore>()(
     {
       name: 'rhodes-cognition-terminal-state',
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        session: state.session,
-        narrative: state.narrative,
-        memoryMap: state.memoryMap,
-        operators: state.operators,
-        archive: state.archive,
-        actionLog: state.actionLog,
-        ui: { ...state.ui, activeDialog: null, notifications: [] },
-      }),
+      partialize: buildPersistedState,
     },
   ),
 );

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
 import type { NarrativeEntry } from '../../types/game';
@@ -10,7 +10,6 @@ import { TacticalOverview } from './TacticalOverview';
 import './operation.css';
 
 export default function OperationPage() {
-  const engineRef = useRef(createLocalNarrativeEngine());
   const [checkEntry, setCheckEntry] = useState<NarrativeEntry | null>(null);
   const session = useGameStore((state) => state.session);
   const narrative = useGameStore((state) => state.narrative);
@@ -23,6 +22,8 @@ export default function OperationPage() {
   const appendGeneratedChunk = useGameStore((state) => state.appendGeneratedChunk);
   const completeNarrativeOutcome = useGameStore((state) => state.completeNarrativeOutcome);
   const addNotification = useGameStore((state) => state.addNotification);
+  const textSpeed = useGameStore((state) => state.ui.preferences.textSpeed);
+  const engine = useMemo(() => createLocalNarrativeEngine(undefined, textSpeed), [textSpeed]);
 
   const operators = operatorsState.squadOrder
     .map((operatorId) => operatorsState.byId[operatorId])
@@ -41,7 +42,7 @@ export default function OperationPage() {
     startGeneratedEntry(command, entryId);
 
     try {
-      const outcome = await engineRef.current.run(command, (chunk) => {
+      const outcome = await engine.run(command, (chunk) => {
         appendGeneratedChunk(entryId, chunk);
       });
       completeNarrativeOutcome(outcome);
@@ -58,12 +59,12 @@ export default function OperationPage() {
   };
 
   const pauseGeneration = () => {
-    engineRef.current.pause();
+    engine.pause();
     setGenerationStatus('paused');
   };
 
   const resumeGeneration = () => {
-    engineRef.current.resume();
+    engine.resume();
     setGenerationStatus('streaming');
   };
 

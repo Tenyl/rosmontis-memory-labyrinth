@@ -24,3 +24,13 @@ test('resets mutated stress and archive state', () => {
   expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(41);
   expect(useGameStore.getState().archive.records).toHaveLength(4);
 });
+
+test('keeps only the initial scenario and preferences when autosave is disabled', () => {
+  useGameStore.getState().setUiPreference('autosave', false);
+  useGameStore.getState().setOperatorStress('rosmontis', 57);
+
+  const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
+
+  expect(persisted.state.operators.byId.rosmontis.stress).toBe(41);
+  expect(persisted.state.ui.preferences.autosave).toBe(false);
+});

@@ -11,6 +11,7 @@ test('renders Rosmontis RPG statistics and current condition', async () => {
   expect(within(profile).getByText('72%')).toBeVisible();
   expect(within(profile).getByText('精神负荷')).toBeVisible();
   expect(within(profile).getByText('41 / 100')).toBeVisible();
+  expect(within(profile).getByRole('meter', { name: '迷迭香精神负荷' })).toHaveAttribute('aria-valuenow', '41');
   expect(within(profile).getByText('轻度意识重叠')).toBeVisible();
 });
 
