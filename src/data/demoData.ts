@@ -232,6 +232,23 @@ export const deepMemoryClue: ArchiveRecord = {
   updatedAt: '03:31:44',
 };
 
+export const deepMemoryNode: MemoryNode = {
+  id: 'memory-deep-chorus',
+  title: '墙体后的合唱室',
+  layer: '深层潜意识',
+  risk: 'A',
+  hostileCount: null,
+  alliedCount: 1,
+  exploration: 6,
+  anchored: false,
+  x: 78,
+  y: 66,
+  summary: '多个儿童意识被压缩在同一时间断面，雨声正在替它们维持边界。',
+  effects: ['时间感知错位', '群体意识回流'],
+  intelligence: ['可辨认意识回声 7', '发现向下延伸的未解析路径'],
+  updatedAt: '03:31:44',
+};
+
 export function buildDemoState(): GameDataState {
   return {
     session: {
