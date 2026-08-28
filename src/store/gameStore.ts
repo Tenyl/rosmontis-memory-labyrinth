@@ -3,6 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { buildDemoState, deepMemoryClue, deepMemoryNode } from '../data/demoData';
 import type {
   ArchiveRecord,
+  ArchiveKind,
   GameDataState,
   GenerationStatus,
   InputMode,
@@ -23,6 +24,14 @@ interface GameActions {
   selectMemoryNode: (nodeId: string | null) => void;
   setMemoryView: (viewMode: 'graph' | 'list') => void;
   expandMemoryNode: (sourceId: string, direction: MemoryDirection) => MemoryNode | null;
+  setArchiveView: (view: 'records' | 'relations' | 'reasoning') => void;
+  setArchiveQuery: (query: string) => void;
+  setArchiveKindFilter: (kindFilter: ArchiveKind | '全部') => void;
+  setArchiveSort: (sort: '最近更新' | '可信度') => void;
+  toggleArchivePin: (recordId: string) => void;
+  saveArchiveNote: (recordId: string, note: string) => void;
+  markArchiveRead: (recordId: string) => void;
+  linkArchiveRecords: (sourceId: string, targetId: string) => void;
   setOperatorStress: (operatorId: string, stress: number) => void;
   addArchiveRecord: (record: ArchiveRecord) => void;
   addNotification: (item: NotificationItem) => void;
@@ -322,6 +331,80 @@ export const useGameStore = create<GameStore>()(
         });
         return createdNode;
       },
+      setArchiveView: (view) =>
+        set((state) => ({ archive: { ...state.archive, view } })),
+      setArchiveQuery: (query) =>
+        set((state) => ({ archive: { ...state.archive, query } })),
+      setArchiveKindFilter: (kindFilter) =>
+        set((state) => ({ archive: { ...state.archive, kindFilter } })),
+      setArchiveSort: (sort) =>
+        set((state) => ({ archive: { ...state.archive, sort } })),
+      toggleArchivePin: (recordId) =>
+        set((state) => ({
+          archive: {
+            ...state.archive,
+            records: state.archive.records.map((record) =>
+              record.id === recordId ? { ...record, pinned: !record.pinned } : record,
+            ),
+          },
+        })),
+      saveArchiveNote: (recordId, note) =>
+        set((state) => ({
+          archive: {
+            ...state.archive,
+            records: state.archive.records.map((record) =>
+              record.id === recordId ? { ...record, note, updatedAt: '03:34:12' } : record,
+            ),
+          },
+          ui: {
+            ...state.ui,
+            notifications: [
+              ...state.ui.notifications,
+              {
+                id: `notification-note-saved-${recordId}`,
+                kind: 'success',
+                title: '批注已保存',
+                message: '玩家批注已写入本地档案，不会覆盖 LLM 生成的原始情报。',
+                dismissible: true,
+              },
+            ],
+          },
+        })),
+      markArchiveRead: (recordId) =>
+        set((state) => ({
+          archive: {
+            ...state.archive,
+            records: state.archive.records.map((record) =>
+              record.id === recordId ? { ...record, unread: false } : record,
+            ),
+          },
+        })),
+      linkArchiveRecords: (sourceId, targetId) =>
+        set((state) => {
+          if (sourceId === targetId) return state;
+          const id = `link-user-${sourceId}-${targetId}`;
+          if (state.archive.links.some((link) => link.id === id)) return state;
+          return {
+            archive: {
+              ...state.archive,
+              links: [...state.archive.links, { id, sourceId, targetId, relation: '支持' }],
+            },
+            ui: {
+              ...state.ui,
+              notifications: [
+                ...state.ui.notifications,
+                {
+                  id: `notification-link-${sourceId}-${targetId}`,
+                  kind: 'success',
+                  title: '关联已建立',
+                  message: '两份档案已建立“支持”关系，可在关系视图中复核。',
+                  actionLabel: '撤销需在详情中处理',
+                  dismissible: true,
+                },
+              ],
+            },
+          };
+        }),
       setOperatorStress: (operatorId, stress) =>
         set((state) => {
           const operator = state.operators.byId[operatorId];

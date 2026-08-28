@@ -153,7 +153,7 @@ const archiveRecords: ArchiveRecord[] = [
     verification: '存在冲突',
     relatedIds: ['archive-r09-record', 'archive-elaine'],
     note: '病历上的水迹与建筑外部雨水成分不同。',
-    pinned: true,
+    pinned: false,
     unread: false,
     updatedAt: '03:22:41',
   },
