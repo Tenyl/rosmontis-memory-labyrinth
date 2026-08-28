@@ -1,0 +1,51 @@
+.dialog-layer { position: fixed; z-index: var(--layer-overlay); inset: 0; display: grid; place-items: center; padding: var(--space-4); }
+.dialog-scrim { position: absolute; inset: 0; background: rgba(1,4,7,.78); backdrop-filter: blur(10px) saturate(80%); animation: scrim-in var(--motion-standard) var(--ease-out) both; }
+.terminal-dialog { position: relative; display: flex; width: min(720px,100%); max-height: min(820px,calc(100dvh - 32px)); flex-direction: column; border: 1px solid var(--color-line-strong); border-top-color: var(--color-memory-blue); background: var(--color-surface-glass); box-shadow: var(--shadow-raised); backdrop-filter: blur(24px); clip-path: polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px)); animation: dialog-in var(--motion-slow) var(--ease-out) both; }
+.dialog-layer.is-danger .terminal-dialog { border-top-color: var(--color-danger-red); box-shadow: var(--shadow-danger),var(--shadow-raised); }
+.dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); padding: var(--space-6); border-bottom: 1px solid var(--color-line-subtle); }
+.dialog-eyebrow { color: var(--color-memory-blue); font: 500 .62rem/1 var(--font-data); letter-spacing: .15em; }
+.dialog-header h2 { margin: var(--space-3) 0 0; font-size: clamp(1.25rem,3vw,1.8rem); }
+.dialog-close { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border: 1px solid var(--color-line-subtle); background: transparent; cursor: pointer; }
+.dialog-close:hover { border-color: var(--color-memory-blue); background: var(--color-memory-blue-soft); }
+.dialog-body { min-height: 0; overflow: auto; padding: var(--space-6); }
+.dialog-footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding: var(--space-4) var(--space-6) var(--space-6); border-top: 1px solid var(--color-line-subtle); }
+.notification-region { position: fixed; z-index: var(--layer-toast); top: 88px; right: var(--space-5); display: grid; width: min(390px,calc(100vw - 32px)); gap: var(--space-3); pointer-events: none; }
+.terminal-notification { position: relative; display: grid; align-items: start; gap: var(--space-3); grid-template-columns: auto minmax(0,1fr) auto; padding: var(--space-4); border: 1px solid var(--color-line-strong); background: rgba(13,17,22,.96); box-shadow: var(--shadow-base); pointer-events: auto; animation: notification-in var(--motion-slow) var(--ease-out) both; }
+.terminal-notification::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 2px; background: var(--color-memory-blue); }
+.terminal-notification.is-success::before { background: var(--color-arts-green); }
+.terminal-notification.is-warning::before { background: var(--color-warning-amber); }
+.terminal-notification.is-danger::before { background: var(--color-danger-red); }
+.terminal-notification.is-success > svg { color: var(--color-arts-green); }
+.terminal-notification.is-warning > svg { color: var(--color-warning-amber); }
+.terminal-notification.is-danger > svg { color: var(--color-danger-red); }
+.notification-copy strong { font-size: .82rem; }
+.notification-copy p { margin: 5px 0 0; color: var(--color-text-secondary); font-size: .74rem; line-height: 1.55; }
+.notification-copy a { display: inline-block; margin-top: var(--space-2); color: var(--color-memory-blue); font-size: .72rem; }
+.terminal-notification > button { display: grid; width: 32px; height: 32px; place-items: center; border: 0; background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.segmented-control { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 2px; border: 1px solid var(--color-line-subtle); background: rgba(0,0,0,.18); }
+.segmented-control button { display: inline-flex; min-height: 40px; align-items: center; gap: var(--space-2); padding: 0 var(--space-4); border: 1px solid transparent; background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.segmented-control button:hover { color: var(--color-text-primary); }
+.segmented-control button.is-selected { border-color: rgba(142,215,247,.28); background: var(--color-memory-blue-soft); color: var(--color-text-primary); }
+.segmented-control small { color: var(--color-memory-blue); font-family: var(--font-data); }
+.status-badge { display: inline-flex; min-height: 26px; align-items: center; gap: 6px; padding: 0 9px; border: 1px solid var(--color-line-subtle); color: var(--color-text-secondary); font: 500 .66rem/1 var(--font-data); }
+.status-badge.is-success { border-style: double; color: var(--color-arts-green); }
+.status-badge.is-warning { border-color: rgba(241,200,117,.5); color: var(--color-warning-amber); }
+.status-badge.is-danger { border-color: var(--color-danger-red); border-style: dashed; color: var(--color-danger-red); }
+.status-badge.is-memory { border-color: rgba(142,215,247,.5); color: var(--color-memory-blue); }
+.terminal-meter { min-width: 0; }
+.meter-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
+.meter-heading > span { color: var(--color-text-secondary); font-size: .72rem; }
+.meter-heading strong { font: 500 1.1rem/1 var(--font-data); font-variant-numeric: tabular-nums; }
+.meter-heading small { margin-left: 4px; color: var(--color-text-tertiary); font-size: .6rem; }
+.meter-track { height: 4px; margin-top: var(--space-2); overflow: hidden; background: var(--color-line-subtle); }
+.meter-track i { display: block; width: 100%; height: 100%; transform-origin: left center; background: var(--color-memory-blue); transition: transform var(--motion-standard) var(--ease-out); }
+.terminal-meter.is-arts .meter-track i { background: var(--color-arts-green); }
+.terminal-meter.is-warning .meter-track i { background: var(--color-warning-amber); }
+.terminal-meter.is-danger .meter-track i { background: var(--color-danger-red); }
+.terminal-meter p { margin: var(--space-2) 0 0; color: var(--color-text-tertiary); font-size: .68rem; }
+.is-spinning { animation: spin 1s linear infinite; }
+@keyframes dialog-in { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes notification-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 767px) { .notification-region { top: auto; right: var(--space-4); bottom: var(--space-4); } .dialog-layer { align-items: end; padding: 0; } .terminal-dialog { width: 100%; max-height: calc(100dvh - 24px); clip-path: polygon(0 14px,14px 0,100% 0,100% 100%,0 100%); } }

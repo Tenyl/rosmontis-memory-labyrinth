@@ -13,7 +13,9 @@ import { Suspense, type ComponentType } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { selectSession, selectUnreadArchiveCount } from '../store/selectors';
+import { NotificationCenter } from '../components/NotificationCenter';
 import './app-shell.css';
+import '../components/components.css';
 
 interface NavItem {
   path: string;
@@ -100,6 +102,7 @@ export function AppShell() {
           <Suspense fallback={<RouteLoading />}><Outlet /></Suspense>
         </main>
       </div>
+      <NotificationCenter />
     </div>
   );
 }

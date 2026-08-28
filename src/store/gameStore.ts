@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { buildDemoState } from '../data/demoData';
-import type { ArchiveRecord, GameDataState } from '../types/game';
+import type { ArchiveRecord, GameDataState, NotificationItem } from '../types/game';
 
 interface GameActions {
   setOperatorStress: (operatorId: string, stress: number) => void;
   addArchiveRecord: (record: ArchiveRecord) => void;
+  addNotification: (item: NotificationItem) => void;
+  dismissNotification: (notificationId: string) => void;
   resetDemoState: () => void;
 }
 
@@ -37,6 +39,23 @@ export const useGameStore = create<GameStore>()(
             records: state.archive.records.some((item) => item.id === record.id)
               ? state.archive.records
               : [...state.archive.records, { ...record, relatedIds: [...record.relatedIds] }],
+          },
+        })),
+      addNotification: (item) =>
+        set((state) => ({
+          ui: {
+            ...state.ui,
+            notifications: [
+              ...state.ui.notifications.filter((notification) => notification.id !== item.id),
+              item,
+            ],
+          },
+        })),
+      dismissNotification: (notificationId) =>
+        set((state) => ({
+          ui: {
+            ...state.ui,
+            notifications: state.ui.notifications.filter((item) => item.id !== notificationId),
           },
         })),
       resetDemoState: () => set(buildDemoState()),
