@@ -6,6 +6,8 @@ import type {
   GameDataState,
   GenerationStatus,
   InputMode,
+  MemoryDirection,
+  MemoryNode,
   NarrativeOutcome,
   NotificationItem,
 } from '../types/game';
@@ -18,6 +20,9 @@ interface GameActions {
   startGeneratedEntry: (command: string, entryId: string) => void;
   appendGeneratedChunk: (entryId: string, chunk: string) => void;
   completeNarrativeOutcome: (outcome: NarrativeOutcome) => void;
+  selectMemoryNode: (nodeId: string | null) => void;
+  setMemoryView: (viewMode: 'graph' | 'list') => void;
+  expandMemoryNode: (sourceId: string, direction: MemoryDirection) => MemoryNode | null;
   setOperatorStress: (operatorId: string, stress: number) => void;
   addArchiveRecord: (record: ArchiveRecord) => void;
   addNotification: (item: NotificationItem) => void;
@@ -189,6 +194,134 @@ export const useGameStore = create<GameStore>()(
             },
           };
         }),
+      selectMemoryNode: (nodeId) =>
+        set((state) => ({ memoryMap: { ...state.memoryMap, selectedNodeId: nodeId } })),
+      setMemoryView: (viewMode) =>
+        set((state) => ({ memoryMap: { ...state.memoryMap, viewMode } })),
+      expandMemoryNode: (sourceId, direction) => {
+        let createdNode: MemoryNode | null = null;
+        set((state) => {
+          const source = state.memoryMap.nodes.find((node) => node.id === sourceId);
+          if (!source) return state;
+
+          const suffix = direction === 'down' ? 'deep' : direction;
+          const nodeId = `memory-expanded-${sourceId}-${suffix}`;
+          const existing = state.memoryMap.nodes.find((node) => node.id === nodeId);
+          if (existing) {
+            createdNode = existing;
+            return {
+              memoryMap: { ...state.memoryMap, selectedNodeId: existing.id },
+              ui: {
+                ...state.ui,
+                notifications: [
+                  ...state.ui.notifications,
+                  {
+                    id: `notification-path-existing-${suffix}`,
+                    kind: 'warning',
+                    title: '路径已经存在',
+                    message: '该方向的意识坐标已完成标定，终端已重新选中对应节点。',
+                    dismissible: true,
+                  },
+                ],
+              },
+            };
+          }
+
+          const profile = {
+            down: {
+              title: '沉没的儿童诊疗层',
+              layer: '深层潜意识' as const,
+              risk: 'A' as const,
+              hostileCount: 2,
+              x: source.x,
+              y: Math.min(88, source.y + 35),
+              summary: '向下坠落的走廊由重复病历构成，意识回声正在主动重写门牌编号。',
+              effects: ['精神负荷增幅', '路径不可逆'],
+            },
+            left: {
+              title: '逆流的地下档案室',
+              layer: '未知战局' as const,
+              risk: 'B' as const,
+              hostileCount: null,
+              x: Math.max(8, source.x - 31),
+              y: Math.min(84, source.y + 16),
+              summary: '文件柜沿反重力方向延伸，所有索引都指向尚未发生的撤离记录。',
+              effects: ['空间方位翻转'],
+            },
+            right: {
+              title: '雨停后的空白病区',
+              layer: '未知战局' as const,
+              risk: 'B' as const,
+              hostileCount: 1,
+              x: Math.min(91, source.x + 19),
+              y: Math.min(84, source.y + 19),
+              summary: '病区没有雨声，现实边界因此出现大面积缺失，远处有一道人形轮廓。',
+              effects: ['环境信息缺损'],
+            },
+          }[direction];
+
+          createdNode = {
+            id: nodeId,
+            title: profile.title,
+            layer: profile.layer,
+            risk: profile.risk,
+            hostileCount: profile.hostileCount,
+            alliedCount: 0,
+            exploration: 0,
+            anchored: false,
+            x: profile.x,
+            y: profile.y,
+            summary: profile.summary,
+            effects: profile.effects,
+            intelligence: ['环境数据等待首次扫描'],
+            updatedAt: '03:33:08',
+          };
+
+          return {
+            memoryMap: {
+              ...state.memoryMap,
+              selectedNodeId: nodeId,
+              nodes: [...state.memoryMap.nodes, createdNode],
+              edges: [
+                ...state.memoryMap.edges,
+                {
+                  id: `edge-${sourceId}-${suffix}`,
+                  sourceId,
+                  targetId: nodeId,
+                  state: direction === 'down' ? 'polluted' : 'unresolved',
+                },
+              ],
+            },
+            actionLog: [
+              ...state.actionLog,
+              {
+                id: `log-memory-expand-${suffix}`,
+                kind: '节点解锁',
+                title: profile.title,
+                summary: `${source.title}向${direction === 'down' ? '深层潜意识' : '未知战局'}的路径已完成标定。`,
+                timestamp: '03:33:08',
+                actor: '系统',
+                chapter: '第一章',
+                relatedPath: '/memory',
+              },
+            ],
+            ui: {
+              ...state.ui,
+              notifications: [
+                ...state.ui.notifications,
+                {
+                  id: `notification-path-created-${suffix}`,
+                  kind: 'success',
+                  title: '路径已建立',
+                  message: `新节点“${profile.title}”已写入意识战场，等待小队确认进入。`,
+                  dismissible: true,
+                },
+              ],
+            },
+          };
+        });
+        return createdNode;
+      },
       setOperatorStress: (operatorId, stress) =>
         set((state) => {
           const operator = state.operators.byId[operatorId];
