@@ -7,7 +7,7 @@ import {
   DoorOpen,
   Pulse,
   Scan,
-  UsersThree,
+  UserFocus,
   WarningDiamond,
 } from '@phosphor-icons/react';
 import { Meter } from '../../components/Meter';
@@ -46,7 +46,7 @@ export function MemoryInspector({ node, onExpand, onEnter, onNotify }: MemoryIns
 
       <div className="memory-force-grid">
         <div><span><WarningDiamond size={15} weight="fill" aria-hidden />敌对驻守</span><strong>{node.hostileCount ?? '未知'}</strong><small>{node.hostileCount === null ? '信号受污染' : '已定位单位'}</small></div>
-        <div><span><UsersThree size={15} aria-hidden />友方驻守</span><strong>{node.alliedCount}</strong><small>{node.alliedCount > 0 ? '神经链路稳定' : '无小队驻留'}</small></div>
+        <div><span><UserFocus size={15} aria-hidden />迷迭香信标</span><strong>{node.alliedCount > 0 ? '在线' : '未建立'}</strong><small>{node.alliedCount > 0 ? '神经链路稳定' : '当前节点未接入'}</small></div>
       </div>
 
       <section className="memory-inspector-section"><h3><Pulse size={15} aria-hidden />环境效应</h3><ul>{node.effects.map((effect) => <li key={effect}>{effect}</li>)}</ul></section>

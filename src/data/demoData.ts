@@ -201,7 +201,7 @@ export function buildDemoState(): GameDataState {
       objective: '确认 R-09 隔离区异常意识来源',
       connection: '本地模拟已连接',
       globalRisk: 'B',
-      squadStatus: '小队链路正常',
+      squadStatus: '认知链路稳定',
     },
     narrative: {
       entries: [
@@ -210,7 +210,7 @@ export function buildDemoState(): GameDataState {
           index: 7,
           kind: '叙事',
           title: '雨幕下的入口',
-          body: '小队穿过积水漫过脚踝的接待厅。雨水沿着破损玻璃向上爬升，远处的应急灯以并不属于电路故障的节奏闪烁。',
+          body: '迷迭香穿过积水漫过脚踝的接待厅。雨水沿着破损玻璃向上爬升，远处的应急灯以并不属于电路故障的节奏闪烁。',
           timestamp: '03:20:14',
           relatedIds: ['memory-sanatorium'],
         },
@@ -236,7 +236,7 @@ export function buildDemoState(): GameDataState {
       ],
       inputMode: '行动描述',
       draft: '',
-      suggestions: ['检查西侧隔离门', '让迷迭香读取残留意识', '命令小队进入防御队形'],
+      suggestions: ['检查西侧隔离门', '让迷迭香读取残留意识', '命令巨剑进入守望阵位'],
       generationStatus: 'idle',
       activeEntryId: null,
       inputError: null,
@@ -269,11 +269,11 @@ export function buildDemoState(): GameDataState {
       sort: '最近更新',
     },
     actionLog: [
-      { id: 'log-chapter', kind: '章节', title: '进入失温病历', summary: '小队抵达废弃医疗站。', timestamp: '03:20:00', actor: '系统', chapter: '第一章' },
-      { id: 'log-command', kind: '指令', title: '调查接待厅', summary: '玩家要求小队确认可用入口。', timestamp: '03:20:11', actor: '玩家', chapter: '第一章' },
+      { id: 'log-chapter', kind: '章节', title: '进入失温病历', summary: '迷迭香抵达废弃医疗站。', timestamp: '03:20:00', actor: '系统', chapter: '第一章' },
+      { id: 'log-command', kind: '指令', title: '调查接待厅', summary: '玩家要求迷迭香确认可用入口。', timestamp: '03:20:11', actor: '玩家', chapter: '第一章' },
       { id: 'log-check', kind: '检定', title: '环境感知检定', summary: '发现墙体后异常心智回声。', timestamp: '03:22:37', actor: '迷迭香', chapter: '第一章', sourceEntryId: 'narrative-scan-03' },
       { id: 'log-archive', kind: '情报入库', title: '潮湿的儿童病历', summary: '新增冲突线索。', timestamp: '03:22:41', actor: '迷迭香', chapter: '第一章', relatedPath: '/archive' },
-      { id: 'log-state', kind: '状态变化', title: '未知通讯接入', summary: '护理员伊莲进入小队通讯。', timestamp: '03:24:09', actor: '系统', chapter: '第一章', relatedPath: '/archive' },
+      { id: 'log-state', kind: '状态变化', title: '未知通讯接入', summary: '护理员伊莲接入迷迭香的认知通讯。', timestamp: '03:24:09', actor: '系统', chapter: '第一章', relatedPath: '/archive' },
     ],
     tavernProjection: {
       activeSessionId: null,

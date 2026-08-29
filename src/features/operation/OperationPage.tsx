@@ -6,11 +6,7 @@ import './operation.css';
 
 export default function OperationPage() {
   const session = useGameStore((state) => state.session);
-  const operatorsState = useGameStore((state) => state.operators);
-
-  const operators = operatorsState.squadOrder
-    .map((operatorId) => operatorsState.byId[operatorId])
-    .filter(Boolean);
+  const rosmontis = useGameStore((state) => state.operators.byId.rosmontis);
 
   return (
     <section className="route-page operation-route" aria-labelledby="operation-page-title">
@@ -18,7 +14,7 @@ export default function OperationPage() {
         id="operation-page-title"
         code="01"
         title="作战主控台"
-        description="解析剧情、执行战术指令并监控小队状态。所有本地模拟与远程模型回合均经统一 Tavern 运行时解析并持久化。"
+        description="解析剧情、执行战术指令并监控迷迭香状态。所有本地模拟与远程模型回合均经统一 Tavern 运行时解析并持久化。"
         meta="LIVE SESSION / 03:31"
       />
 
@@ -26,7 +22,7 @@ export default function OperationPage() {
         <div className="operation-primary">
           <TavernGameView />
         </div>
-        <TacticalOverview session={session} operators={operators} />
+        <TacticalOverview session={session} rosmontis={rosmontis} />
       </div>
     </section>
   );

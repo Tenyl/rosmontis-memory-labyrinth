@@ -7,7 +7,7 @@ import {
   Graph,
   Keyboard,
   SlidersHorizontal,
-  UsersThree,
+  UserFocus,
   WarningDiamond,
   WifiHigh,
 } from '@phosphor-icons/react';
@@ -33,7 +33,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: '/operation', label: '作战主控台', caption: 'OPERATION', icon: Command },
   { path: '/memory', label: '意识战场', caption: 'MEMORY', icon: Graph },
-  { path: '/operators', label: '干员与小队', caption: 'OPERATORS', icon: UsersThree },
+  { path: '/operators', label: '迷迭香状态', caption: 'ROSMONTIS', icon: UserFocus },
   { path: '/archive', label: '情报档案库', caption: 'ARCHIVE', icon: Archive },
   { path: '/log', label: '行动记录', caption: 'ACTION LOG', icon: ClockCounterClockwise },
   { path: '/settings', label: '系统设置', caption: 'SYSTEM', icon: SlidersHorizontal },

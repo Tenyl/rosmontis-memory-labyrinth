@@ -2,6 +2,14 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderApp } from '../../test/renderApp';
 
+test('只显示迷迭香的行动资源与认知链路状态', async () => {
+  renderApp('/operation');
+
+  expect(await screen.findByRole('heading', { name: '迷迭香行动资源' })).toBeVisible();
+  expect(screen.getByText('RSM-04 / 迷迭香')).toBeVisible();
+  expect(document.body).not.toHaveTextContent(/小队|名干员/);
+});
+
 test('validates an empty command inline and completes a Tavern runtime turn', async () => {
   renderApp('/operation');
   await screen.findByRole('heading', { name: '作战主控台' });

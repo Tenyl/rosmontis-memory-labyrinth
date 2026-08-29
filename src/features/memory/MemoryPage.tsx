@@ -43,7 +43,7 @@ export default function MemoryPage() {
       setHighRiskOpen(true);
       return;
     }
-    notify('节点接入中', `小队正向“${selectedNode.title}”移动，叙事上下文将在作战主控台继续。`);
+    notify('节点接入中', `迷迭香正向“${selectedNode.title}”移动，叙事上下文将在作战主控台继续。`);
   };
 
   const confirmExpansion = () => {
@@ -101,7 +101,7 @@ export default function MemoryPage() {
         onClose={() => setHighRiskOpen(false)}
         onConfirm={() => {
           setHighRiskOpen(false);
-          notify('高危节点接入中', `小队已确认进入“${selectedNode?.title ?? '未知节点'}”，医疗监测提升至战术级。`);
+          notify('高危节点接入中', `迷迭香已确认进入“${selectedNode?.title ?? '未知节点'}”，医疗监测提升至战术级。`);
         }}
       />
     </section>

@@ -211,17 +211,19 @@ git commit -m "refactor: focus status page on Rosmontis"
 - Modify: `src/app/AppShell.test.tsx`
 - Modify: `src/features/operation/OperationPage.tsx`
 - Modify: `src/features/operation/TacticalOverview.tsx`
+- Modify: `src/features/operation/operation.css`
 - Modify: `src/features/operation/OperationPage.test.tsx`
 - Modify: `src/features/memory/MemoryPage.tsx`
 - Modify: `src/features/memory/MemoryInspector.tsx`
 - Modify: `src/features/memory/ExpansionDialog.tsx`
 - Modify: `src/features/settings/ResetDemoDialog.tsx`
+- Create: `src/test/singleProtagonistContract.test.ts`
 
 **Interfaces:**
 - Consumes: Rosmontis-only `squadOrder` invariant from Task 2.
 - Produces: navigation label `迷迭香状态` and operation/memory copy that addresses Rosmontis rather than a squad.
 
-- [ ] **Step 1: Add failing navigation and content assertions**
+- [x] **Step 1: Add failing navigation and content assertions**
 
 ```tsx
 expect(screen.getByRole('link', { name: /迷迭香状态/ })).toBeVisible();
@@ -230,23 +232,23 @@ expect(document.body).not.toHaveTextContent(/干员与小队|随行小队|小队
 
 Add a source contract that the listed runtime files contain none of `阿米娅|末药|蛇屠箱`.
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `pnpm test -- src/app/AppShell.test.tsx src/features/operation/OperationPage.test.tsx`
 
 Expected: FAIL on old navigation and squad copy.
 
-- [ ] **Step 3: Rewrite navigation and operation content**
+- [x] **Step 3: Rewrite navigation and operation content**
 
 Rename the nav item while preserving `/operators` for deep-link compatibility. Pass Rosmontis directly to `TacticalOverview`; replace the multi-operator action sequence with a single-protagonist action resource panel. Rewrite “小队” movement, high-risk, reset, and expansion copy to address `迷迭香` or `当前 Run`.
 
-- [ ] **Step 4: Run focused tests and verify GREEN**
+- [x] **Step 4: Run focused tests and verify GREEN**
 
 Run: `pnpm test -- src/app/AppShell.test.tsx src/features/operation/OperationPage.test.tsx src/features/memory/MemoryPage.test.tsx`
 
 Expected: all focused tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/app/AppShell.tsx src/app/AppShell.test.tsx src/features/operation src/features/memory src/features/settings/ResetDemoDialog.tsx

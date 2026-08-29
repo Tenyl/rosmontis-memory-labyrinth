@@ -546,7 +546,7 @@ export const useGameStore = create<GameStore>()(
                   id: `notification-path-created-${suffix}`,
                   kind: 'success',
                   title: '路径已建立',
-                  message: `新节点“${profile.title}”已写入意识战场，等待小队确认进入。`,
+                  message: `新节点“${profile.title}”已写入意识战场，等待迷迭香确认进入。`,
                   dismissible: true,
                 },
               ],
