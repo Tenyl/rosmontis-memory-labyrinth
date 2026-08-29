@@ -20,6 +20,13 @@ const icons = {
   processing: CircleNotch,
 };
 
+const kindLabels = {
+  success: '成功',
+  warning: '警告',
+  danger: '失败',
+  processing: '处理中',
+};
+
 export function NotificationCenter({ items, onDismiss }: NotificationCenterProps) {
   const storeItems = useGameStore((state) => state.ui.notifications);
   const dismissNotification = useGameStore((state) => state.dismissNotification);
@@ -31,9 +38,10 @@ export function NotificationCenter({ items, onDismiss }: NotificationCenterProps
       {activeItems.map((item) => {
         const Icon = icons[item.kind] ?? Info;
         return (
-          <article id={item.id} key={item.id} className={`terminal-notification is-${item.kind}`}>
+          <article id={item.id} key={item.id} className={`terminal-notification is-${item.kind}`} aria-label={`${kindLabels[item.kind]}：${item.title}`}>
             <Icon className={item.kind === 'processing' ? 'is-spinning' : ''} size={21} aria-hidden />
             <div className="notification-copy">
+              <span className="notification-kind-label">{kindLabels[item.kind]}</span>
               <strong>{item.title}</strong>
               <p>{item.message}</p>
               {item.actionLabel ? (

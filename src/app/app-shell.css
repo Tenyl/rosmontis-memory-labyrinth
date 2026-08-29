@@ -35,13 +35,17 @@
 .topbar-kicker { color: var(--color-text-tertiary); font: 500 .58rem/1 var(--font-data); letter-spacing: .11em; }
 .operation-divider { width: 28px; height: 1px; background: var(--color-line-strong); }
 .topbar-statuses { gap: var(--space-3); }
-.tavern-topbar-button { display: flex; min-height: 42px; max-width: 240px; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border: 1px solid rgba(142,215,247,.28); background: var(--color-memory-blue-soft); color: var(--color-text-primary); text-align: left; cursor: pointer; transition: border-color var(--motion-fast), background var(--motion-fast); }
+.tavern-topbar-button { display: flex; min-width: 0; min-height: 48px; max-width: 340px; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border: 1px solid rgba(142,215,247,.28); background: var(--color-memory-blue-soft); color: var(--color-text-primary); text-align: left; cursor: pointer; transition: border-color var(--motion-fast), background var(--motion-fast); }
 .tavern-topbar-button:hover { border-color: var(--color-memory-blue); background: rgba(142,215,247,.18); }
 .tavern-topbar-button > svg { flex: 0 0 auto; color: var(--color-memory-blue); }
 .tavern-topbar-button span { min-width: 0; }
 .tavern-topbar-button strong, .tavern-topbar-button small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tavern-topbar-button strong { font-size: .68rem; }
 .tavern-topbar-button small { margin-top: 3px; color: var(--color-text-tertiary); font: 500 .52rem/1 var(--font-data); letter-spacing: .04em; }
+.tavern-runtime-telemetry { display: flex; min-width: 0; align-items: center; gap: var(--space-2); margin-top: 6px; }
+.tavern-runtime-telemetry > span { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 5px; color: var(--color-arts-green); font: 600 .52rem/1 var(--font-data); }
+.tavern-runtime-telemetry > span.is-processing { color: var(--color-memory-blue); }.tavern-runtime-telemetry > span.is-warning { color: var(--color-warning-amber); }.tavern-runtime-telemetry > span.is-danger { color: var(--color-danger-red); }
+.tavern-runtime-telemetry > small { min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .connection-status, .risk-status { min-height: 32px; gap: 7px; padding: 0 var(--space-3); border: 1px solid var(--color-line-subtle); color: var(--color-text-secondary); font-size: .68rem; }
 .connection-status svg { color: var(--color-arts-green); }
 .risk-status svg { color: var(--color-warning-amber); }

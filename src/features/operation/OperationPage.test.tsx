@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderApp } from '../../test/renderApp';
 
@@ -20,4 +20,5 @@ test('validates an empty command inline and completes a Tavern runtime turn', as
   await user.click(await screen.findByRole('link', { name: /打开来自会话雨幕回声的来源回合/ }));
   const history = await screen.findByRole('dialog', { name: '历史记录' });
   expect(history).toHaveTextContent('门后传来三个频率完全相同的呼吸声');
+  await waitFor(() => expect(history.querySelector('.is-source-focus')).toHaveFocus());
 });

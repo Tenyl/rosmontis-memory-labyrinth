@@ -17,7 +17,7 @@ export function HistoryDrawer({ open, onClose, focusMessageId }: { open: boolean
     const frame = window.requestAnimationFrame(() => {
       const target = document.getElementById(`history-message-${focusMessageId}`);
       target?.focus();
-      target?.scrollIntoView({ block: 'center' });
+      target?.scrollIntoView?.({ block: 'center' });
     });
     return () => window.cancelAnimationFrame(frame);
   }, [focusMessageId, messages.length, open]);

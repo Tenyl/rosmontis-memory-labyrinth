@@ -39,6 +39,7 @@ test('opens the role and persona workspace without changing route', async () => 
 test('显示由会话回合更新的精神负荷来源', async () => {
   renderApp('/operators');
   await screen.findByRole('heading', { name: '干员与小队' });
+  await screen.findByRole('button', { name: /当前会话：雨幕回声/ });
   const events = projectTavernTurn({ sessionId: 'chat-rain-echo', messageId: 'msg-stress-source', summary: '负荷变化', variables: { rosmontis_stress: 47 }, previousVariables: { rosmontis_stress: 39 } });
   act(() => {
     useGameStore.getState().activateTavernProjection('chat-rain-echo');

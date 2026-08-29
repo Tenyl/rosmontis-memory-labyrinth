@@ -28,6 +28,8 @@
   .terminal-nav-link::before { inset: auto 8px -1px; width: auto; height: 2px; transform: scaleX(0); }
   .terminal-nav-link.is-active::before { transform: scaleX(1); }
   .terminal-topbar { position: relative; min-height: 54px; padding: var(--space-2) var(--space-4); }
+  .tavern-topbar-button { max-width: 176px; min-height: 44px; }
+  .tavern-entity-line, .tavern-runtime-telemetry { display: none; }
   .operation-identity > span:last-child, .risk-status, .terminal-clock { display: none; }
   .operation-divider { width: 14px; }
   .terminal-main { min-height: auto; padding: var(--space-6) var(--space-4) var(--space-10); }

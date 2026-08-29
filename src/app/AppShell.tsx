@@ -1,6 +1,7 @@
 import {
   Archive,
   Books,
+  CircleNotch,
   ClockCounterClockwise,
   Command,
   Graph,
@@ -45,6 +46,22 @@ export function AppShell() {
   const tavern = useTavern();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [tavernOpen, setTavernOpen] = useState(false);
+  const generating = tavern.status === 'assembling' || tavern.status === 'streaming';
+  const runtimeStatus = generating
+    ? '生成中'
+    : tavern.status === 'interrupted'
+      ? '中断'
+      : tavern.status === 'failed'
+        ? '失败'
+        : tavern.transportMode === 'remote'
+          ? '远程连接'
+          : '本地模拟';
+  const runtimeTone = generating ? 'processing' : tavern.status === 'failed' ? 'danger' : tavern.status === 'interrupted' ? 'warning' : 'ready';
+  const RuntimeIcon = generating ? CircleNotch : tavern.status === 'failed' || tavern.status === 'interrupted' ? WarningDiamond : WifiHigh;
+  const activeSessionName = tavern.activeChat?.name ?? '载入酒馆';
+  const activeCharacterName = tavern.activeCharacter?.name ?? '未选角色';
+  const activePresetName = tavern.activePreset?.name ?? '未选预设';
+  const activeModelName = tavern.settings?.api.model || '未配置模型';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -126,9 +143,22 @@ export function AppShell() {
             <span>{session.chapter}</span>
           </div>
           <div className="topbar-statuses">
-            <button id="global-tavern-open" className="tavern-topbar-button" type="button" aria-label="打开酒馆编排" onClick={() => setTavernOpen(true)}>
+            <button
+              id="global-tavern-open"
+              className="tavern-topbar-button"
+              type="button"
+              aria-label={`打开酒馆编排；当前会话：${activeSessionName}；运行状态：${runtimeStatus}；模型：${activeModelName}；角色：${activeCharacterName}；预设：${activePresetName}`}
+              onClick={() => setTavernOpen(true)}
+            >
               <Books size={18} aria-hidden />
-              <span><strong>{tavern.activeChat?.name ?? '载入酒馆'}</strong><small>{tavern.transportMode === 'local' ? '本地模拟' : '远程模型'} / {tavern.activeCharacter?.name ?? '未选角色'}</small></span>
+              <span className="tavern-topbar-copy">
+                <strong>{activeSessionName}</strong>
+                <small className="tavern-entity-line">{activeCharacterName} / {activePresetName}</small>
+                <span className="tavern-runtime-telemetry">
+                  <span className={`is-${runtimeTone}`}><RuntimeIcon className={generating ? 'is-spinning' : ''} size={13} aria-hidden />{runtimeStatus}</span>
+                  <small>{activeModelName}</small>
+                </span>
+              </span>
             </button>
             <span className="connection-status"><WifiHigh size={17} aria-hidden />{session.connection}</span>
             <span className="risk-status"><WarningDiamond size={17} aria-hidden />全局风险 {session.globalRisk}</span>

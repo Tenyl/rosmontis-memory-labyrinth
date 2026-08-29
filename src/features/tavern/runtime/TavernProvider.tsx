@@ -98,6 +98,7 @@ export interface TavernRuntimeValue {
   editAndRegenerate: (messageId: string, content: string) => Promise<void>;
   deleteMessagesFrom: (messageId: string) => Promise<void>;
   branchFromMessage: (messageId: string, name?: string) => Promise<string>;
+  branchChat: (chatId: string, name?: string) => Promise<string>;
   updateVariables: (variables: Record<string, unknown>) => Promise<void>;
   updateSettings: (settings: AppSettings) => Promise<void>;
   upsertCharacter: (character: CharacterCard) => Promise<void>;
@@ -437,19 +438,19 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     await truncateAndPersist(activeChat, index);
   }, [activeChat, truncateAndPersist]);
 
-  const branchFromMessage = useCallback(async (messageId: string, name?: string) => {
-    if (!activeChat || !settings) throw new Error('没有可分支的活跃会话');
-    const index = activeChat.messages.findIndex((message) => message.id === messageId);
+  const createBranch = useCallback(async (sourceChat: ChatSession, messageId: string, name?: string) => {
+    if (!settings) throw new Error('酒馆设置尚未载入');
+    const index = sourceChat.messages.findIndex((message) => message.id === messageId);
     if (index < 0) throw new Error('没有找到分支来源消息');
     const now = Date.now();
-    const sourceMessage = activeChat.messages[index];
+    const sourceMessage = sourceChat.messages[index];
     const branch: ChatSession = {
-      ...activeChat,
+      ...sourceChat,
       id: crypto.randomUUID(),
-      name: name?.trim() || `${activeChat.name} / 分支 ${chats.filter((chat) => chat.parentChatId === activeChat.id).length + 1}`,
-      messages: activeChat.messages.slice(0, index + 1).map((message) => ({ ...message })),
-      variables: { ...(sourceMessage.variablesAfter ?? sourceMessage.variables ?? activeChat.variables) },
-      parentChatId: activeChat.id,
+      name: name?.trim() || `${sourceChat.name} / 分支 ${chats.filter((chat) => chat.parentChatId === sourceChat.id).length + 1}`,
+      messages: sourceChat.messages.slice(0, index + 1).map((message) => ({ ...message })),
+      variables: { ...(sourceMessage.variablesAfter ?? sourceMessage.variables ?? sourceChat.variables) },
+      parentChatId: sourceChat.id,
       branchedFromMessageId: messageId,
       createdAt: now,
       updatedAt: now,
@@ -457,9 +458,22 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     await saveChat(branch);
     await persistSettings({ ...settings, activeChatId: branch.id });
     setChats((current) => [...current, branch]);
-    branchTavernProjection(activeChat.id, branch.id, branch.messages.map((message) => message.id));
+    branchTavernProjection(sourceChat.id, branch.id, branch.messages.map((message) => message.id));
     return branch.id;
-  }, [activeChat, branchTavernProjection, chats, persistSettings, settings]);
+  }, [branchTavernProjection, chats, persistSettings, settings]);
+
+  const branchFromMessage = useCallback(async (messageId: string, name?: string) => {
+    if (!activeChat) throw new Error('没有可分支的活跃会话');
+    return createBranch(activeChat, messageId, name);
+  }, [activeChat, createBranch]);
+
+  const branchChat = useCallback(async (chatId: string, name?: string) => {
+    const sourceChat = chats.find((chat) => chat.id === chatId);
+    if (!sourceChat) throw new Error('没有找到待分支会话');
+    const sourceMessage = sourceChat.messages.at(-1);
+    if (!sourceMessage) throw new Error('空会话无法建立分支');
+    return createBranch(sourceChat, sourceMessage.id, name);
+  }, [chats, createBranch]);
 
   const updateVariables = useCallback(async (variables: Record<string, unknown>) => {
     if (!activeChat) return;
@@ -535,6 +549,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     editAndRegenerate,
     deleteMessagesFrom,
     branchFromMessage,
+    branchChat,
     updateVariables,
     updateSettings,
     upsertCharacter,
@@ -546,7 +561,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     upsertPreset,
     removePreset,
   }), [
-    activeCharacter, activeChat, activePersona, activePreset, branchFromMessage, characters, chats,
+    activeCharacter, activeChat, activePersona, activePreset, branchChat, branchFromMessage, characters, chats,
     clearChats, createChat, deleteMessagesFrom, editAndRegenerate, error, initialized, loadAll, lorebooks,
     matchedEntries, personas, presets, removeCharacter, removeChat, removeLorebook, removePersona,
     removePreset, renameChat, retryLastTurn, selectChat, selectedTransport.mode, sendMessage, settings,

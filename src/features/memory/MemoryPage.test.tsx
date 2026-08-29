@@ -27,6 +27,7 @@ test('展示 LLM 新建节点的会话回合来源', async () => {
   const user = userEvent.setup();
   renderApp('/memory');
   await screen.findByRole('heading', { name: '意识战场' });
+  await screen.findByRole('button', { name: /当前会话：雨幕回声/ });
   const events = projectTavernTurn({ sessionId: 'chat-rain-echo', messageId: 'msg-memory-source', summary: '发现节点', variables: { memory_node_title: '沉没诊疗层', memory_node_risk: 'A' }, previousVariables: {} });
   act(() => {
     useGameStore.getState().activateTavernProjection('chat-rain-echo');

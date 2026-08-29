@@ -36,6 +36,7 @@ test('opens worldbook management inside the archive route', async () => {
 test('自动建档 LLM 线索并保留回合来源', async () => {
   renderApp('/archive');
   await screen.findByRole('heading', { name: '情报档案库' });
+  await screen.findByRole('button', { name: /当前会话：雨幕回声/ });
   const events = projectTavernTurn({ sessionId: 'chat-rain-echo', messageId: 'msg-clue-source', summary: '发现线索', variables: { clue_title: '被涂改的病历' }, previousVariables: {} });
   act(() => {
     useGameStore.getState().activateTavernProjection('chat-rain-echo');

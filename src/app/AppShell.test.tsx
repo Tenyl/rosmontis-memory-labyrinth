@@ -17,3 +17,13 @@ test.each([
     'page',
   );
 });
+
+test('顶部栏以文字公开酒馆连接、模型、角色和预设状态', async () => {
+  renderApp('/operation');
+
+  const tavernButton = await screen.findByRole('button', { name: /当前会话：雨幕回声/ });
+  expect(tavernButton).toHaveTextContent('本地模拟');
+  expect(tavernButton).toHaveTextContent('迷迭香');
+  expect(tavernButton).toHaveTextContent('认知战术叙事');
+  expect(tavernButton).toHaveTextContent('gpt-3.5-turbo');
+});

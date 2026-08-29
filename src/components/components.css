@@ -26,7 +26,8 @@
 .terminal-notification.is-success > svg { color: var(--color-arts-green); }
 .terminal-notification.is-warning > svg { color: var(--color-warning-amber); }
 .terminal-notification.is-danger > svg { color: var(--color-danger-red); }
-.notification-copy strong { font-size: .82rem; }
+.notification-copy strong { display: block; font-size: .82rem; }
+.notification-kind-label { display: block; margin-bottom: 4px; color: var(--color-text-tertiary); font: 600 .52rem/1 var(--font-data); letter-spacing: .12em; }
 .notification-copy p { margin: 5px 0 0; color: var(--color-text-secondary); font-size: .74rem; line-height: 1.55; }
 .notification-copy a { display: inline-block; margin-top: var(--space-2); color: var(--color-memory-blue); font-size: .72rem; }
 .terminal-notification > button { display: grid; width: 32px; height: 32px; place-items: center; border: 0; background: transparent; color: var(--color-text-secondary); cursor: pointer; }
