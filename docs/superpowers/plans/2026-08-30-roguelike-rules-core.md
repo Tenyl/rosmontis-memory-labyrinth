@@ -66,12 +66,12 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 - Create: `src/game/maze.test.ts`
 - Extend: `src/game/types.ts`
 
-- [ ] Write invariant tests across at least 100 seeds: unique IDs, exactly one start and core, every node reachable from start, edges reference existing nodes, and same seed/mode/floor reproduces the same graph.
-- [ ] Verify RED.
-- [ ] Implement `generateMaze({ seed, mode, floor, targetNodeCount })`, `getReachableNodeIds`, and `validateMaze`.
-- [ ] Use four approved node types and explicit visibility/reachability states. The generator must reject node counts below the minimum rather than silently producing malformed graphs.
-- [ ] Verify GREEN and typecheck.
-- [ ] Commit: `feat: generate valid replayable memory mazes`.
+- [x] Write invariant tests across at least 100 seeds: unique IDs, exactly one start and core, every node reachable from start, edges reference existing nodes, and same seed/mode/floor reproduces the same graph.
+- [x] Verify RED.
+- [x] Implement `generateMaze({ seed, mode, floor, targetNodeCount })`, `getReachableNodeIds`, and `validateMaze`.
+- [x] Use four approved node types and explicit visibility/reachability states. The generator must reject node counts below the minimum rather than silently producing malformed graphs.
+- [x] Verify GREEN and typecheck.
+- [x] Commit: `feat: generate valid replayable memory mazes`.
 
 ### Task 4: Four greatsword skill settlement
 

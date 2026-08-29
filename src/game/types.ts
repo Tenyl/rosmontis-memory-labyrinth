@@ -44,3 +44,28 @@ export type RuleEvent = {
   difficulty: number;
   outcome: D20Outcome;
 };
+
+export interface MazeNode {
+  id: string;
+  type: MazeNodeType;
+  state: MazeNodeState;
+  floor: number;
+  depth: number;
+}
+
+export interface MazeEdge {
+  id: string;
+  sourceId: string;
+  targetId: string;
+}
+
+export interface MazeGraph {
+  seed: string;
+  mode: RunMode;
+  floor: number;
+  startNodeId: string;
+  coreNodeId: string;
+  nodes: MazeNode[];
+  edges: MazeEdge[];
+  randomState: SeededRandomState;
+}
