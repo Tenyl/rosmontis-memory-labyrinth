@@ -269,34 +269,34 @@ git commit -m "refactor: align terminal copy with single protagonist"
 - Consumes: `CharacterArtwork` from Task 1.
 - Produces: `TavernTab = 'sessions' | 'lorebooks' | 'presets' | 'variables'`.
 
-- [ ] **Step 1: Write failing orchestrator and thumbnail tests**
+- [x] **Step 1: Write failing orchestrator and thumbnail tests**
 
 ```tsx
 expect(within(dialog).queryByRole('tab', { name: /^角色 / })).not.toBeInTheDocument();
 expect(screen.getByRole('img', { name: /角色卡缩略图/ })).toHaveAttribute('src', '/assets/characters/blank-character.svg');
 ```
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `pnpm test -- src/features/tavern/components/TavernOrchestrator.test.tsx src/features/tavern/entities.test.tsx`
 
 Expected: FAIL because the character tab remains and imported avatars can be rendered.
 
-- [ ] **Step 3: Remove the character tab from the orchestrator**
+- [x] **Step 3: Remove the character tab from the orchestrator**
 
 Remove `characters` from `TavernTab`, counts, tab configuration, and conditional panel rendering. Do not delete character records or Dexie tables; the fixed active Rosmontis card remains an internal generation dependency.
 
-- [ ] **Step 4: Force any retained character thumbnail through CharacterArtwork**
+- [x] **Step 4: Force any retained character thumbnail through CharacterArtwork**
 
 Replace `character.avatar ? <img ...> : ...` in `CharacterManager` with `CharacterArtwork kind="avatar" label={`${character.name}角色卡缩略图`}`. This protects any future administrative re-entry from displaying remote or copyrighted images.
 
-- [ ] **Step 5: Run focused tests and verify GREEN**
+- [x] **Step 5: Run focused tests and verify GREEN**
 
 Run: `pnpm test -- src/features/tavern/components/TavernOrchestrator.test.tsx src/features/tavern/entities.test.tsx`
 
 Expected: all focused tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/tavern/components src/features/tavern/characters/CharacterManager.tsx src/features/tavern/entities.test.tsx

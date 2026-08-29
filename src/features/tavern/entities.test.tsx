@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { clearAllData } from '../../sillytavern/database';
+import { CharacterManager } from './characters/CharacterManager';
 import { TavernOrchestrator } from './components/TavernOrchestrator';
 import { TavernProvider } from './runtime/TavernProvider';
 import type { TavernTransport } from './runtime/tavern-transport';
@@ -24,30 +25,18 @@ function renderOrchestrator() {
   );
 }
 
-test('导入有效 V2 角色卡后立即选中，损坏文件显示中文错误', async () => {
-  const user = userEvent.setup();
-  renderOrchestrator();
-  await screen.findByText('雨幕回声');
-  await user.click(screen.getByRole('tab', { name: /^角色/ }));
+test('保留的角色卡管理视图始终使用可替换空白头像', async () => {
+  render(
+    <TavernProvider transport={transport}>
+      <CharacterManager />
+    </TavernProvider>,
+  );
 
-  const input = screen.getByLabelText('导入 SillyTavern V2 角色卡');
-  const valid = new File([JSON.stringify({
-    spec: 'chara_card_v2',
-    spec_version: '2.0',
-    data: {
-      name: '凯尔希', description: '罗德岛医疗部门负责人', personality: '克制而敏锐',
-      scenario: '舰桥会诊', first_mes: '说出你的判断。', mes_example: '', creator_notes: '',
-      system_prompt: '', post_history_instructions: '', alternate_greetings: [], tags: ['罗德岛'],
-      creator: 'TEST', character_version: '1.0', extensions: {},
-    },
-  })], 'kaltsit.json', { type: 'application/json' });
-  await user.upload(input, valid);
-
-  const imported = await screen.findByRole('article', { name: '角色卡 凯尔希' });
-  expect(within(imported).getByText('当前角色')).toBeVisible();
-
-  await user.upload(input, new File(['{broken'], 'broken.json', { type: 'application/json' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent('角色卡导入失败');
+  const character = await screen.findByRole('article', { name: '角色卡 迷迭香' });
+  expect(within(character).getByRole('img', { name: '迷迭香角色卡缩略图' })).toHaveAttribute(
+    'src',
+    '/assets/characters/blank-character.svg',
+  );
 });
 
 test('批量世界书导入分别报告成功与失败并保留成功项', async () => {
