@@ -20,3 +20,27 @@ export interface RunState {
   currentNodeId: string;
   result: 'victory' | 'defeat' | null;
 }
+
+export type D20Outcome = 'critical-failure' | 'failure' | 'success' | 'critical-success';
+
+export interface D20CheckInput {
+  attribute: string;
+  modifier: number;
+  difficulty: number;
+}
+
+export interface D20CheckResult extends D20CheckInput {
+  roll: number;
+  total: number;
+  outcome: D20Outcome;
+  passed: boolean;
+}
+
+export type RuleEvent = {
+  type: 'check.resolved';
+  attribute: string;
+  roll: number;
+  total: number;
+  difficulty: number;
+  outcome: D20Outcome;
+};

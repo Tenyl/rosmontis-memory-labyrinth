@@ -53,11 +53,11 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 - Create: `src/game/checks.test.ts`
 - Extend: `src/game/types.ts`
 
-- [ ] Write tests for natural 1/20, modifier totals, threshold equality, deterministic rolls, and sanity/overload clamping to 0–100.
-- [ ] Verify RED.
-- [ ] Implement `resolveD20Check(input, randomState)`, `clampVital`, and structured `RuleEvent` output.
-- [ ] Verify GREEN and typecheck.
-- [ ] Commit: `feat: add deterministic d20 checks`.
+- [x] Write tests for natural 1/20, modifier totals, threshold equality, deterministic rolls, and sanity/overload clamping to 0–100.
+- [x] Verify RED.
+- [x] Implement `resolveD20Check(input, randomState)`, `clampVital`, and structured `RuleEvent` output.
+- [x] Verify GREEN and typecheck.
+- [x] Commit: `feat: add deterministic d20 checks`.
 
 ### Task 3: Valid memory-maze generation
 
