@@ -1,6 +1,6 @@
 import { deepMemoryClue, buildDemoState } from '../data/demoData';
 import { projectTavernTurn } from '../features/tavern/projection/tavern-turn-projector';
-import { useGameStore } from './gameStore';
+import { sanitizeSingleProtagonistState, useGameStore } from './gameStore';
 
 beforeEach(() => {
   useGameStore.getState().resetDemoState();
@@ -34,6 +34,29 @@ test('keeps only the initial scenario and preferences when autosave is disabled'
 
   expect(persisted.state.operators.byId.rosmontis.stress).toBe(41);
   expect(persisted.state.ui.preferences.autosave).toBe(false);
+});
+
+test('旧持久化状态载入时过滤其他干员', () => {
+  const legacyState = buildDemoState();
+  const legacyOperator = {
+    ...legacyState.operators.byId.rosmontis,
+    id: 'legacy-companion',
+    name: '旧随行干员',
+  };
+  legacyState.operators = {
+    byId: {
+      ...legacyState.operators.byId,
+      [legacyOperator.id]: legacyOperator,
+    },
+    squadOrder: ['rosmontis', legacyOperator.id],
+    formation: '旧小队编成',
+  };
+
+  const migrated = sanitizeSingleProtagonistState(legacyState);
+
+  expect(Object.keys(migrated.operators.byId)).toEqual(['rosmontis']);
+  expect(migrated.operators.squadOrder).toEqual(['rosmontis']);
+  expect(migrated.operators.formation).toBe('单人认知潜入');
 });
 
 test('applies each Tavern turn once and restores an independent projection per chat', () => {

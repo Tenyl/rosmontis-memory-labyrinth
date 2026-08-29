@@ -48,6 +48,20 @@ interface GameActions {
 
 export type GameStore = GameDataState & GameActions;
 
+export function sanitizeSingleProtagonistState(state: GameDataState): GameDataState {
+  const fallback = buildDemoState().operators.byId.rosmontis;
+  const rosmontis = state.operators.byId.rosmontis ?? fallback;
+
+  return {
+    ...state,
+    operators: {
+      byId: { rosmontis: { ...rosmontis } },
+      squadOrder: ['rosmontis'],
+      formation: '单人认知潜入',
+    },
+  };
+}
+
 function buildPersistedState(state: GameStore): GameDataState {
   const ui = { ...state.ui, activeDialog: null, notifications: [] };
   if (!state.ui.preferences.autosave) {
@@ -731,6 +745,10 @@ export const useGameStore = create<GameStore>()(
       name: 'rhodes-cognition-terminal-state',
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
+      merge: (persistedState, currentState) => {
+        const sanitized = sanitizeSingleProtagonistState(persistedState as GameDataState);
+        return { ...currentState, ...sanitized };
+      },
     },
   ),
 );

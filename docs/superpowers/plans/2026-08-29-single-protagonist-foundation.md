@@ -100,7 +100,7 @@ git commit -m "feat: add replaceable blank character artwork"
 - Produces: `sanitizeSingleProtagonistState(state: GameDataState): GameDataState`.
 - Invariant: `Object.keys(state.operators.byId)` and `state.operators.squadOrder` contain only `rosmontis`.
 
-- [ ] **Step 1: Write failing default-state and migration tests**
+- [x] **Step 1: Write failing default-state and migration tests**
 
 ```ts
 test('默认战术状态只包含迷迭香', () => {
@@ -116,17 +116,17 @@ test('旧持久化状态载入时过滤其他干员', () => {
 });
 ```
 
-- [ ] **Step 2: Run focused tests and verify RED**
+- [x] **Step 2: Run focused tests and verify RED**
 
 Run: `pnpm test -- src/data/demoData.test.ts src/store/gameStore.test.ts`
 
 Expected: FAIL because legacy squad members remain and `sanitizeSingleProtagonistState` is missing.
 
-- [ ] **Step 3: Remove secondary operators and rewrite user-facing demo copy**
+- [x] **Step 3: Remove secondary operators and rewrite user-facing demo copy**
 
 Delete the `squad` fixture. Build `operators.byId` from Rosmontis only, set `squadOrder` to `['rosmontis']`, and set formation copy to `单人认知潜入`. Replace other-character discoverers and actors with `迷迭香`, `指挥者`, or `系统` according to the event source. Replace “小队” commands with Rosmontis-only instructions.
 
-- [ ] **Step 4: Add migration sanitization to Zustand persistence**
+- [x] **Step 4: Add migration sanitization to Zustand persistence**
 
 ```ts
 export function sanitizeSingleProtagonistState(state: GameDataState): GameDataState {
@@ -140,13 +140,13 @@ export function sanitizeSingleProtagonistState(state: GameDataState): GameDataSt
 
 Apply it from the persist middleware `merge` option so old local storage is sanitized without touching Dexie.
 
-- [ ] **Step 5: Run focused tests and verify GREEN**
+- [x] **Step 5: Run focused tests and verify GREEN**
 
 Run: `pnpm test -- src/data/demoData.test.ts src/store/gameStore.test.ts`
 
 Expected: all focused tests pass.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/data/demoData.ts src/data/demoData.test.ts src/store/gameStore.ts src/store/gameStore.test.ts
