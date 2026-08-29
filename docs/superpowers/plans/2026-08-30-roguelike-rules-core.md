@@ -94,11 +94,11 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 - Create: `src/game/fragments.test.ts`
 - Extend: `src/game/types.ts`
 
-- [ ] Write tests for normal acquisition, duplicate rejection, core-fragment protection, overflow pausing, replace/discard decisions, and invalid decisions preserving state.
-- [ ] Verify RED.
-- [ ] Implement `acquireFragment` and `resolveFragmentOverflow`; overflow must set phase to `fragment-overflow` and block other Run actions until resolved.
-- [ ] Verify GREEN and typecheck.
-- [ ] Commit: `feat: add memory fragment overflow rules`.
+- [x] Write tests for normal acquisition, duplicate rejection, core-fragment protection, overflow pausing, replace/discard decisions, and invalid decisions preserving state.
+- [x] Verify RED.
+- [x] Implement `acquireFragment` and `resolveFragmentOverflow`; overflow must set phase to `fragment-overflow` and block other Run actions until resolved.
+- [x] Verify GREEN and typecheck.
+- [x] Commit: `feat: add memory fragment overflow rules`.
 
 ### Task 6: Run lifecycle reducer
 

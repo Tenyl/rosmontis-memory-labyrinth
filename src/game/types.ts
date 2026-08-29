@@ -52,7 +52,11 @@ export type RuleEvent =
       actionPointCost: number;
       overloadDelta: number;
       cooldown: number;
-    };
+    }
+  | { type: 'fragment.acquired'; fragmentId: string; kind: 'standard' | 'core' }
+  | { type: 'fragment.overflow'; fragmentId: string }
+  | { type: 'fragment.discarded'; fragmentId: string }
+  | { type: 'fragment.replaced'; forgottenFragmentId: string; acquiredFragmentId: string };
 
 export interface GreatswordCombatState {
   actionPoints: number;
@@ -70,6 +74,29 @@ export interface GreatswordAction {
   target: GreatswordTarget;
   nodeType: MazeNodeType;
 }
+
+export interface MemoryFragment {
+  id: string;
+  name: string;
+  kind: 'standard' | 'core';
+  tags: string[];
+}
+
+export interface MemoryInventory {
+  capacity: number;
+  fragments: MemoryFragment[];
+  coreFragments: MemoryFragment[];
+  pendingFragment: MemoryFragment | null;
+}
+
+export interface FragmentRuleState {
+  phase: RunPhase;
+  inventory: MemoryInventory;
+}
+
+export type FragmentOverflowChoice =
+  | { type: 'discard-pending' }
+  | { type: 'replace'; fragmentId: string };
 
 export interface MazeNode {
   id: string;
