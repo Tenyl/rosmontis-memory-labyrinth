@@ -1,16 +1,21 @@
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, test } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { clearAllData } from '../../../sillytavern/database';
+import { useGameStore } from '../../../store/gameStore';
 import { TavernProvider } from '../runtime/TavernProvider';
 import type { TavernTransport } from '../runtime/tavern-transport';
 import { TavernGameView } from './TavernGameView';
 
-beforeEach(async () => clearAllData());
+beforeEach(async () => {
+  await clearAllData();
+  useGameStore.getState().resetDemoState();
+});
 afterEach(async () => clearAllData());
 
 function renderGame(transport: TavernTransport) {
-  return render(<TavernProvider transport={transport}><TavernGameView /></TavernProvider>);
+  return render(<MemoryRouter initialEntries={['/operation']}><TavernProvider transport={transport}><TavernGameView /></TavernProvider></MemoryRouter>);
 }
 
 test('流式显示正文，闭合后呈现选项，并默认折叠思考过程', async () => {
@@ -25,6 +30,25 @@ test('流式显示正文，闭合后呈现选项，并默认折叠思考过程',
   expect(screen.getByRole('button', { name: '选择：检查门牌' })).toBeVisible();
   expect(screen.queryByText('分析声源')).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: '展开思考过程' })).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('回合完成后将验证过的变量投影到战术状态', async () => {
+  const transport: TavernTransport = {
+    mode: 'local',
+    async *stream() {
+      yield '<maintext>记忆节点已显现。</maintext><option>继续扫描</option><sum>发现沉没诊疗层</sum><vars>{"rosmontis_stress":47,"memory_node_title":"沉没诊疗层","memory_node_risk":"A","clue_title":"被涂改的病历"}</vars>';
+    },
+  };
+  const user = userEvent.setup();
+  renderGame(transport);
+  await user.type(await screen.findByLabelText('战术指令'), '读取残留意识');
+  await user.click(screen.getByRole('button', { name: '发送战术指令' }));
+  await screen.findByText('记忆节点已显现。');
+
+  await waitFor(() => expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(47));
+  expect(useGameStore.getState().memoryMap.nodes.some((node) => node.title === '沉没诊疗层')).toBe(true);
+  expect(useGameStore.getState().archive.records.some((record) => record.title === '被涂改的病历')).toBe(true);
+  expect(useGameStore.getState().actionLog.some((entry) => entry.summary === '发现沉没诊疗层')).toBe(true);
 });
 
 test('数字快捷键只填入选项，不会自动提交', async () => {

@@ -11,6 +11,7 @@ import type {
   MemoryNode,
   NarrativeOutcome,
   NotificationItem,
+  TacticalDomainEvent,
   UiPreferences,
 } from '../types/game';
 
@@ -36,6 +37,10 @@ interface GameActions {
   setUiPreference: <K extends keyof UiPreferences>(key: K, value: UiPreferences[K]) => void;
   setOperatorStress: (operatorId: string, stress: number) => void;
   addArchiveRecord: (record: ArchiveRecord) => void;
+  applyTavernEvents: (events: TacticalDomainEvent[], sessionId: string) => void;
+  activateTavernProjection: (sessionId: string | null) => void;
+  reconcileTavernProjection: (sessionId: string, survivingMessageIds: string[]) => void;
+  branchTavernProjection: (sourceSessionId: string, targetSessionId: string, survivingMessageIds: string[]) => void;
   addNotification: (item: NotificationItem) => void;
   dismissNotification: (notificationId: string) => void;
   resetDemoState: () => void;
@@ -60,8 +65,190 @@ function buildPersistedState(state: GameStore): GameDataState {
     operators: state.operators,
     archive: state.archive,
     actionLog: state.actionLog,
+    tavernProjection: state.tavernProjection,
     ui,
   };
+}
+
+function stableDomainId(sessionId: string, messageId: string, type: string) {
+  const source = `${sessionId}:${messageId}:${type}`;
+  let hash = 2166136261;
+  for (let index = 0; index < source.length; index += 1) {
+    hash ^= source.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `tavern-${type.replace(/\W+/g, '-')}-${(hash >>> 0).toString(36)}`;
+}
+
+function timestamp() {
+  return new Intl.DateTimeFormat('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(new Date());
+}
+
+function clearMaterializedProjection(state: GameStore): GameStore {
+  const demo = buildDemoState();
+  const projectedNodeIds = new Set(state.memoryMap.nodes.filter((node) => node.sourceSessionId).map((node) => node.id));
+  const projectedRecordIds = new Set(state.archive.records.filter((record) => record.sourceSessionId).map((record) => record.id));
+  const byId = Object.fromEntries(Object.entries(state.operators.byId).map(([id, operator]) => {
+    if (!operator.sourceSessionId) return [id, operator];
+    const baseline = demo.operators.byId[id];
+    return [id, baseline ? { ...operator, stress: baseline.stress, sanity: baseline.sanity, condition: baseline.condition, sourceSessionId: undefined, sourceMessageId: undefined, matchedLorebookEntryIds: undefined } : operator];
+  }));
+  return {
+    ...state,
+    session: state.session.sourceSessionId ? {
+      ...state.session,
+      globalRisk: demo.session.globalRisk,
+      objective: demo.session.objective,
+      squadStatus: demo.session.squadStatus,
+      sourceSessionId: undefined,
+      sourceMessageId: undefined,
+      matchedLorebookEntryIds: undefined,
+    } : state.session,
+    operators: { ...state.operators, byId },
+    memoryMap: {
+      ...state.memoryMap,
+      selectedNodeId: projectedNodeIds.has(state.memoryMap.selectedNodeId ?? '') ? null : state.memoryMap.selectedNodeId,
+      nodes: state.memoryMap.nodes.filter((node) => !node.sourceSessionId),
+      edges: state.memoryMap.edges.filter((edge) => !projectedNodeIds.has(edge.sourceId) && !projectedNodeIds.has(edge.targetId)),
+    },
+    archive: {
+      ...state.archive,
+      records: state.archive.records.filter((record) => !record.sourceSessionId),
+      links: state.archive.links.filter((link) => !projectedRecordIds.has(link.sourceId) && !projectedRecordIds.has(link.targetId)),
+    },
+    actionLog: state.actionLog.filter((entry) => !entry.sourceSessionId),
+  };
+}
+
+function materializeEvent(state: GameStore, event: TacticalDomainEvent, sessionId: string): GameStore {
+  const source = {
+    sourceSessionId: sessionId,
+    sourceMessageId: event.sourceMessageId,
+    ...(event.matchedLorebookEntryIds?.length ? { matchedLorebookEntryIds: [...event.matchedLorebookEntryIds] } : {}),
+  };
+  if (event.type === 'operator.stress.changed' || event.type === 'operator.sanity.changed') {
+    const operator = state.operators.byId[event.operatorId];
+    if (!operator) return state;
+    return {
+      ...state,
+      operators: {
+        ...state.operators,
+        byId: {
+          ...state.operators.byId,
+          [event.operatorId]: {
+            ...operator,
+            ...(event.type === 'operator.stress.changed' ? { stress: event.value } : { sanity: event.value }),
+            ...source,
+          },
+        },
+      },
+    };
+  }
+
+  if (event.type === 'memory.node.discovered') {
+    const id = stableDomainId(sessionId, event.sourceMessageId, 'memory');
+    const offset = Number.parseInt(id.slice(-3), 36) || 0;
+    const node: MemoryNode = {
+      id,
+      title: event.title,
+      layer: event.layer ?? '深层潜意识',
+      risk: event.risk,
+      hostileCount: event.hostileCount ?? null,
+      alliedCount: event.alliedCount ?? 0,
+      exploration: 0,
+      anchored: false,
+      x: 15 + (offset % 70),
+      y: 58 + (offset % 25),
+      summary: event.summary ?? '该意识坐标由当前会话回合投影，环境数据等待进一步扫描。',
+      effects: event.effects ?? ['回合投影未复核'],
+      intelligence: event.intelligence ?? ['变量证据已与来源消息绑定'],
+      updatedAt: timestamp(),
+      ...source,
+    };
+    return {
+      ...state,
+      memoryMap: {
+        ...state.memoryMap,
+        nodes: [...state.memoryMap.nodes.filter((item) => item.id !== id), node],
+      },
+    };
+  }
+
+  if (event.type === 'archive.clue.discovered' || event.type === 'archive.npc.discovered') {
+    const kind = event.type === 'archive.clue.discovered' ? '线索' : '人物';
+    const id = stableDomainId(sessionId, event.sourceMessageId, event.type === 'archive.clue.discovered' ? 'clue' : 'npc');
+    const record: ArchiveRecord = {
+      id,
+      code: `${kind === '线索' ? 'CLUE' : 'NPC'} / ${id.slice(-4).toUpperCase()}`,
+      kind,
+      title: event.title,
+      summary: event.summary ?? '本条情报由 LLM 回合变量自动建档，待玩家复核。',
+      sourceEntryId: `tavern:${sessionId}:${event.sourceMessageId}`,
+      discoveredIn: '当前会话 / LLM 回合',
+      discoveredBy: '战术终端',
+      confidence: event.confidence ?? 50,
+      contamination: event.risk ?? 'C',
+      verification: '未验证',
+      relatedIds: [],
+      note: '等待复核；原始变量已保留在会话快照中。',
+      pinned: false,
+      unread: true,
+      updatedAt: timestamp(),
+      ...source,
+    };
+    return {
+      ...state,
+      archive: {
+        ...state.archive,
+        records: [...state.archive.records.filter((item) => item.id !== id), record],
+      },
+    };
+  }
+
+  if (event.type === 'session.risk.changed' || event.type === 'session.objective.changed' || event.type === 'squad.status.changed') {
+    return {
+      ...state,
+      session: {
+        ...state.session,
+        ...(event.type === 'session.risk.changed' ? { globalRisk: event.value } : {}),
+        ...(event.type === 'session.objective.changed' ? { objective: event.value } : {}),
+        ...(event.type === 'squad.status.changed' ? { squadStatus: event.value } : {}),
+        ...source,
+      },
+    };
+  }
+
+  if (event.type !== 'log.turn.completed') return state;
+  const id = stableDomainId(sessionId, event.sourceMessageId, 'turn-log');
+  return {
+    ...state,
+    actionLog: [
+      ...state.actionLog.filter((entry) => entry.id !== id),
+      {
+        id,
+        kind: '状态变化',
+        title: '酒馆回合完成',
+        summary: event.summary,
+        timestamp: timestamp(),
+        actor: '战术叙事系统',
+        chapter: state.session.chapter,
+        sourceEntryId: `tavern:${sessionId}:${event.sourceMessageId}`,
+        relatedPath: `/operation?session=${encodeURIComponent(sessionId)}&message=${encodeURIComponent(event.sourceMessageId)}`,
+        ...source,
+      },
+    ],
+  };
+}
+
+function materializeSession(state: GameStore, sessionId: string | null, events: TacticalDomainEvent[]): GameStore {
+  const cleared = clearMaterializedProjection(state);
+  if (!sessionId) return cleared;
+  return events.reduce((current, event) => materializeEvent(current, event, sessionId), cleared);
 }
 
 export const useGameStore = create<GameStore>()(
@@ -459,6 +646,68 @@ export const useGameStore = create<GameStore>()(
               : [...state.archive.records, { ...record, relatedIds: [...record.relatedIds] }],
           },
         })),
+      applyTavernEvents: (events, sessionId) =>
+        set((state) => {
+          const normalizedSessionId = sessionId.trim();
+          if (!normalizedSessionId || events.length === 0) return state;
+          const messageIds = [...new Set(events.map((event) => event.sourceMessageId))];
+          const existing = state.tavernProjection.sessions[normalizedSessionId] ?? { processedMessageIds: [], events: [] };
+          const freshMessageIds = messageIds.filter((id) => !existing.processedMessageIds.includes(id));
+          if (freshMessageIds.length === 0) return state;
+          const freshEvents = events.filter((event) => freshMessageIds.includes(event.sourceMessageId));
+          const snapshot = {
+            processedMessageIds: [...existing.processedMessageIds, ...freshMessageIds],
+            events: [...existing.events, ...freshEvents],
+          };
+          const sessions = { ...state.tavernProjection.sessions, [normalizedSessionId]: snapshot };
+          const activeSessionId = state.tavernProjection.activeSessionId ?? normalizedSessionId;
+          const next = activeSessionId === normalizedSessionId
+            ? materializeSession(state, normalizedSessionId, snapshot.events)
+            : state;
+          return {
+            ...next,
+            tavernProjection: { activeSessionId, sessions },
+          };
+        }),
+      activateTavernProjection: (sessionId) =>
+        set((state) => {
+          const normalizedSessionId = sessionId?.trim() || null;
+          const events = normalizedSessionId
+            ? state.tavernProjection.sessions[normalizedSessionId]?.events ?? []
+            : [];
+          const next = materializeSession(state, normalizedSessionId, events);
+          return {
+            ...next,
+            tavernProjection: { ...state.tavernProjection, activeSessionId: normalizedSessionId },
+          };
+        }),
+      reconcileTavernProjection: (sessionId, survivingMessageIds) =>
+        set((state) => {
+          const existing = state.tavernProjection.sessions[sessionId];
+          if (!existing) return state;
+          const surviving = new Set(survivingMessageIds);
+          const snapshot = {
+            processedMessageIds: existing.processedMessageIds.filter((id) => surviving.has(id)),
+            events: existing.events.filter((event) => surviving.has(event.sourceMessageId)),
+          };
+          const sessions = { ...state.tavernProjection.sessions, [sessionId]: snapshot };
+          const next = state.tavernProjection.activeSessionId === sessionId
+            ? materializeSession(state, sessionId, snapshot.events)
+            : state;
+          return { ...next, tavernProjection: { ...state.tavernProjection, sessions } };
+        }),
+      branchTavernProjection: (sourceSessionId, targetSessionId, survivingMessageIds) =>
+        set((state) => {
+          const source = state.tavernProjection.sessions[sourceSessionId];
+          const surviving = new Set(survivingMessageIds);
+          const snapshot = source ? {
+            processedMessageIds: source.processedMessageIds.filter((id) => surviving.has(id)),
+            events: source.events.filter((event) => surviving.has(event.sourceMessageId)),
+          } : { processedMessageIds: [], events: [] };
+          const sessions = { ...state.tavernProjection.sessions, [targetSessionId]: snapshot };
+          const next = materializeSession(state, targetSessionId, snapshot.events);
+          return { ...next, tavernProjection: { activeSessionId: targetSessionId, sessions } };
+        }),
       addNotification: (item) =>
         set((state) => ({
           ui: {

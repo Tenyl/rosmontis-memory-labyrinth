@@ -1,6 +1,8 @@
-import { screen, within } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderApp } from '../../test/renderApp';
+import { useGameStore } from '../../store/gameStore';
+import { projectTavernTurn } from '../tavern/projection/tavern-turn-projector';
 
 test('renders Rosmontis RPG statistics and current condition', async () => {
   renderApp('/operators');
@@ -32,4 +34,16 @@ test('opens the role and persona workspace without changing route', async () => 
   expect(await screen.findByRole('heading', { name: '角色与身份' })).toBeVisible();
   expect(screen.getByRole('article', { name: '角色卡 迷迭香' })).toBeVisible();
   expect(window.location.pathname).toBe('/operators');
+});
+
+test('显示由会话回合更新的精神负荷来源', async () => {
+  renderApp('/operators');
+  await screen.findByRole('heading', { name: '干员与小队' });
+  const events = projectTavernTurn({ sessionId: 'chat-rain-echo', messageId: 'msg-stress-source', summary: '负荷变化', variables: { rosmontis_stress: 47 }, previousVariables: { rosmontis_stress: 39 } });
+  act(() => {
+    useGameStore.getState().activateTavernProjection('chat-rain-echo');
+    useGameStore.getState().applyTavernEvents(events, 'chat-rain-echo');
+  });
+  expect(await screen.findByText('47 / 100')).toBeVisible();
+  expect(await screen.findByRole('link', { name: /打开来自会话雨幕回声的来源回合/ })).toBeVisible();
 });

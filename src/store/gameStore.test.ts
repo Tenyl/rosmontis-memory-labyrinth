@@ -1,4 +1,5 @@
 import { deepMemoryClue, buildDemoState } from '../data/demoData';
+import { projectTavernTurn } from '../features/tavern/projection/tavern-turn-projector';
 import { useGameStore } from './gameStore';
 
 beforeEach(() => {
@@ -33,4 +34,58 @@ test('keeps only the initial scenario and preferences when autosave is disabled'
 
   expect(persisted.state.operators.byId.rosmontis.stress).toBe(41);
   expect(persisted.state.ui.preferences.autosave).toBe(false);
+});
+
+test('applies each Tavern turn once and restores an independent projection per chat', () => {
+  const events = projectTavernTurn({
+    sessionId: 'chat-rain',
+    messageId: 'msg-9',
+    summary: '发现儿童意识回声',
+    variables: {
+      rosmontis_stress: 47,
+      memory_node_title: '沉没诊疗层',
+      memory_node_risk: 'A',
+      clue_title: '被涂改的病历',
+    },
+    previousVariables: { rosmontis_stress: 39 },
+  });
+
+  useGameStore.getState().activateTavernProjection('chat-rain');
+  useGameStore.getState().applyTavernEvents(events, 'chat-rain');
+  useGameStore.getState().applyTavernEvents(events, 'chat-rain');
+
+  let state = useGameStore.getState();
+  expect(state.operators.byId.rosmontis.stress).toBe(47);
+  expect(state.memoryMap.nodes.filter((node) => node.sourceMessageId === 'msg-9')).toHaveLength(1);
+  expect(state.archive.records.filter((record) => record.sourceMessageId === 'msg-9')).toHaveLength(1);
+  expect(state.actionLog.filter((entry) => entry.sourceMessageId === 'msg-9')).toHaveLength(1);
+
+  useGameStore.getState().activateTavernProjection('chat-silent');
+  state = useGameStore.getState();
+  expect(state.operators.byId.rosmontis.stress).toBe(41);
+  expect(state.memoryMap.nodes.some((node) => node.sourceMessageId === 'msg-9')).toBe(false);
+
+  useGameStore.getState().activateTavernProjection('chat-rain');
+  state = useGameStore.getState();
+  expect(state.operators.byId.rosmontis.stress).toBe(47);
+  expect(state.memoryMap.nodes.some((node) => node.sourceMessageId === 'msg-9')).toBe(true);
+});
+
+test('reconciles removed history and carries surviving projection into a branch', () => {
+  const events = projectTavernTurn({
+    sessionId: 'chat-rain',
+    messageId: 'msg-9',
+    summary: '发现儿童意识回声',
+    variables: { rosmontis_stress: 47, clue_title: '被涂改的病历' },
+    previousVariables: { rosmontis_stress: 39 },
+  });
+  useGameStore.getState().activateTavernProjection('chat-rain');
+  useGameStore.getState().applyTavernEvents(events, 'chat-rain');
+  useGameStore.getState().branchTavernProjection('chat-rain', 'chat-branch', ['msg-9']);
+  expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(47);
+  expect(useGameStore.getState().archive.records.some((record) => record.sourceSessionId === 'chat-branch')).toBe(true);
+
+  useGameStore.getState().reconcileTavernProjection('chat-branch', []);
+  expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(41);
+  expect(useGameStore.getState().archive.records.some((record) => record.sourceSessionId === 'chat-branch')).toBe(false);
 });

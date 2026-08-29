@@ -9,6 +9,7 @@ import {
   Pulse,
 } from '@phosphor-icons/react';
 import type { ActionLogEntry } from '../../types/game';
+import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
 
 interface ActionTimelineProps {
   entries: ActionLogEntry[];
@@ -29,7 +30,8 @@ export function ActionTimeline({ entries, onOpen }: ActionTimelineProps) {
             <div className="log-content">
               <header><span>{entry.kind}</span><small>{entry.actor} / {entry.chapter}</small></header>
               <h2>{entry.title}</h2><p>{entry.summary}</p>
-              {(entry.sourceEntryId || entry.relatedPath) ? <button id={`log-replay-open-${entry.id}`} type="button" aria-label={entry.kind === '检定' ? `打开感知检定详情：${entry.title}` : `打开${entry.title}详情`} onClick={() => onOpen(entry)}><ClockCounterClockwise size={15} aria-hidden />回溯来源<ArrowUpRight size={14} aria-hidden /></button> : null}
+              <ProvenanceLink sessionId={entry.sourceSessionId} messageId={entry.sourceMessageId} matchedLorebookEntryIds={entry.matchedLorebookEntryIds} idSuffix={`log-${entry.id}`} />
+              {!entry.sourceSessionId && (entry.sourceEntryId || entry.relatedPath) ? <button id={`log-replay-open-${entry.id}`} type="button" aria-label={entry.kind === '检定' ? `打开感知检定详情：${entry.title}` : `打开${entry.title}详情`} onClick={() => onOpen(entry)}><ClockCounterClockwise size={15} aria-hidden />回溯来源<ArrowUpRight size={14} aria-hidden /></button> : null}
             </div>
           </article>
         );

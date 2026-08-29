@@ -1,4 +1,4 @@
-export type RiskLevel = 'C' | 'B' | 'A' | 'S';
+export type RiskLevel = 'D' | 'C' | 'B' | 'A' | 'S';
 export type GenerationStatus =
   | 'idle'
   | 'parsing'
@@ -20,6 +20,10 @@ export interface SessionState {
   objective: string;
   connection: '本地模拟已连接' | '本地模拟已中断';
   globalRisk: RiskLevel;
+  squadStatus: string;
+  sourceSessionId?: string;
+  sourceMessageId?: string;
+  matchedLorebookEntryIds?: string[];
 }
 
 export interface CheckResult {
@@ -86,6 +90,9 @@ export interface MemoryNode {
   effects: string[];
   intelligence: string[];
   updatedAt: string;
+  sourceSessionId?: string;
+  sourceMessageId?: string;
+  matchedLorebookEntryIds?: string[];
 }
 
 export interface MemoryEdge {
@@ -127,6 +134,9 @@ export interface Operator {
   equipment: string[];
   relation: string;
   temporaryFeatures: string[];
+  sourceSessionId?: string;
+  sourceMessageId?: string;
+  matchedLorebookEntryIds?: string[];
 }
 
 export interface OperatorsState {
@@ -152,6 +162,9 @@ export interface ArchiveRecord {
   pinned: boolean;
   unread: boolean;
   updatedAt: string;
+  sourceSessionId?: string;
+  sourceMessageId?: string;
+  matchedLorebookEntryIds?: string[];
 }
 
 export interface ArchiveLink {
@@ -180,6 +193,48 @@ export interface ActionLogEntry {
   chapter: string;
   sourceEntryId?: string;
   relatedPath?: string;
+  sourceSessionId?: string;
+  sourceMessageId?: string;
+  matchedLorebookEntryIds?: string[];
+}
+
+export type TacticalDomainEvent = (
+  | { type: 'operator.stress.changed'; operatorId: string; value: number; sourceMessageId: string }
+  | { type: 'operator.sanity.changed'; operatorId: string; value: number; sourceMessageId: string }
+  | {
+      type: 'memory.node.discovered';
+      title: string;
+      risk: RiskLevel;
+      summary?: string;
+      layer?: MemoryLayer;
+      hostileCount?: number | null;
+      alliedCount?: number;
+      effects?: string[];
+      intelligence?: string[];
+      sourceMessageId: string;
+    }
+  | {
+      type: 'archive.clue.discovered' | 'archive.npc.discovered';
+      title: string;
+      summary?: string;
+      confidence?: number;
+      risk?: RiskLevel;
+      sourceMessageId: string;
+    }
+  | { type: 'session.risk.changed'; value: RiskLevel; sourceMessageId: string }
+  | { type: 'session.objective.changed'; value: string; sourceMessageId: string }
+  | { type: 'squad.status.changed'; value: string; sourceMessageId: string }
+  | { type: 'log.turn.completed'; summary: string; sourceMessageId: string }
+) & { matchedLorebookEntryIds?: string[] };
+
+export interface TavernProjectionSnapshot {
+  processedMessageIds: string[];
+  events: TacticalDomainEvent[];
+}
+
+export interface TavernProjectionState {
+  activeSessionId: string | null;
+  sessions: Record<string, TavernProjectionSnapshot>;
 }
 
 export interface NotificationItem {
@@ -215,5 +270,6 @@ export interface GameDataState {
   operators: OperatorsState;
   archive: ArchiveState;
   actionLog: ActionLogEntry[];
+  tavernProjection: TavernProjectionState;
   ui: UiState;
 }

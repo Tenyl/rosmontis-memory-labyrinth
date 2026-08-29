@@ -2,6 +2,7 @@ import { Crosshair, MapPin, Pulse, UsersThree } from '@phosphor-icons/react';
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { Operator, SessionState } from '../../types/game';
+import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
 
 interface TacticalOverviewProps {
   session: SessionState;
@@ -25,13 +26,14 @@ export function TacticalOverview({ session, operators }: TacticalOverviewProps) 
         <span><Crosshair size={16} weight="fill" aria-hidden />当前目标</span>
         <h3 id="current-objective-title">{session.objective}</h3>
         <div><MapPin size={14} aria-hidden />R-09 隔离区 / 东翼下层</div>
+        <ProvenanceLink sessionId={session.sourceSessionId} messageId={session.sourceMessageId} matchedLorebookEntryIds={session.matchedLorebookEntryIds} idSuffix="operation-session" />
       </section>
 
       {rosmontis ? (
         <section className="overview-vitals" aria-label="迷迭香实时状态">
           <div className="overview-section-title">
             <span>RSM-04 / 迷迭香</span>
-            <small>神经链路在线</small>
+            <small>{session.squadStatus}</small>
           </div>
           <Meter id="operation-rosmontis-stress" label="精神负荷" value={rosmontis.stress} tone={rosmontis.stress >= 55 ? 'warning' : 'memory'} status={rosmontis.condition} />
           <Meter id="operation-rosmontis-sanity" label="理智稳定度" value={rosmontis.sanity ?? 0} tone="arts" />

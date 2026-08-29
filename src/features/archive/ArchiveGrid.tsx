@@ -1,6 +1,7 @@
 import { ArrowUpRight, Eye, LinkSimple, MapPin, PushPin, ShieldWarning } from '@phosphor-icons/react';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { ArchiveRecord } from '../../types/game';
+import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
 
 interface ArchiveGridProps {
   records: ArchiveRecord[];
@@ -25,6 +26,7 @@ export function ArchiveGrid({ records, onOpen, onTogglePin }: ArchiveGridProps) 
             {record.unread ? <span className="archive-unread">新情报 / UNREAD</span> : null}
             <h2>{record.title}</h2>
             <p>{record.summary}</p>
+            <ProvenanceLink sessionId={record.sourceSessionId} messageId={record.sourceMessageId} matchedLorebookEntryIds={record.matchedLorebookEntryIds} idSuffix={`archive-${record.id}`} />
           </div>
           <dl className="archive-card-telemetry">
             <div><dt><Eye size={13} aria-hidden />可信度</dt><dd>{record.confidence}%</dd></div>

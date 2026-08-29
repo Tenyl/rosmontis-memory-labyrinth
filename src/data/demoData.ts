@@ -258,6 +258,7 @@ export function buildDemoState(): GameDataState {
       objective: '确认 R-09 隔离区异常意识来源',
       connection: '本地模拟已连接',
       globalRisk: 'B',
+      squadStatus: '小队链路正常',
     },
     narrative: {
       entries: [
@@ -331,6 +332,10 @@ export function buildDemoState(): GameDataState {
       { id: 'log-archive', kind: '情报入库', title: '潮湿的儿童病历', summary: '新增冲突线索。', timestamp: '03:22:41', actor: '末药', chapter: '第一章', relatedPath: '/archive' },
       { id: 'log-state', kind: '状态变化', title: '未知通讯接入', summary: '护理员伊莲进入小队通讯。', timestamp: '03:24:09', actor: '系统', chapter: '第一章', relatedPath: '/archive' },
     ],
+    tavernProjection: {
+      activeSessionId: null,
+      sessions: {},
+    },
     ui: {
       sidebarCollapsed: false,
       activeDialog: null,

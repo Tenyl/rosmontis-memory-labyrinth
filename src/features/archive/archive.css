@@ -35,6 +35,7 @@
 .archive-unread { display: block; margin-bottom: var(--space-3); color: var(--color-arts-green); font: 500 .56rem/1 var(--font-data); letter-spacing: .11em; }
 .archive-card-body h2 { margin: 0 0 var(--space-4); font-size: clamp(1rem,2vw,1.35rem); }
 .archive-card-body p { margin: 0; color: var(--color-text-secondary); font-size: .75rem; line-height: 1.8; }
+.archive-card-body .tavern-provenance { margin-top: var(--space-3); }
 .archive-card-telemetry { display: grid; gap: 1px; grid-template-columns: repeat(3,1fr); margin: 0; background: var(--color-line-subtle); border-block: 1px solid var(--color-line-subtle); }
 .archive-card-telemetry div { padding: var(--space-3) var(--space-4); background: var(--color-surface-primary); }
 .archive-card-telemetry dt { display: flex; align-items: center; gap: 5px; color: var(--color-text-tertiary); font-size: .58rem; }

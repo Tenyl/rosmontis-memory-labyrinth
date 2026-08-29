@@ -1,6 +1,8 @@
-import { screen } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderApp } from '../../test/renderApp';
+import { useGameStore } from '../../store/gameStore';
+import { projectTavernTurn } from '../tavern/projection/tavern-turn-projector';
 
 test('shows the three surface nodes with tactical metadata', async () => {
   renderApp('/memory');
@@ -19,4 +21,17 @@ test.each(['向下拓建', '向左拓建', '向右拓建'])('expands with %s aft
   await user.click(screen.getByRole('button', { name: '确认拓建' }));
 
   expect(screen.getByText(/路径已建立/)).toBeVisible();
+});
+
+test('展示 LLM 新建节点的会话回合来源', async () => {
+  const user = userEvent.setup();
+  renderApp('/memory');
+  await screen.findByRole('heading', { name: '意识战场' });
+  const events = projectTavernTurn({ sessionId: 'chat-rain-echo', messageId: 'msg-memory-source', summary: '发现节点', variables: { memory_node_title: '沉没诊疗层', memory_node_risk: 'A' }, previousVariables: {} });
+  act(() => {
+    useGameStore.getState().activateTavernProjection('chat-rain-echo');
+    useGameStore.getState().applyTavernEvents(events, 'chat-rain-echo');
+  });
+  await user.click(await screen.findByRole('button', { name: /沉没诊疗层.*危险 A/ }));
+  expect(await screen.findByRole('link', { name: /打开来自会话雨幕回声的来源回合/ })).toBeVisible();
 });

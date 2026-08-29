@@ -13,6 +13,7 @@ import {
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { MemoryDirection, MemoryNode } from '../../types/game';
+import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
 
 interface MemoryInspectorProps {
   node: MemoryNode | null;
@@ -39,6 +40,7 @@ export function MemoryInspector({ node, onExpand, onEnter, onNotify }: MemoryIns
         <div><span className="panel-code">NODE / {node.id.toUpperCase()}</span><h2 id="memory-inspector-title">{node.title}</h2><small>{node.layer} · 更新于 {node.updatedAt}</small></div>
         <StatusBadge label={`危险 ${node.risk}`} tone={node.risk === 'A' || node.risk === 'S' ? 'danger' : node.risk === 'B' ? 'warning' : 'memory'} />
       </header>
+      <ProvenanceLink sessionId={node.sourceSessionId} messageId={node.sourceMessageId} matchedLorebookEntryIds={node.matchedLorebookEntryIds} idSuffix={`memory-${node.id}`} />
       <p className="memory-node-summary">{node.summary}</p>
       <Meter id={`memory-exploration-${node.id}`} label="探索完成度" value={node.exploration} tone="memory" />
 

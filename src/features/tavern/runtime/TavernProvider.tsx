@@ -43,6 +43,8 @@ import {
   type ParserEvent,
   type Persona,
 } from '../../../sillytavern';
+import { useGameStore } from '../../../store/gameStore';
+import { projectTavernTurn } from '../projection/tavern-turn-projector';
 import { LocalTavernTransport } from './local-tavern-transport';
 import { OpenAiTavernTransport } from './openai-tavern-transport';
 import type { TavernTransport } from './tavern-transport';
@@ -134,6 +136,10 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
   const [stream, setStream] = useState<TavernStreamState>(EMPTY_STREAM);
   const [matchedEntries, setMatchedEntries] = useState<MatchedEntry[]>([]);
   const abortRef = useRef<AbortController | null>(null);
+  const applyTavernEvents = useGameStore((state) => state.applyTavernEvents);
+  const activateTavernProjection = useGameStore((state) => state.activateTavernProjection);
+  const reconcileTavernProjection = useGameStore((state) => state.reconcileTavernProjection);
+  const branchTavernProjection = useGameStore((state) => state.branchTavernProjection);
 
   const loadAll = useCallback(async () => {
     setStatus('booting');
@@ -206,6 +212,11 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       ?? null,
     [activeChat?.presetId, presets, settings?.activePresetId],
   );
+
+  useEffect(() => {
+    if (!initialized) return;
+    activateTavernProjection(activeChat?.id ?? null);
+  }, [activeChat?.id, activateTavernProjection, initialized]);
   const selectedTransport = useMemo<TavernTransport>(() => {
     if (transport) return transport;
     return settings?.api.apiKey.trim() ? new OpenAiTavernTransport() : new LocalTavernTransport();
@@ -355,6 +366,14 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       };
       await saveChat(completedChat);
       setChats((current) => current.map((chat) => chat.id === completedChat.id ? completedChat : chat));
+      applyTavernEvents(projectTavernTurn({
+        sessionId: completedChat.id,
+        messageId: assistantMessage.id,
+        summary: parsed.sum,
+        variables: nextVariables,
+        previousVariables: chatWithUser.variables,
+        matchedLorebookEntryIds: assistantMessage.metadata?.lorebookEntries,
+      }), completedChat.id);
       setStatus('complete');
     } catch (sendError) {
       if (isAbortError(sendError)) {
@@ -366,7 +385,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     } finally {
       if (abortRef.current === controller) abortRef.current = null;
     }
-  }, [activeCharacter, activeChat, activePersona, activePreset, lorebooks, selectedTransport, settings, status]);
+  }, [activeCharacter, activeChat, activePersona, activePreset, applyTavernEvents, lorebooks, selectedTransport, settings, status]);
 
   const sendMessage = useCallback((content: string) => generateMessage(content), [generateMessage]);
 
@@ -379,8 +398,9 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     const next = { ...chat, messages, variables: { ...variables }, updatedAt: Date.now() };
     await saveChat(next);
     setChats((current) => current.map((item) => item.id === next.id ? next : item));
+    reconcileTavernProjection(next.id, next.messages.map((message) => message.id));
     return next;
-  }, []);
+  }, [reconcileTavernProjection]);
 
   const retryLastTurn = useCallback(async () => {
     if (!activeChat) return;
@@ -427,8 +447,9 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     await saveChat(branch);
     await persistSettings({ ...settings, activeChatId: branch.id });
     setChats((current) => [...current, branch]);
+    branchTavernProjection(activeChat.id, branch.id, branch.messages.map((message) => message.id));
     return branch.id;
-  }, [activeChat, chats, persistSettings, settings]);
+  }, [activeChat, branchTavernProjection, chats, persistSettings, settings]);
 
   const updateVariables = useCallback(async (variables: Record<string, unknown>) => {
     if (!activeChat) return;

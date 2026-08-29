@@ -1,0 +1,19 @@
+.tavern-provenance {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 30px;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-memory-blue);
+  font: 600 .62rem/1.35 var(--font-data);
+  letter-spacing: .04em;
+  text-decoration: none;
+}
+
+.tavern-provenance span { color: var(--color-text-tertiary); font-weight: 500; }
+.tavern-provenance:hover { color: var(--color-arts-green); }
+.tavern-provenance.is-unavailable { color: var(--color-warning); cursor: help; }
+
+@media (max-width: 767px) {
+  .tavern-provenance { min-height: 44px; }
+}

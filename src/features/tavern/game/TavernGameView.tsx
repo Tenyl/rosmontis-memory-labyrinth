@@ -1,5 +1,6 @@
 import { ArrowClockwise, ClockCounterClockwise } from '@phosphor-icons/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useGameStore } from '../../../store/gameStore';
 import { CommandConsole } from '../../operation/CommandConsole';
 import { useTavern } from '../runtime/useTavern';
@@ -12,11 +13,14 @@ import './tavern-game.css';
 
 export function TavernGameView() {
   const runtime = useTavern();
+  const location = useLocation();
   const narrative = useGameStore((state) => state.narrative);
   const setInputMode = useGameStore((state) => state.setInputMode);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyFocusMessageId, setHistoryFocusMessageId] = useState<string | null>(null);
+  const handledDeepLink = useRef('');
   const isGenerating = runtime.status === 'assembling' || runtime.status === 'streaming';
   const lastAssistant = useMemo(
     () => [...(runtime.activeChat?.messages ?? [])].reverse().find((message) => message.role === 'assistant') ?? null,
@@ -29,6 +33,27 @@ export function TavernGameView() {
     sum: lastAssistant?.parsed?.sum ?? '',
   };
   const suggestions = display.options.length ? display.options : narrative.suggestions;
+
+  useEffect(() => {
+    if (!runtime.initialized) return;
+    const params = new URLSearchParams(location.search);
+    const sessionId = params.get('session');
+    const messageId = params.get('message');
+    const deepLinkKey = `${sessionId ?? ''}:${messageId ?? ''}`;
+    if (!sessionId || !messageId || handledDeepLink.current === deepLinkKey) return;
+    if (!runtime.chats.some((chat) => chat.id === sessionId)) {
+      handledDeepLink.current = deepLinkKey;
+      setError('来源会话已被删除或无法访问');
+      return;
+    }
+    if (runtime.activeChat?.id !== sessionId) {
+      void runtime.selectChat(sessionId);
+      return;
+    }
+    handledDeepLink.current = deepLinkKey;
+    setHistoryFocusMessageId(messageId);
+    setHistoryOpen(true);
+  }, [location.search, runtime.activeChat?.id, runtime.chats, runtime.initialized, runtime.selectChat]);
 
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -77,7 +102,7 @@ export function TavernGameView() {
         </footer>
       </section>
       {runtime.initialized ? <CommandConsole draft={draft} inputMode={narrative.inputMode} suggestions={suggestions} status={runtime.status} transportMode={runtime.transportMode} error={error} onDraftChange={(value) => { setDraft(value); setError(null); }} onModeChange={setInputMode} onSubmit={() => void submit()} onStop={runtime.stopGeneration} /> : <div className="tavern-runtime-notice" role="status">正在恢复酒馆运行时与本地会话。</div>}
-      <HistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+      <HistoryDrawer open={historyOpen} focusMessageId={historyFocusMessageId} onClose={() => { setHistoryOpen(false); setHistoryFocusMessageId(null); }} />
     </div>
   );
 }

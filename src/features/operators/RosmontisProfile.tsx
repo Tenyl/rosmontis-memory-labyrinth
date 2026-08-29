@@ -11,6 +11,7 @@ import {
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { Operator } from '../../types/game';
+import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
 
 interface RosmontisProfileProps {
   operator: Operator;
@@ -35,6 +36,7 @@ export function RosmontisProfile({ operator }: RosmontisProfileProps) {
         </div>
         <div className="operator-clearance"><ShieldCheck size={19} weight="fill" aria-hidden /><span>档案权限</span><strong>精英 / 04</strong></div>
       </header>
+      <ProvenanceLink sessionId={operator.sourceSessionId} messageId={operator.sourceMessageId} matchedLorebookEntryIds={operator.matchedLorebookEntryIds} idSuffix={`operator-${operator.id}`} />
 
       <div className="rosmontis-monitoring">
         <section className="vital-hero" aria-labelledby="operator-vitals-title">
