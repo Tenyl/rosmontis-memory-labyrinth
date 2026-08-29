@@ -8,6 +8,7 @@ import {
   Sparkle,
   Waveform,
 } from '@phosphor-icons/react';
+import { CharacterArtwork } from '../../components/CharacterArtwork';
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { Operator } from '../../types/game';
@@ -27,7 +28,7 @@ export function RosmontisProfile({ operator }: RosmontisProfileProps) {
   return (
     <article className="rosmontis-profile" aria-labelledby="rosmontis-profile-title">
       <header className="rosmontis-identity">
-        <div className="operator-sigil is-rosmontis" aria-hidden="true"><i /><span>R</span><b>04</b></div>
+        <CharacterArtwork kind="portrait" label="迷迭香立绘占位" className="rosmontis-portrait" />
         <div className="rosmontis-identity-copy">
           <span className="panel-code">ELITE OPERATOR / {operator.code}</span>
           <h2 id="rosmontis-profile-title">{operator.name}</h2>

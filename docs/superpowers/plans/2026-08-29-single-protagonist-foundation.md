@@ -165,7 +165,7 @@ git commit -m "refactor: migrate tactical state to Rosmontis only"
 - Consumes: `CharacterArtwork` from Task 1 and `selectRosmontis`.
 - Produces: a status page titled `迷迭香状态` with no roster, role manager, or secondary dossier interaction.
 
-- [ ] **Step 1: Replace the page tests with Rosmontis-only assertions**
+- [x] **Step 1: Replace the page tests with Rosmontis-only assertions**
 
 ```tsx
 test('只显示迷迭香状态和空白立绘', async () => {
@@ -177,27 +177,27 @@ test('只显示迷迭香状态和空白立绘', async () => {
 });
 ```
 
-- [ ] **Step 2: Run the page test and verify RED**
+- [x] **Step 2: Run the page test and verify RED**
 
 Run: `pnpm test -- src/features/operators/OperatorsPage.test.tsx`
 
 Expected: FAIL because the page still renders squad and character management.
 
-- [ ] **Step 3: Simplify the page and insert the portrait component**
+- [x] **Step 3: Simplify the page and insert the portrait component**
 
 `OperatorsPage` reads only `state.operators.byId.rosmontis`, renders one `RosmontisProfile`, and removes `SquadRoster`, `OperatorDialog`, tabs, and `CharacterManager`. `RosmontisProfile` renders `CharacterArtwork kind="portrait" label="迷迭香立绘占位"` in its identity section.
 
-- [ ] **Step 4: Update layout styles**
+- [x] **Step 4: Update layout styles**
 
 Use a bounded portrait column on desktop and a compact 3:2 banner crop on mobile. Do not hide the image with CSS; the blank slot must remain visible so resource placement can be reviewed.
 
-- [ ] **Step 5: Run the page test and verify GREEN**
+- [x] **Step 5: Run the page test and verify GREEN**
 
 Run: `pnpm test -- src/features/operators/OperatorsPage.test.tsx`
 
 Expected: Rosmontis status tests pass and no secondary character controls are found.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/operators/OperatorsPage.tsx src/features/operators/RosmontisProfile.tsx src/features/operators/operators.css src/features/operators/OperatorsPage.test.tsx
