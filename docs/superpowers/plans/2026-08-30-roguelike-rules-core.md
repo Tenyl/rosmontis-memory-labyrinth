@@ -40,11 +40,11 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 - Create: `src/game/random.ts`
 - Create: `src/game/random.test.ts`
 
-- [ ] Write tests proving identical seeds produce identical integer sequences, distinct seeds diverge, bounds are inclusive, and the returned state can be serialized/resumed.
-- [ ] Run `pnpm exec vitest run src/game/random.test.ts` and verify RED.
-- [ ] Implement a string-seeded PRNG with `createSeededRandom(seed)`, `nextRandom(state)`, and `randomInt(state, min, max)`.
-- [ ] Re-run the focused test and `pnpm typecheck`.
-- [ ] Commit: `feat: add replayable roguelike random source`.
+- [x] Write tests proving identical seeds produce identical integer sequences, distinct seeds diverge, bounds are inclusive, and the returned state can be serialized/resumed.
+- [x] Run `pnpm exec vitest run src/game/random.test.ts` and verify RED.
+- [x] Implement a string-seeded PRNG with `createSeededRandom(seed)`, `nextRandom(state)`, and `randomInt(state, min, max)`.
+- [x] Re-run the focused test and `pnpm typecheck`.
+- [x] Commit: `feat: add replayable roguelike random source`.
 
 ### Task 2: D20 and bounded Rosmontis vitals
 
