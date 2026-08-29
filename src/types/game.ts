@@ -264,6 +264,13 @@ export interface UiState {
 }
 
 export interface GameDataState {
+  run: RunState;
+  maze: MazeGraph;
+  rosmontis: GreatswordCombatState;
+  memoryInventory: MemoryInventory;
+  progression: ProgressionState;
+  ruleLog: RuleEvent[];
+  randomState: SeededRandomState;
   session: SessionState;
   narrative: NarrativeState;
   memoryMap: MemoryMapState;
@@ -273,3 +280,12 @@ export interface GameDataState {
   tavernProjection: TavernProjectionState;
   ui: UiState;
 }
+import type {
+  GreatswordCombatState,
+  MazeGraph,
+  MemoryInventory,
+  ProgressionState,
+  RuleEvent,
+  RunState,
+  SeededRandomState,
+} from '../game/types';

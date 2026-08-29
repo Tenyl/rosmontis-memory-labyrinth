@@ -124,13 +124,13 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 - Create: `src/store/gameStateMigration.ts`
 - Create: `src/store/gameStateMigration.test.ts`
 
-- [ ] Write migration tests for legacy prototype state, phase-one single-protagonist state, malformed Run data, and an already-current state. Preserve UI preferences and Tavern projection/session data.
-- [ ] Verify RED.
-- [ ] Add `run`, `maze`, `rosmontis`, `memoryInventory`, `progression`, and `ruleLog` slices to `GameDataState`; keep old projection-compatible fields temporarily as adapters.
-- [ ] Set an explicit Zustand persist version and `migrate` function. Invalid Run data falls back to a fresh preset Run without deleting Tavern/Dexie data.
-- [ ] Expose minimal actions `startRun`, `moveToNode`, `useGreatsword`, `resolveFragmentChoice`, and `resetRun`, each delegating to pure rules.
-- [ ] Verify focused tests and typecheck.
-- [ ] Commit: `refactor: integrate versioned roguelike state`.
+- [x] Write migration tests for legacy prototype state, phase-one single-protagonist state, malformed Run data, and an already-current state. Preserve UI preferences and Tavern projection/session data.
+- [x] Verify RED.
+- [x] Add `run`, `maze`, `rosmontis`, `memoryInventory`, `progression`, and `ruleLog` slices to `GameDataState`; keep old projection-compatible fields temporarily as adapters.
+- [x] Set an explicit Zustand persist version and `migrate` function. Invalid Run data falls back to a fresh preset Run without deleting Tavern/Dexie data.
+- [x] Expose minimal actions `startRun`, `moveToNode`, `useGreatsword`, `resolveFragmentChoice`, and `resetRun`, each delegating to pure rules.
+- [x] Verify focused tests and typecheck.
+- [x] Commit: `refactor: integrate versioned roguelike state`.
 
 ### Task 8: Phase quality gate
 

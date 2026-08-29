@@ -59,6 +59,73 @@ test('旧持久化状态载入时过滤其他干员', () => {
   expect(migrated.operators.formation).toBe('单人认知潜入');
 });
 
+test('starts and advances a deterministic Run through store adapters', () => {
+  useGameStore.getState().startRun('STORE-RUN', 'preset', false);
+  let state = useGameStore.getState();
+  const target = state.maze.edges.find((edge) => (
+    edge.sourceId === state.run.currentNodeId
+    && state.maze.nodes.find((node) => node.id === edge.targetId)?.state === 'reachable'
+  ))!.targetId;
+
+  expect(state.run).toMatchObject({ seed: 'STORE-RUN', mode: 'preset', phase: 'exploring' });
+  useGameStore.getState().moveToNode(target);
+  state = useGameStore.getState();
+
+  expect(state.run.currentNodeId).toBe(target);
+  expect(state.ruleLog.at(-1)).toMatchObject({ type: 'run.moved', targetNodeId: target });
+});
+
+test('settles greatswords through pure rules and synchronizes the status-page adapter', () => {
+  useGameStore.getState().startRun('STORE-SWORD', 'preset', false);
+  useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'thought-rest' });
+  const state = useGameStore.getState();
+
+  expect(state.rosmontis).toMatchObject({ actionPoints: 3, overload: 5, guard: 24 });
+  expect(state.operators.byId.rosmontis).toMatchObject({ actionPoints: 3, stress: 5, sanity: 100 });
+  expect(state.ruleLog.at(-1)).toMatchObject({ type: 'greatsword.used', swordId: 'watch' });
+});
+
+test('resolves a persisted fragment overflow choice through the store adapter', () => {
+  useGameStore.getState().startRun('STORE-FRAGMENT', 'preset', false);
+  useGameStore.setState((state) => ({
+    run: { ...state.run, phase: 'fragment-overflow' },
+    memoryInventory: {
+      ...state.memoryInventory,
+      capacity: 1,
+      fragments: [{ id: 'kept', name: '保留记忆', kind: 'standard', tags: [] }],
+      pendingFragment: { id: 'pending', name: '待选记忆', kind: 'standard', tags: [] },
+    },
+  }));
+
+  useGameStore.getState().resolveFragmentChoice({ type: 'replace', fragmentId: 'kept' });
+  const state = useGameStore.getState();
+
+  expect(state.run.phase).toBe('exploring');
+  expect(state.memoryInventory.fragments.map((fragment) => fragment.id)).toEqual(['pending']);
+  expect(state.memoryInventory.pendingFragment).toBeNull();
+});
+
+test('persists the explicit roguelike schema version', () => {
+  useGameStore.getState().setOperatorStress('rosmontis', 44);
+  const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
+
+  expect(persisted.version).toBe(2);
+  expect(persisted.state.run.seed).toBeTruthy();
+  expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(4);
+});
+
+test('resets only the active Run while preserving permanent progression', () => {
+  useGameStore.getState().startRun('TEMPORARY-RUN', 'preset', false);
+  useGameStore.setState({ progression: { firstClear: true, completedRuns: 2 } });
+
+  useGameStore.getState().resetRun();
+  const state = useGameStore.getState();
+
+  expect(state.run).toMatchObject({ seed: 'PRESET-RAIN-ECHO', mode: 'preset', phase: 'exploring', turn: 1 });
+  expect(state.memoryInventory.fragments).toEqual([]);
+  expect(state.progression).toEqual({ firstClear: true, completedRuns: 2 });
+});
+
 test('applies each Tavern turn once and restores an independent projection per chat', () => {
   const events = projectTavernTurn({
     sessionId: 'chat-rain',

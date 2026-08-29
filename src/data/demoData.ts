@@ -4,6 +4,7 @@ import type {
   MemoryNode,
   Operator,
 } from '../types/game';
+import { createRun } from '../game/run';
 
 const surfaceNodes: MemoryNode[] = [
   {
@@ -193,7 +194,20 @@ export const deepMemoryNode: MemoryNode = {
 };
 
 export function buildDemoState(): GameDataState {
+  const roguelike = createRun({
+    seed: 'PRESET-RAIN-ECHO',
+    mode: 'preset',
+    progression: { firstClear: false, completedRuns: 0 },
+    llmEnabled: false,
+  });
   return {
+    run: roguelike.run,
+    maze: roguelike.maze,
+    rosmontis: roguelike.rosmontis,
+    memoryInventory: roguelike.memoryInventory,
+    progression: roguelike.progression,
+    ruleLog: [],
+    randomState: roguelike.randomState,
     session: {
       operationCode: '雨幕回声',
       chapter: '第一章 / 失温病历',

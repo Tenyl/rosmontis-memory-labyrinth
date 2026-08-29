@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { buildDemoState, deepMemoryClue, deepMemoryNode } from '../data/demoData';
+import { createRun, reduceRunAction } from '../game/run';
+import type {
+  FragmentOverflowChoice,
+  GreatswordAction,
+  RoguelikeState,
+  RuleEvent,
+  RunMode,
+} from '../game/types';
 import type {
   ArchiveRecord,
   ArchiveKind,
@@ -14,8 +22,14 @@ import type {
   TacticalDomainEvent,
   UiPreferences,
 } from '../types/game';
+import { migrateGameState } from './gameStateMigration';
 
 interface GameActions {
+  startRun: (seed: string, mode: RunMode, llmEnabled: boolean) => void;
+  moveToNode: (nodeId: string) => void;
+  useGreatsword: (action: GreatswordAction) => void;
+  resolveFragmentChoice: (choice: FragmentOverflowChoice) => void;
+  resetRun: () => void;
   setNarrativeDraft: (draft: string) => void;
   setInputMode: (inputMode: InputMode) => void;
   setGenerationStatus: (generationStatus: GenerationStatus) => void;
@@ -48,6 +62,48 @@ interface GameActions {
 
 export type GameStore = GameDataState & GameActions;
 
+function selectRoguelikeState(state: GameStore): RoguelikeState {
+  return {
+    run: state.run,
+    maze: state.maze,
+    rosmontis: state.rosmontis,
+    memoryInventory: state.memoryInventory,
+    progression: state.progression,
+    randomState: state.randomState,
+  };
+}
+
+function applyRoguelikeState(
+  state: GameStore,
+  next: RoguelikeState,
+  events: RuleEvent[],
+): Partial<GameStore> {
+  const operator = state.operators.byId.rosmontis;
+  return {
+    run: next.run,
+    maze: next.maze,
+    rosmontis: next.rosmontis,
+    memoryInventory: next.memoryInventory,
+    progression: next.progression,
+    randomState: next.randomState,
+    ruleLog: [...state.ruleLog, ...events],
+    operators: {
+      ...state.operators,
+      byId: {
+        rosmontis: {
+          ...operator,
+          sanity: next.rosmontis.sanity,
+          stress: next.rosmontis.overload,
+          actionPoints: next.rosmontis.actionPoints,
+          condition: next.run.phase === 'defeat' ? '认知链路中断' : operator.condition,
+        },
+      },
+      squadOrder: ['rosmontis'],
+      formation: '单人认知潜入',
+    },
+  };
+}
+
 export function sanitizeSingleProtagonistState(state: GameDataState): GameDataState {
   const fallback = buildDemoState().operators.byId.rosmontis;
   const rosmontis = state.operators.byId.rosmontis ?? fallback;
@@ -73,6 +129,13 @@ function buildPersistedState(state: GameStore): GameDataState {
   }
 
   return {
+    run: state.run,
+    maze: state.maze,
+    rosmontis: state.rosmontis,
+    memoryInventory: state.memoryInventory,
+    progression: state.progression,
+    ruleLog: state.ruleLog,
+    randomState: state.randomState,
     session: state.session,
     narrative: state.narrative,
     memoryMap: state.memoryMap,
@@ -269,6 +332,36 @@ export const useGameStore = create<GameStore>()(
   persist(
     (set) => ({
       ...buildDemoState(),
+      startRun: (seed, mode, llmEnabled) =>
+        set((state) => {
+          const next = createRun({ seed, mode, progression: state.progression, llmEnabled });
+          return applyRoguelikeState(state, next, []);
+        }),
+      moveToNode: (nodeId) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'move-to-node', nodeId });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      useGreatsword: (action) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'use-greatsword', action });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      resolveFragmentChoice: (choice) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'resolve-fragment-overflow', choice });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      resetRun: () =>
+        set((state) => {
+          const next = createRun({
+            seed: 'PRESET-RAIN-ECHO',
+            mode: 'preset',
+            progression: state.progression,
+            llmEnabled: false,
+          });
+          return applyRoguelikeState(state, next, []);
+        }),
       setNarrativeDraft: (draft) =>
         set((state) => ({ narrative: { ...state.narrative, draft, inputError: null } })),
       setInputMode: (inputMode) =>
@@ -743,11 +836,13 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
+      version: 2,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
+      migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),
       merge: (persistedState, currentState) => {
-        const sanitized = sanitizeSingleProtagonistState(persistedState as GameDataState);
-        return { ...currentState, ...sanitized };
+        const migrated = migrateGameState(persistedState, buildDemoState());
+        return { ...currentState, ...migrated };
       },
     },
   ),
