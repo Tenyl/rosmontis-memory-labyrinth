@@ -107,12 +107,12 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 - Create: `src/game/run.test.ts`
 - Extend: `src/game/types.ts`
 
-- [ ] Write tests covering preset Run creation, legal node movement, completed-node rewards, defeat at sanity 0 or overload 100, victory at a stabilized core, first-clear unlock, endless availability, and novel mode rejection when LLM is disabled.
-- [ ] Verify RED.
-- [ ] Implement `createRun`, `getAvailableModes`, and `reduceRunAction` as pure functions composing Tasks 1–5.
-- [ ] Ensure local endless mode unlocks after first clear and remains independent of LLM availability.
-- [ ] Verify GREEN and typecheck.
-- [ ] Commit: `feat: implement offline run lifecycle`.
+- [x] Write tests covering preset Run creation, legal node movement, completed-node rewards, defeat at sanity 0 or overload 100, victory at a stabilized core, first-clear unlock, endless availability, and novel mode rejection when LLM is disabled.
+- [x] Verify RED.
+- [x] Implement `createRun`, `getAvailableModes`, and `reduceRunAction` as pure functions composing Tasks 1–5.
+- [x] Ensure local endless mode unlocks after first clear and remains independent of LLM availability.
+- [x] Verify GREEN and typecheck.
+- [x] Commit: `feat: implement offline run lifecycle`.
 
 ### Task 7: Versioned Zustand integration and migration
 

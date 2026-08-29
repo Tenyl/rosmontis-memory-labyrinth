@@ -56,7 +56,10 @@ export type RuleEvent =
   | { type: 'fragment.acquired'; fragmentId: string; kind: 'standard' | 'core' }
   | { type: 'fragment.overflow'; fragmentId: string }
   | { type: 'fragment.discarded'; fragmentId: string }
-  | { type: 'fragment.replaced'; forgottenFragmentId: string; acquiredFragmentId: string };
+  | { type: 'fragment.replaced'; forgottenFragmentId: string; acquiredFragmentId: string }
+  | { type: 'run.moved'; sourceNodeId: string; targetNodeId: string }
+  | { type: 'node.completed'; nodeId: string }
+  | { type: 'run.ended'; result: 'victory' | 'defeat' };
 
 export interface GreatswordCombatState {
   actionPoints: number;
@@ -97,6 +100,28 @@ export interface FragmentRuleState {
 export type FragmentOverflowChoice =
   | { type: 'discard-pending' }
   | { type: 'replace'; fragmentId: string };
+
+export interface ProgressionState {
+  firstClear: boolean;
+  completedRuns: number;
+}
+
+export interface RoguelikeState {
+  run: RunState;
+  maze: MazeGraph;
+  rosmontis: GreatswordCombatState;
+  memoryInventory: MemoryInventory;
+  progression: ProgressionState;
+  randomState: SeededRandomState;
+}
+
+export type RunAction =
+  | { type: 'move-to-node'; nodeId: string }
+  | { type: 'complete-node'; fragment?: MemoryFragment }
+  | { type: 'use-greatsword'; action: GreatswordAction }
+  | { type: 'resolve-fragment-overflow'; choice: FragmentOverflowChoice }
+  | { type: 'apply-vitals'; sanityDelta: number; overloadDelta: number }
+  | { type: 'stabilize-core' };
 
 export interface MazeNode {
   id: string;
