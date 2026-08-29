@@ -34,7 +34,7 @@
 - Produces: `CHARACTER_ARTWORK_SRC: '/assets/characters/blank-character.svg'`
 - Produces: `CharacterArtwork(props: { kind: 'avatar' | 'portrait'; label: string; className?: string; decorative?: boolean }): JSX.Element`
 
-- [ ] **Step 1: Write the failing component test**
+- [x] **Step 1: Write the failing component test**
 
 ```tsx
 import { render, screen } from '@testing-library/react';
@@ -48,13 +48,13 @@ test('人物资源槽始终使用项目内空白图片', () => {
 });
 ```
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run: `pnpm test -- src/components/CharacterArtwork.test.tsx`
 
 Expected: FAIL because `CharacterArtwork.tsx` does not exist.
 
-- [ ] **Step 3: Add the blank SVG and minimal component**
+- [x] **Step 3: Add the blank SVG and minimal component**
 
 ```tsx
 export const CHARACTER_ARTWORK_SRC = '/assets/characters/blank-character.svg' as const;
@@ -66,7 +66,7 @@ export function CharacterArtwork({ kind, label, className = '', decorative = fal
 
 The SVG must use a `640 960` viewBox, an opaque neutral terminal surface, and no human silhouette, text, logo, or copyrighted mark.
 
-- [ ] **Step 4: Add stable avatar and portrait aspect-ratio styles**
+- [x] **Step 4: Add stable avatar and portrait aspect-ratio styles**
 
 ```css
 .character-artwork { display:block; object-fit:cover; background:var(--color-surface-raised); }
@@ -74,13 +74,13 @@ The SVG must use a `640 960` viewBox, an opaque neutral terminal surface, and no
 .character-artwork.is-portrait { width:100%; aspect-ratio:2 / 3; }
 ```
 
-- [ ] **Step 5: Run the focused test and verify GREEN**
+- [x] **Step 5: Run the focused test and verify GREEN**
 
 Run: `pnpm test -- src/components/CharacterArtwork.test.tsx`
 
 Expected: 1 test passes.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add public/assets/characters/blank-character.svg src/components/CharacterArtwork.tsx src/components/CharacterArtwork.test.tsx src/components/components.css
@@ -348,4 +348,3 @@ Expected: no whitespace errors; only intentional phase files are present.
 git add docs src public
 git commit -m "feat: establish Rosmontis-only game foundation"
 ```
-
