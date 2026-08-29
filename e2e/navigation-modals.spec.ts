@@ -26,9 +26,11 @@ test('意识战场支持拓建与高危节点确认弹层', async ({ page }) => 
   await closesWithEscapeAndRestoresFocus(page, 'memory-node-enter', '高危节点进入确认');
 });
 
-test('干员完整档案支持键盘关闭', async ({ page }) => {
+test('迷迭香状态页使用可替换空白立绘且没有随行档案入口', async ({ page }) => {
   await page.goto('/operators');
-  await closesWithEscapeAndRestoresFocus(page, 'operator-dossier-open-amiya', '阿米娅战术档案');
+  await expect(page.getByRole('heading', { level: 1, name: '迷迭香状态' })).toBeVisible();
+  await expect(page.getByRole('img', { name: '迷迭香立绘占位' })).toHaveAttribute('src', '/assets/characters/blank-character.svg');
+  await expect(page.locator('[id^="operator-dossier-open-"]')).toHaveCount(0);
 });
 
 test('档案详情与未保存批注确认保持嵌套层级', async ({ page }) => {

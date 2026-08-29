@@ -5,7 +5,7 @@ import { renderApp } from './renderApp';
 const routes = [
   ['/operation', 'operation-page-title', '作战主控台'],
   ['/memory', 'memory-page-title', '意识战场'],
-  ['/operators', 'operators-page-title', '干员与小队'],
+  ['/operators', 'operators-page-title', '迷迭香状态'],
   ['/archive', 'archive-page-title', '情报档案库'],
   ['/log', 'log-page-title', '行动记录'],
   ['/settings', 'settings-page-title', '系统设置'],
@@ -34,13 +34,13 @@ test('提供键盘跳转入口和可感知的全局导航状态', async () => {
   expect(container.querySelector('#nav-operation-open')).toHaveAttribute('aria-current', 'page');
 });
 
-test('酒馆编排五个工作区的交互控件有名称、字段有标签且不使用结构性表情符号', async () => {
+test('酒馆编排四个公开工作区的交互控件有名称、字段有标签且不使用结构性表情符号', async () => {
   const user = userEvent.setup();
   renderApp('/operation');
   await user.click(await screen.findByRole('button', { name: /打开酒馆编排/ }));
   const dialog = await screen.findByRole('dialog', { name: '酒馆编排中枢' });
 
-  for (const tabName of [/^会话 /, /^变量 /, /^角色 /, /^世界书 /, /^预设 /]) {
+  for (const tabName of [/^会话 /, /^变量 /, /^世界书 /, /^预设 /]) {
     await user.click(within(dialog).getByRole('tab', { name: tabName }));
     const controls = [...dialog.querySelectorAll<HTMLElement>('button, a[href], input, textarea, select')];
     controls.forEach((control) => expect(control).toHaveAccessibleName());

@@ -8,32 +8,12 @@ async function downloadJson(download: Download) {
   return JSON.parse(text) as Record<string, unknown>;
 }
 
-test('角色卡、世界书与预设支持 SillyTavern JSON 导入导出', async ({ page }) => {
+test('单主角编排隐藏角色管理且世界书与预设支持 SillyTavern JSON 导入导出', async ({ page }) => {
   await page.goto('/operation');
   await page.locator('#global-tavern-open').click();
   await expect(page.getByRole('dialog', { name: '酒馆编排中枢' })).toBeVisible();
 
-  await page.locator('#tavern-tab-characters').click();
-  await page.locator('#character-import-input').setInputFiles({
-    name: 'medical-observer.json',
-    mimeType: 'application/json',
-    buffer: Buffer.from(JSON.stringify({
-      spec: 'chara_card_v2',
-      spec_version: '2.0',
-      data: {
-        name: '医疗观察员', description: '负责记录精神负荷。', personality: '严谨', scenario: '罗德岛医疗室',
-        first_mes: '监测已经开始。', mes_example: '', creator_notes: '', system_prompt: '', post_history_instructions: '',
-        alternate_greetings: [], tags: ['医疗'], creator: 'E2E', character_version: '1.0', extensions: {},
-      },
-    })),
-  });
-  const character = page.getByRole('article', { name: '角色卡 医疗观察员' });
-  await expect(character).toBeVisible();
-  const characterDownloadEvent = page.waitForEvent('download');
-  await character.getByRole('button', { name: '导出角色 医疗观察员' }).click();
-  const characterDownload = await characterDownloadEvent;
-  expect(characterDownload.suggestedFilename()).toBe('医疗观察员.json');
-  expect((await downloadJson(characterDownload)).spec).toBe('chara_card_v2');
+  await expect(page.locator('#tavern-tab-characters')).toHaveCount(0);
 
   await page.locator('#tavern-tab-lorebooks').click();
   await page.locator('#lorebook-import-input').setInputFiles({

@@ -4,7 +4,7 @@ test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => window.localStorage.clear());
 });
 
-test('酒馆回合同步剧情、情报、行动记录与干员投影', async ({ page }) => {
+test('酒馆回合同步剧情、情报、行动记录与迷迭香投影', async ({ page }) => {
   await page.goto('/operation');
   await expect(page.getByRole('button', { name: /当前会话：雨幕回声/ })).toBeVisible();
 
@@ -22,6 +22,6 @@ test('酒馆回合同步剧情、情报、行动记录与干员投影', async ({
   await page.getByRole('tab', { name: '战术时间线' }).click();
   await expect(page.getByText('R-09 门后出现三个同步意识回声，迷迭香建立临时安全线。', { exact: true })).toBeVisible();
 
-  await page.getByRole('link', { name: /干员与小队/ }).click();
+  await page.getByRole('link', { name: /迷迭香状态/ }).click();
   await expect(page.getByRole('meter', { name: '迷迭香精神负荷' })).toHaveAttribute('aria-valuenow', '43');
 });

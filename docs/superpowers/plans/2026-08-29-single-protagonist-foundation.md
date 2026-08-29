@@ -312,19 +312,19 @@ git commit -m "refactor: hide multi-character management"
 **Interfaces:**
 - Verifies all deliverables from Tasks 1–5.
 
-- [ ] **Step 1: Run source audits**
+- [x] **Step 1: Run source audits**
 
 Run: `rg -n "阿米娅|末药|蛇屠箱|干员与小队|随行小队" src --glob '!**/*.test.*'`
 
 Expected: no user-visible runtime matches. Legacy unreachable files may only remain if explicitly documented and excluded from the build.
 
-- [ ] **Step 2: Run unit and component tests**
+- [x] **Step 2: Run unit and component tests**
 
 Run: `pnpm test`
 
 Expected: all test files and tests pass with zero failures.
 
-- [ ] **Step 3: Run type and production checks**
+- [x] **Step 3: Run type and production checks**
 
 Run: `pnpm typecheck`
 
@@ -334,13 +334,13 @@ Run: `pnpm build`
 
 Expected: exit code 0 and no Vite large-chunk warning.
 
-- [ ] **Step 4: Run the Playwright suite**
+- [x] **Step 4: Run the Playwright suite**
 
 Run: `pnpm test:e2e`
 
 Expected: all Chromium tests pass at 375, 768, 1024, and 1440 widths.
 
-- [ ] **Step 5: Verify worktree and commit the phase**
+- [x] **Step 5: Verify worktree and commit the phase**
 
 Run: `git diff --check && git status --short`
 
