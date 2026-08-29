@@ -43,6 +43,21 @@ export async function exportTavernBackup(): Promise<TavernBackup> {
 }
 
 export async function importTavernBackup(input: unknown): Promise<void> {
+  const backup = parseTavernBackup(input);
+
+  await importAllData({
+    version: backup.version,
+    exportedAt: backup.exportedAt,
+    lorebooks: backup.lorebooks,
+    presets: backup.presets,
+    settings: [sanitizeSettings(backup.settings)],
+    chats: backup.chats,
+    characters: backup.characters,
+    personas: backup.personas,
+  });
+}
+
+export function parseTavernBackup(input: unknown): TavernBackup {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
     throw new Error('备份格式无效：需要对象');
   }
@@ -61,14 +76,15 @@ export async function importTavernBackup(input: unknown): Promise<void> {
     throw new Error('备份内容不完整');
   }
 
-  await importAllData({
+  return {
+    kind: 'rhodes-tavern-backup',
     version: backup.version,
     exportedAt: backup.exportedAt ?? Date.now(),
     lorebooks: backup.lorebooks,
     presets: backup.presets,
-    settings: [sanitizeSettings(backup.settings)],
+    settings: sanitizeSettings(backup.settings),
     chats: backup.chats,
     characters: backup.characters,
     personas: backup.personas,
-  });
+  };
 }

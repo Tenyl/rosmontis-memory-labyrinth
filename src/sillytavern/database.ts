@@ -197,6 +197,10 @@ export async function deleteChat(id: string): Promise<void> {
   await getDatabase().chats.delete(id);
 }
 
+export async function clearChats(): Promise<void> {
+  await getDatabase().chats.clear();
+}
+
 export async function setVariables(chatId: string, variables: Record<string, any>): Promise<void> {
   const db = getDatabase();
   const chat = await db.chats.get(chatId);

@@ -7,7 +7,7 @@ test('validates an empty command inline and completes a Tavern runtime turn', as
   await screen.findByRole('heading', { name: '作战主控台' });
   const user = userEvent.setup();
 
-  await user.click(screen.getByRole('button', { name: '发送战术指令' }));
+  await user.click(await screen.findByRole('button', { name: '发送战术指令' }));
   expect(screen.getByText('请输入行动描述，或从上方选择一项建议')).toBeVisible();
 
   await user.click(screen.getByRole('button', { name: '让迷迭香读取残留意识' }));

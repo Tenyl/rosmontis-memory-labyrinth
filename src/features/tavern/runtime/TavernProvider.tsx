@@ -14,6 +14,7 @@ import {
   aggregateEvents,
   applyParsedToChat,
   assemblePrompt,
+  clearChats as clearChatsDb,
   deleteCharacter as deleteCharacterDb,
   deleteChat as deleteChatDb,
   deleteLorebook as deleteLorebookDb,
@@ -90,6 +91,7 @@ export interface TavernRuntimeValue {
   selectChat: (id: string) => Promise<void>;
   renameChat: (id: string, name: string) => Promise<void>;
   removeChat: (id: string) => Promise<void>;
+  clearChats: () => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
   stopGeneration: () => void;
   retryLastTurn: () => Promise<void>;
@@ -277,6 +279,14 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       await persistSettings({ ...settings, activeChatId: remaining[0]?.id ?? null });
     }
   }, [chats, persistSettings, settings]);
+
+  const clearChats = useCallback(async () => {
+    if (!settings) return;
+    await clearChatsDb();
+    await persistSettings({ ...settings, activeChatId: null });
+    setChats([]);
+    activateTavernProjection(null);
+  }, [activateTavernProjection, persistSettings, settings]);
 
   const generateMessage = useCallback(async (content: string, sourceChat?: ChatSession) => {
     const userContent = content.trim();
@@ -518,6 +528,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     selectChat,
     renameChat,
     removeChat,
+    clearChats,
     sendMessage,
     stopGeneration,
     retryLastTurn,
@@ -536,7 +547,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     removePreset,
   }), [
     activeCharacter, activeChat, activePersona, activePreset, branchFromMessage, characters, chats,
-    createChat, deleteMessagesFrom, editAndRegenerate, error, initialized, loadAll, lorebooks,
+    clearChats, createChat, deleteMessagesFrom, editAndRegenerate, error, initialized, loadAll, lorebooks,
     matchedEntries, personas, presets, removeCharacter, removeChat, removeLorebook, removePersona,
     removePreset, renameChat, retryLastTurn, selectChat, selectedTransport.mode, sendMessage, settings,
     status, stopGeneration, stream, updateSettings, updateVariables, upsertCharacter, upsertLorebook,
