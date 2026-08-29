@@ -2,23 +2,23 @@ import {
   ArrowUpRight,
   BracketsCurly,
   ChatCenteredText,
-  Pause,
-  Play,
+  Stop,
   Sparkle,
 } from '@phosphor-icons/react';
-import type { GenerationStatus, InputMode } from '../../types/game';
+import type { InputMode } from '../../types/game';
+import type { TavernRuntimeStatus } from '../tavern/runtime/TavernProvider';
 
 interface CommandConsoleProps {
   draft: string;
   inputMode: InputMode;
   suggestions: string[];
-  status: GenerationStatus;
+  status: TavernRuntimeStatus;
+  transportMode: 'local' | 'remote';
   error: string | null;
   onDraftChange: (value: string) => void;
   onModeChange: (mode: InputMode) => void;
   onSubmit: () => void;
-  onPause: () => void;
-  onResume: () => void;
+  onStop: () => void;
 }
 
 const inputModes: Array<{ value: InputMode; label: string }> = [
@@ -27,13 +27,15 @@ const inputModes: Array<{ value: InputMode; label: string }> = [
   { value: '询问队员', label: '询问队员' },
 ];
 
-const statusLabel: Record<GenerationStatus, string> = {
-  idle: '待命',
-  parsing: '解析意图',
+const statusLabel: Record<TavernRuntimeStatus, string> = {
+  booting: '恢复会话',
+  ready: '待命',
+  assembling: '编排上下文',
   streaming: '生成中',
   paused: '已暂停',
   interrupted: '已中断',
   complete: '回合完成',
+  failed: '链路异常',
 };
 
 export function CommandConsole({
@@ -41,21 +43,20 @@ export function CommandConsole({
   inputMode,
   suggestions,
   status,
+  transportMode,
   error,
   onDraftChange,
   onModeChange,
   onSubmit,
-  onPause,
-  onResume,
+  onStop,
 }: CommandConsoleProps) {
-  const isGenerating = status === 'parsing' || status === 'streaming';
-  const isPaused = status === 'paused';
+  const isGenerating = status === 'assembling' || status === 'streaming';
 
   return (
     <section className="command-console" aria-labelledby="command-console-title">
       <div className="command-console-heading">
         <div>
-          <span className="panel-code">LLM COMMAND CHANNEL / LOCAL</span>
+          <span className="panel-code">LLM COMMAND CHANNEL / {transportMode === 'local' ? 'LOCAL SIM' : 'REMOTE API'}</span>
           <h2 id="command-console-title">战术指令输入</h2>
         </div>
         <span className={`generation-state is-${status}`} aria-live="polite">
@@ -101,9 +102,10 @@ export function CommandConsole({
         </label>
         <textarea
           id="operation-command-input"
+          aria-label="战术指令"
           value={draft}
           rows={4}
-          disabled={isGenerating || isPaused}
+          disabled={isGenerating}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? 'operation-command-error' : 'operation-command-hint'}
           onChange={(event) => onDraftChange(event.target.value)}
@@ -120,23 +122,18 @@ export function CommandConsole({
           </p>
           <div className="command-actions">
             {isGenerating ? (
-              <button id="operation-generation-pause" className="terminal-button is-secondary" type="button" onClick={onPause}>
-                <Pause size={16} weight="fill" aria-hidden />暂停生成
-              </button>
-            ) : null}
-            {isPaused ? (
-              <button id="operation-generation-resume" className="terminal-button is-secondary" type="button" onClick={onResume}>
-                <Play size={16} weight="fill" aria-hidden />继续生成
+              <button id="operation-generation-stop" className="terminal-button is-secondary" type="button" onClick={onStop}>
+                <Stop size={16} weight="fill" aria-hidden />停止生成
               </button>
             ) : null}
             <button
               id="operation-command-submit"
               className="terminal-button is-primary"
               type="button"
-              disabled={isGenerating || isPaused}
+              disabled={isGenerating}
               onClick={onSubmit}
             >
-              发送指令<ArrowUpRight size={17} weight="bold" aria-hidden />
+              发送战术指令<ArrowUpRight size={17} weight="bold" aria-hidden />
             </button>
           </div>
         </div>

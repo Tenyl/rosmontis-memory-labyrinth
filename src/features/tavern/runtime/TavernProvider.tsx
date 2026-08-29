@@ -267,10 +267,11 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     }
   }, [chats, persistSettings, settings]);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const generateMessage = useCallback(async (content: string, sourceChat?: ChatSession) => {
     const userContent = content.trim();
     if (!userContent) throw new Error('请输入战术指令');
-    if (!settings || !activeChat || !activeCharacter || !activePersona || !activePreset) {
+    const currentChat = sourceChat ?? activeChat;
+    if (!settings || !currentChat || !activeCharacter || !activePersona || !activePreset) {
       throw new Error('当前会话的角色、身份或预设不完整');
     }
     if (status === 'assembling' || status === 'streaming') return;
@@ -287,11 +288,11 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       role: 'user',
       content: userContent,
       timestamp: Date.now(),
-      variables: { ...activeChat.variables },
+      variables: { ...currentChat.variables },
     };
     const chatWithUser: ChatSession = {
-      ...activeChat,
-      messages: [...activeChat.messages, userMessage],
+      ...currentChat,
+      messages: [...currentChat.messages, userMessage],
       updatedAt: Date.now(),
     };
     await saveChat(chatWithUser);
@@ -367,6 +368,8 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     }
   }, [activeCharacter, activeChat, activePersona, activePreset, lorebooks, selectedTransport, settings, status]);
 
+  const sendMessage = useCallback((content: string) => generateMessage(content), [generateMessage]);
+
   const stopGeneration = useCallback(() => abortRef.current?.abort(), []);
 
   const truncateAndPersist = useCallback(async (chat: ChatSession, index: number) => {
@@ -385,17 +388,17 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     const index = reverseIndex < 0 ? -1 : activeChat.messages.length - 1 - reverseIndex;
     if (index < 0) return;
     const content = activeChat.messages[index].content;
-    await truncateAndPersist(activeChat, index);
-    await sendMessage(content);
-  }, [activeChat, sendMessage, truncateAndPersist]);
+    const truncated = await truncateAndPersist(activeChat, index);
+    await generateMessage(content, truncated);
+  }, [activeChat, generateMessage, truncateAndPersist]);
 
   const editAndRegenerate = useCallback(async (messageId: string, content: string) => {
     if (!activeChat) return;
     const index = activeChat.messages.findIndex((message) => message.id === messageId && message.role === 'user');
     if (index < 0) return;
-    await truncateAndPersist(activeChat, index);
-    await sendMessage(content);
-  }, [activeChat, sendMessage, truncateAndPersist]);
+    const truncated = await truncateAndPersist(activeChat, index);
+    await generateMessage(content, truncated);
+  }, [activeChat, generateMessage, truncateAndPersist]);
 
   const deleteMessagesFrom = useCallback(async (messageId: string) => {
     if (!activeChat) return;
