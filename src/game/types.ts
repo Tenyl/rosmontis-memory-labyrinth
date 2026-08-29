@@ -3,6 +3,7 @@ export type RunPhase = 'idle' | 'exploring' | 'resolving' | 'fragment-overflow' 
 export type MazeNodeType = 'echo-combat' | 'blank-event' | 'thought-rest' | 'memory-core';
 export type MazeNodeState = 'hidden' | 'detected' | 'reachable' | 'current' | 'completed' | 'corrupted';
 export type GreatswordId = 'breach' | 'watch' | 'perception' | 'resonance';
+export type GreatswordTarget = 'hostile' | 'self' | 'maze' | 'memory';
 
 export interface SeededRandomState {
   seed: string;
@@ -36,14 +37,39 @@ export interface D20CheckResult extends D20CheckInput {
   passed: boolean;
 }
 
-export type RuleEvent = {
-  type: 'check.resolved';
-  attribute: string;
-  roll: number;
-  total: number;
-  difficulty: number;
-  outcome: D20Outcome;
-};
+export type RuleEvent =
+  | {
+      type: 'check.resolved';
+      attribute: string;
+      roll: number;
+      total: number;
+      difficulty: number;
+      outcome: D20Outcome;
+    }
+  | {
+      type: 'greatsword.used';
+      swordId: GreatswordId;
+      actionPointCost: number;
+      overloadDelta: number;
+      cooldown: number;
+    };
+
+export interface GreatswordCombatState {
+  actionPoints: number;
+  sanity: number;
+  overload: number;
+  guard: number;
+  insight: number;
+  enemyIntegrity: number;
+  coreStability: number;
+  greatswords: Record<GreatswordId, { cooldown: number }>;
+}
+
+export interface GreatswordAction {
+  swordId: GreatswordId;
+  target: GreatswordTarget;
+  nodeType: MazeNodeType;
+}
 
 export interface MazeNode {
   id: string;

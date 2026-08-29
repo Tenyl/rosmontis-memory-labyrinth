@@ -80,12 +80,12 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 - Create: `src/game/greatswords.test.ts`
 - Extend: `src/game/types.ts`
 
-- [ ] Write table-driven tests for `breach`, `watch`, `perception`, and `resonance`, including AP cost, cooldown, overload change, legal target/node constraints, and rejection without partial mutation.
-- [ ] Verify RED.
-- [ ] Implement immutable `resolveGreatswordAction(state, action, randomState)` returning `{ state, randomState, events }`.
-- [ ] Keep values in a typed configuration table; do not encode balancing constants in UI components.
-- [ ] Verify GREEN and typecheck.
-- [ ] Commit: `feat: settle four greatsword tactics offline`.
+- [x] Write table-driven tests for `breach`, `watch`, `perception`, and `resonance`, including AP cost, cooldown, overload change, legal target/node constraints, and rejection without partial mutation.
+- [x] Verify RED.
+- [x] Implement immutable `resolveGreatswordAction(state, action, randomState)` returning `{ state, randomState, events }`.
+- [x] Keep values in a typed configuration table; do not encode balancing constants in UI components.
+- [x] Verify GREEN and typecheck.
+- [x] Commit: `feat: settle four greatsword tactics offline`.
 
 ### Task 5: Memory-fragment inventory and forced forgetting
 
