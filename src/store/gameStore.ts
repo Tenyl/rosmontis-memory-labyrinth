@@ -5,6 +5,7 @@ import { createRun, reduceRunAction } from '../game/run';
 import type {
   FragmentOverflowChoice,
   GreatswordAction,
+  MemoryFragment,
   RoguelikeState,
   RuleEvent,
   RunMode,
@@ -28,6 +29,9 @@ interface GameActions {
   startRun: (seed: string, mode: RunMode, llmEnabled: boolean) => void;
   moveToNode: (nodeId: string) => void;
   useGreatsword: (action: GreatswordAction) => void;
+  completeCurrentNode: (fragment?: MemoryFragment) => void;
+  applyRunVitals: (sanityDelta: number, overloadDelta: number) => void;
+  stabilizeMemoryCore: () => void;
   resolveFragmentChoice: (choice: FragmentOverflowChoice) => void;
   resetRun: () => void;
   setNarrativeDraft: (draft: string) => void;
@@ -345,6 +349,25 @@ export const useGameStore = create<GameStore>()(
       useGreatsword: (action) =>
         set((state) => {
           const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'use-greatsword', action });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      completeCurrentNode: (fragment) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'complete-node', fragment });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      applyRunVitals: (sanityDelta, overloadDelta) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), {
+            type: 'apply-vitals',
+            sanityDelta,
+            overloadDelta,
+          });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      stabilizeMemoryCore: () =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'stabilize-core' });
           return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
         }),
       resolveFragmentChoice: (choice) =>

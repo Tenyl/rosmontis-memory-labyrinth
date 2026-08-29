@@ -1,5 +1,6 @@
 import { deepMemoryClue, buildDemoState } from '../data/demoData';
 import { projectTavernTurn } from '../features/tavern/projection/tavern-turn-projector';
+import type { MemoryFragment } from '../game/types';
 import { sanitizeSingleProtagonistState, useGameStore } from './gameStore';
 
 beforeEach(() => {
@@ -103,6 +104,73 @@ test('resolves a persisted fragment overflow choice through the store adapter', 
   expect(state.run.phase).toBe('exploring');
   expect(state.memoryInventory.fragments.map((fragment) => fragment.id)).toEqual(['pending']);
   expect(state.memoryInventory.pendingFragment).toBeNull();
+});
+
+test('completes the current node through rules and blocks the Run on fragment overflow', () => {
+  const reward: MemoryFragment = {
+    id: 'fragment-store-overflow',
+    name: '走廊尽头的雨声',
+    kind: 'standard',
+    tags: ['雨声'],
+  };
+  useGameStore.getState().startRun('STORE-NODE-REWARD', 'preset', false);
+  useGameStore.setState((state) => ({
+    memoryInventory: {
+      ...state.memoryInventory,
+      capacity: 1,
+      fragments: [{ id: 'fragment-kept', name: '仍被记住的名字', kind: 'standard', tags: ['名字'] }],
+    },
+  }));
+
+  useGameStore.getState().completeCurrentNode(reward);
+  const state = useGameStore.getState();
+
+  expect(state.run.phase).toBe('fragment-overflow');
+  expect(state.memoryInventory.pendingFragment).toEqual(reward);
+  expect(state.ruleLog.slice(-2)).toEqual([
+    { type: 'node.completed', nodeId: state.run.currentNodeId },
+    { type: 'fragment.overflow', fragmentId: reward.id },
+  ]);
+});
+
+test('applies vital changes through rules and synchronizes a defeated Rosmontis', () => {
+  useGameStore.getState().startRun('STORE-VITALS', 'preset', false);
+
+  useGameStore.getState().applyRunVitals(-100, 0);
+  const state = useGameStore.getState();
+
+  expect(state.run).toMatchObject({ phase: 'defeat', result: 'defeat' });
+  expect(state.rosmontis.sanity).toBe(0);
+  expect(state.operators.byId.rosmontis).toMatchObject({
+    sanity: 0,
+    stress: 0,
+    condition: '认知链路中断',
+  });
+  expect(state.ruleLog.at(-1)).toEqual({ type: 'run.ended', result: 'defeat' });
+});
+
+test('stabilizes the current memory core and persists first-clear progression', () => {
+  useGameStore.getState().startRun('STORE-FIRST-CLEAR', 'preset', false);
+  useGameStore.setState((state) => ({
+    run: { ...state.run, currentNodeId: state.maze.coreNodeId },
+    rosmontis: { ...state.rosmontis, coreStability: 100 },
+    maze: {
+      ...state.maze,
+      nodes: state.maze.nodes.map((node) => ({
+        ...node,
+        state: node.id === state.maze.coreNodeId
+          ? 'current'
+          : node.state === 'current' ? 'completed' : node.state,
+      })),
+    },
+  }));
+
+  useGameStore.getState().stabilizeMemoryCore();
+  const state = useGameStore.getState();
+
+  expect(state.run).toMatchObject({ phase: 'victory', result: 'victory' });
+  expect(state.progression).toEqual({ firstClear: true, completedRuns: 1 });
+  expect(state.ruleLog.at(-1)).toEqual({ type: 'run.ended', result: 'victory' });
 });
 
 test('persists the explicit roguelike schema version', () => {

@@ -32,11 +32,11 @@
 - Consumes: `reduceRunAction(state, action)` from `src/game/run.ts`.
 - Produces: `completeCurrentNode(fragment?)`, `applyRunVitals(sanityDelta, overloadDelta)`, and `stabilizeMemoryCore()` Store actions.
 
-- [ ] **Step 1: Write failing adapter tests** proving a node reward can cause overflow, vitality damage can end a Run, and core stabilization records first clear.
-- [ ] **Step 2: Run `pnpm exec vitest run src/store/gameStore.test.ts`** and verify failures are missing actions.
-- [ ] **Step 3: Implement the three actions** by calling `reduceRunAction`; accepted resolutions update all roguelike slices, append `ruleLog`, and synchronize legacy Rosmontis display fields.
-- [ ] **Step 4: Re-run the focused tests and `pnpm typecheck`**; expect zero failures.
-- [ ] **Step 5: Commit** with `feat: expose offline run commands`.
+- [x] **Step 1: Write failing adapter tests** proving a node reward can cause overflow, vitality damage can end a Run, and core stabilization records first clear.
+- [x] **Step 2: Run `pnpm exec vitest run src/store/gameStore.test.ts`** and verify failures are missing actions.
+- [x] **Step 3: Implement the three actions** by calling `reduceRunAction`; accepted resolutions update all roguelike slices, append `ruleLog`, and synchronize legacy Rosmontis display fields.
+- [x] **Step 4: Re-run the focused tests and `pnpm typecheck`**; expect zero failures.
+- [x] **Step 5: Commit** with `feat: expose offline run commands`.
 
 ### Task 2: Run HUD and replaceable portrait
 
