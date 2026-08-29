@@ -10,6 +10,11 @@
 .dialog-close:hover { border-color: var(--color-memory-blue); background: var(--color-memory-blue-soft); }
 .dialog-body { min-height: 0; overflow: auto; padding: var(--space-6); }
 .dialog-footer { display: flex; justify-content: flex-end; gap: var(--space-3); padding: var(--space-4) var(--space-6) var(--space-6); border-top: 1px solid var(--color-line-subtle); }
+.tavern-list-pagination { display: grid; align-items: center; gap: var(--space-2); grid-template-columns: auto minmax(0,1fr) auto; padding: var(--space-3); border-top: 1px solid var(--color-line-subtle); background: rgba(5,9,12,.72); }
+.tavern-list-pagination button { min-height: 38px; padding: 0 var(--space-3); border: 1px solid var(--color-line-subtle); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.tavern-list-pagination button:disabled { cursor: not-allowed; opacity: .38; }
+.tavern-list-pagination output { color: var(--color-text-tertiary); font: 500 .56rem/1.3 var(--font-data); text-align: center; }
+.tavern-orchestrator-loading { position: fixed; z-index: var(--layer-overlay); right: var(--space-6); bottom: var(--space-6); padding: var(--space-4); border: 1px solid var(--color-line-strong); background: var(--color-surface-glass); color: var(--color-text-secondary); font: 600 .62rem/1 var(--font-data); }
 .terminal-button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: var(--space-2); padding: 0 var(--space-4); border: 1px solid var(--color-line-strong); border-radius: 0; background: transparent; color: var(--color-text-primary); font-size: .75rem; font-weight: 600; cursor: pointer; transition: transform var(--motion-fast),border-color var(--motion-fast),background var(--motion-fast); }
 .terminal-button:hover:not(:disabled) { border-color: var(--color-memory-blue); transform: translateY(-1px); }
 .terminal-button:active:not(:disabled) { transform: translateY(0); }

@@ -4,7 +4,7 @@ import { Dialog } from '../../../components/Dialog';
 import { useTavern } from '../runtime/useTavern';
 
 export function SessionManager() {
-  const { chats, activeChat, createChat, selectChat, renameChat, removeChat, branchFromMessage } = useTavern();
+  const { chats, activeChat, createChat, selectChat, renameChat, removeChat, branchChat } = useTavern();
   const [createOpen, setCreateOpen] = useState(false);
   const [createName, setCreateName] = useState('');
   const [renameId, setRenameId] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export function SessionManager() {
               <div className="session-actions">
                 {!active ? <button id={`tavern-session-${chat.id}-activate`} type="button" aria-label={`载入${chat.name}`} onClick={() => void selectChat(chat.id)}><SignIn size={17} aria-hidden /></button> : null}
                 <button id={`tavern-session-${chat.id}-rename`} type="button" aria-label={`重命名${chat.name}`} onClick={() => { setRenameId(chat.id); setRenameName(chat.name); setError(null); }}><NotePencil size={17} aria-hidden /></button>
-                <button id={`tavern-session-${chat.id}-branch`} type="button" aria-label={`从${chat.name}的最后消息建立分支`} disabled={chat.messages.length === 0} onClick={() => void branchFromMessage(chat.messages.at(-1)!.id)}><GitBranch size={17} aria-hidden /></button>
+                <button id={`tavern-session-${chat.id}-branch`} type="button" aria-label={`从${chat.name}的最后消息建立分支`} disabled={chat.messages.length === 0} onClick={() => void branchChat(chat.id)}><GitBranch size={17} aria-hidden /></button>
                 <button id={`tavern-session-${chat.id}-delete`} type="button" aria-label={`删除${chat.name}`} disabled={chats.length <= 1} onClick={() => setDeleteId(chat.id)}><Trash size={17} aria-hidden /></button>
               </div>
             </article>
@@ -68,7 +68,7 @@ export function SessionManager() {
         })}
       </div>
 
-      <Dialog id="tavern-session-create-dialog" title="新建会话" open={createOpen} onClose={() => { setCreateOpen(false); setError(null); }} eyebrow="SESSION / CREATE" footer={<><button className="terminal-button is-secondary" type="button" onClick={() => setCreateOpen(false)}><X size={16} aria-hidden />取消</button><button className="terminal-button is-primary" type="submit" form="tavern-session-create-form"><Check size={16} aria-hidden />创建并载入</button></>}>
+      <Dialog id="tavern-session-create-dialog" title="新建会话" open={createOpen} onClose={() => { setCreateOpen(false); setError(null); }} eyebrow="SESSION / CREATE" footer={<><button id="tavern-session-create-cancel" className="terminal-button is-secondary" type="button" onClick={() => setCreateOpen(false)}><X size={16} aria-hidden />取消</button><button id="tavern-session-create-submit" className="terminal-button is-primary" type="submit" form="tavern-session-create-form"><Check size={16} aria-hidden />创建并载入</button></>}>
         <form id="tavern-session-create-form" className="tavern-compact-form" onSubmit={(event) => void submitCreate(event)}>
           <label htmlFor="tavern-session-create-name">会话名称</label>
           <input id="tavern-session-create-name" value={createName} onChange={(event) => { setCreateName(event.target.value); setError(null); }} aria-describedby="tavern-session-create-help" autoFocus />
@@ -77,7 +77,7 @@ export function SessionManager() {
         </form>
       </Dialog>
 
-      <Dialog id="tavern-session-rename-dialog" title="重命名会话" open={Boolean(renameTarget)} onClose={() => { setRenameId(null); setError(null); }} eyebrow="SESSION / RENAME" footer={<><button className="terminal-button is-secondary" type="button" onClick={() => setRenameId(null)}>取消</button><button className="terminal-button is-primary" type="submit" form="tavern-session-rename-form">保存名称</button></>}>
+      <Dialog id="tavern-session-rename-dialog" title="重命名会话" open={Boolean(renameTarget)} onClose={() => { setRenameId(null); setError(null); }} eyebrow="SESSION / RENAME" footer={<><button id="tavern-session-rename-cancel" className="terminal-button is-secondary" type="button" onClick={() => setRenameId(null)}>取消</button><button id="tavern-session-rename-submit" className="terminal-button is-primary" type="submit" form="tavern-session-rename-form">保存名称</button></>}>
         <form id="tavern-session-rename-form" className="tavern-compact-form" onSubmit={(event) => void submitRename(event)}>
           <label htmlFor="tavern-session-rename-name">新的会话名称</label>
           <input id="tavern-session-rename-name" value={renameName} onChange={(event) => { setRenameName(event.target.value); setError(null); }} />
@@ -85,7 +85,7 @@ export function SessionManager() {
         </form>
       </Dialog>
 
-      <Dialog id="tavern-session-delete-dialog" title="确认删除会话" open={Boolean(deleteTarget)} onClose={() => setDeleteId(null)} danger eyebrow="SESSION / DESTRUCTIVE" footer={<><button className="terminal-button is-secondary" type="button" onClick={() => setDeleteId(null)}>保留会话</button><button id="tavern-session-delete-confirm" className="terminal-button is-danger" type="button" onClick={() => { if (deleteId) void removeChat(deleteId); setDeleteId(null); }}>确认删除</button></>}>
+      <Dialog id="tavern-session-delete-dialog" title="确认删除会话" open={Boolean(deleteTarget)} onClose={() => setDeleteId(null)} danger eyebrow="SESSION / DESTRUCTIVE" footer={<><button id="tavern-session-delete-cancel" className="terminal-button is-secondary" type="button" onClick={() => setDeleteId(null)}>保留会话</button><button id="tavern-session-delete-confirm" className="terminal-button is-danger" type="button" onClick={() => { if (deleteId) void removeChat(deleteId); setDeleteId(null); }}>确认删除</button></>}>
         <div className="tavern-danger-copy"><Trash size={24} aria-hidden /><div><strong>{deleteTarget?.name}</strong><p>该会话的全部消息、变量快照与分支来源将从当前浏览器删除。其他会话和世界书不受影响。</p></div></div>
       </Dialog>
     </section>

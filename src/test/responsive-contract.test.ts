@@ -11,6 +11,8 @@ test('响应式样式定义四档布局与系统减少动效规则', () => {
   expect(css).toContain('@media (max-width: 420px)');
   expect(css).toContain('@media (prefers-reduced-motion: reduce)');
   expect(css).toContain('overflow-wrap: anywhere');
+  expect(css).toContain('[data-motion="reduced"] .route-page');
+  expect(css).toContain('animation: none !important');
 });
 
 test('界面偏好具有 CSS 契约并维持可触控目标', () => {
@@ -20,6 +22,13 @@ test('界面偏好具有 CSS 契约并维持可触控目标', () => {
   expect(css).toContain('[data-font-size="large"]');
   expect(css).toContain('[data-contrast="high"]');
   expect(css).toMatch(/min-(?:width|height):\s*(?:40|44|48)px/);
+  expect(responsiveCss).toMatch(/@media \(max-width: 767px\)[\s\S]*button,[\s\S]*a\[href\][\s\S]*min-height:\s*44px/);
+});
+
+test('任意换行仅用于机器标识、URL 与用户生成令牌', () => {
+  expect(globalCss).not.toMatch(/p,\s*\n?li,[\s\S]{0,100}overflow-wrap:\s*anywhere/);
+  expect(globalCss).toContain('.break-token');
+  expect(globalCss).toContain('overflow-wrap: anywhere');
 });
 
 test('跨路由按钮系统由共享组件样式提供', () => {

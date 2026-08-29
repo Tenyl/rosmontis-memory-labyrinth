@@ -15,6 +15,14 @@
   .route-preview-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 767px) {
+  button,
+  a[href],
+  input,
+  select,
+  textarea { min-height: 44px; }
+  button[aria-label],
+  .dialog-close { min-width: 44px; }
+  .dialog-close { width: 44px; height: 44px; }
   .terminal-shell { display: block; }
   .terminal-sidebar { position: sticky; top: 0; width: 100%; height: auto; border-right: 0; border-bottom: 1px solid var(--color-line-subtle); }
   .terminal-brand { min-height: 64px; justify-content: flex-start; padding: var(--space-2) var(--space-4); }
@@ -42,7 +50,7 @@
   .terminal-brand { border-bottom: 0; }
   .primary-navigation { grid-template-columns: repeat(3,1fr); }
   .terminal-nav-link:nth-of-type(n+4) { border-top-color: var(--color-line-subtle); }
-  .topbar-icon-button { width: 38px; height: 38px; }
+  .topbar-icon-button { width: 44px; height: 44px; }
   .terminal-main { padding-inline: var(--space-3); }
   .page-header { grid-template-columns: 44px minmax(0,1fr); }
   .page-header-index { font-size: 2.7rem; }

@@ -92,7 +92,7 @@ export function TavernGameView() {
           <ThinkingFold text={display.thinking} mode={runtime.settings?.thinkingDisplay ?? 'fold'} />
           <MainTextPane text={display.maintext} isStreaming={isGenerating} sequence={Math.max(1, Math.ceil((runtime.activeChat?.messages.length ?? 1) / 2))} />
           <OptionList options={display.options} disabled={isGenerating} onPick={setDraft} />
-          {display.sum ? <details className="tavern-turn-summary"><summary>本回合摘要</summary><p>{display.sum}</p></details> : null}
+          {display.sum ? <details className="tavern-turn-summary"><summary id="tavern-turn-summary-toggle">本回合摘要</summary><p>{display.sum}</p></details> : null}
           {runtime.status === 'interrupted' ? <p className="tavern-runtime-notice is-warning" role="status">生成已中断</p> : null}
           {runtime.error ? <p className="tavern-runtime-notice is-danger" role="alert">{runtime.error}</p> : null}
         </div>

@@ -82,7 +82,7 @@ export function PresetManager({ embedded = false }: PresetManagerProps = {}) {
           <p>配置模型采样、上下文预算与提示词块。顺序按钮同时支持键盘操作与明确的禁用状态。</p>
         </div>
         <div className="tavern-toolbar">
-          <label className="terminal-button" htmlFor={`${idPrefix}-import-input`}>
+          <label id={`${idPrefix}-import-trigger`} className="terminal-button" htmlFor={`${idPrefix}-import-input`}>
             <UploadSimple size={16} aria-hidden />导入预设
           </label>
           <input
@@ -139,8 +139,9 @@ export function PresetManager({ embedded = false }: PresetManagerProps = {}) {
         danger
         footer={(
           <>
-            <button className="terminal-button" type="button" onClick={() => setDeleteTarget(null)}>取消</button>
+            <button id={`${idPrefix}-delete-cancel`} className="terminal-button" type="button" onClick={() => setDeleteTarget(null)}>取消</button>
             <button
+              id={`${idPrefix}-delete-confirm`}
               className="terminal-button is-danger"
               type="button"
               onClick={() => {

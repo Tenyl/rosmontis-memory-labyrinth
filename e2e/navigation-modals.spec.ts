@@ -49,10 +49,12 @@ test('档案详情与未保存批注确认保持嵌套层级', async ({ page }) 
 
 test('行动记录剧情回溯支持键盘关闭', async ({ page }) => {
   await page.goto('/log');
+  await page.getByRole('tab', { name: '战术时间线' }).click();
   await closesWithEscapeAndRestoresFocus(page, 'log-replay-open-log-check', '剧情回溯');
 });
 
 test('设置恢复确认弹层支持键盘关闭', async ({ page }) => {
   await page.goto('/settings');
+  await page.getByRole('tab', { name: '视觉与辅助' }).click();
   await closesWithEscapeAndRestoresFocus(page, 'settings-reset-open', '确认恢复演示');
 });

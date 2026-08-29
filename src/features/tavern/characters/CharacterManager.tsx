@@ -43,7 +43,7 @@ export function CharacterManager() {
       </div>
       <PersonaManager />
       <CharacterEditorDialog character={editing ?? null} open={editing !== undefined} onClose={() => setEditing(undefined)} onSave={async (character) => { await runtime.upsertCharacter(character); await activate(character); }} />
-      <Dialog id="character-delete-dialog" title="确认删除角色卡" open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} danger footer={<><button className="terminal-button" type="button" onClick={() => setDeleteTarget(null)}>取消</button><button className="terminal-button is-danger" type="button" onClick={() => { if (deleteTarget) void runtime.removeCharacter(deleteTarget.id); setDeleteTarget(null); }}>确认删除</button></>}><p>删除角色卡不会移除既有会话记录，但后续生成将无法使用该身份。</p></Dialog>
+      <Dialog id="character-delete-dialog" title="确认删除角色卡" open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} danger footer={<><button id="character-delete-cancel" className="terminal-button" type="button" onClick={() => setDeleteTarget(null)}>取消</button><button id="character-delete-confirm" className="terminal-button is-danger" type="button" onClick={() => { if (deleteTarget) void runtime.removeCharacter(deleteTarget.id); setDeleteTarget(null); }}>确认删除</button></>}><p>删除角色卡不会移除既有会话记录，但后续生成将无法使用该身份。</p></Dialog>
     </section>
   );
 }

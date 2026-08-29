@@ -11,16 +11,17 @@ import {
   WarningDiamond,
   WifiHigh,
 } from '@phosphor-icons/react';
-import { Suspense, type ComponentType, useEffect, useState } from 'react';
+import { lazy, Suspense, type ComponentType, useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { selectSession, selectUnreadArchiveCount } from '../store/selectors';
 import { NotificationCenter } from '../components/NotificationCenter';
 import { ShortcutDialog } from '../components/ShortcutDialog';
-import { TavernOrchestrator } from '../features/tavern/components/TavernOrchestrator';
 import { useTavern } from '../features/tavern/runtime/useTavern';
 import './app-shell.css';
 import '../components/components.css';
+
+const TavernOrchestrator = lazy(() => import('../features/tavern/components/TavernOrchestrator').then((module) => ({ default: module.TavernOrchestrator })));
 
 interface NavItem {
   path: string;
@@ -174,7 +175,7 @@ export function AppShell() {
       </div>
       <NotificationCenter />
       <ShortcutDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
-      <TavernOrchestrator open={tavernOpen} onClose={() => setTavernOpen(false)} />
+      {tavernOpen ? <Suspense fallback={<div className="tavern-orchestrator-loading" role="status">正在载入酒馆编排中枢</div>}><TavernOrchestrator open onClose={() => setTavernOpen(false)} /></Suspense> : null}
     </div>
   );
 }

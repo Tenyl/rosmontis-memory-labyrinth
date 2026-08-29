@@ -7,7 +7,7 @@ export default defineConfig({
   retries: 0,
   reporter: [['list']],
   use: {
-    baseURL: 'http://127.0.0.1:4317',
+    baseURL: 'http://127.0.0.1:4617',
     colorScheme: 'dark',
     locale: 'zh-CN',
     screenshot: 'only-on-failure',
@@ -17,8 +17,8 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
   ],
   webServer: {
-    command: 'vite --host 127.0.0.1 --port 4317',
-    url: 'http://127.0.0.1:4317/operation',
+    command: 'vite --host 127.0.0.1 --port 4617',
+    url: 'http://127.0.0.1:4617/operation',
     reuseExistingServer: true,
     timeout: 120_000,
   },

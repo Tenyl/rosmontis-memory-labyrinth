@@ -66,13 +66,11 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
-p,
-li,
-dd,
-blockquote,
+.break-token,
+.panel-code,
+.system-code,
 code,
-button,
-a {
+[data-break-token="true"] {
   overflow-wrap: anywhere;
 }
 
@@ -231,4 +229,22 @@ a {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+}
+
+[data-motion="reduced"] .route-page,
+[data-motion="reduced"] .terminal-dialog,
+[data-motion="reduced"] .terminal-notification,
+[data-motion="reduced"] .dialog-scrim {
+  animation: none !important;
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-page,
+  .terminal-dialog,
+  .terminal-notification,
+  .dialog-scrim {
+    animation: none !important;
+    transform: none !important;
+  }
 }

@@ -130,7 +130,7 @@ export function SessionBranchTree() {
         eyebrow="SESSION LABEL / LOCAL"
         footer={(
           <>
-            <button className="terminal-button" type="button" onClick={() => setRenameTarget(null)}>取消</button>
+            <button id="session-tree-rename-cancel" className="terminal-button" type="button" onClick={() => setRenameTarget(null)}>取消</button>
             <button id="session-rename-confirm" className="terminal-button is-primary" type="button" onClick={() => void saveRename()}>保存名称</button>
           </>
         )}
@@ -151,7 +151,7 @@ export function SessionBranchTree() {
         danger
         footer={(
           <>
-            <button className="terminal-button" type="button" onClick={() => setDeleteTarget(null)}>取消</button>
+            <button id="session-tree-delete-cancel" className="terminal-button" type="button" onClick={() => setDeleteTarget(null)}>取消</button>
             <button id="session-delete-confirm" className="terminal-button is-danger" type="button" onClick={() => void remove()}>确认删除</button>
           </>
         )}

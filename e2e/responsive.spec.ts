@@ -45,6 +45,30 @@ test('375 像素意识战场默认切换为战术列表', async ({ page }) => {
 test('减少动效偏好通过设置页实时应用到根节点', async ({ page }) => {
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto('/settings');
+  await page.getByRole('tab', { name: '视觉与辅助' }).click();
   await page.getByRole('radio', { name: '减少动效' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
+  await expect(page.locator('.route-page')).toHaveCSS('animation-name', 'none');
 });
+
+for (const viewport of viewports) {
+  test(`${viewport.name} 酒馆编排保持在视口内并满足移动触控尺寸`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto('/operation');
+    await page.locator('#global-tavern-open').click();
+    const dialog = page.getByRole('dialog', { name: '酒馆编排中枢' });
+    await expect(dialog).toBeVisible();
+    await dialog.evaluate(async (element) => {
+      await Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => undefined)));
+    });
+    const box = await dialog.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width + 1);
+    if (viewport.width <= 767) {
+      const closeBox = await page.locator('#tavern-orchestrator-dialog-close').boundingBox();
+      expect(closeBox!.width).toBeGreaterThanOrEqual(44);
+      expect(closeBox!.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+}

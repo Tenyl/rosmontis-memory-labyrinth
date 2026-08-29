@@ -48,6 +48,7 @@ import { useGameStore } from '../../../store/gameStore';
 import { projectTavernTurn } from '../projection/tavern-turn-projector';
 import { LocalTavernTransport } from './local-tavern-transport';
 import { OpenAiTavernTransport } from './openai-tavern-transport';
+import { AnimationFrameBatcher } from './animation-frame-batcher';
 import type { TavernTransport } from './tavern-transport';
 
 export type TavernRuntimeStatus =
@@ -299,6 +300,9 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     if (status === 'assembling' || status === 'streaming') return;
 
     const controller = new AbortController();
+    const streamBatcher = new AnimationFrameBatcher<ParserEvent>((batch) => {
+      setStream((current) => applyStreamEvents(current, batch));
+    });
     abortRef.current = controller;
     setError(null);
     setStream({ ...EMPTY_STREAM });
@@ -348,11 +352,12 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       }, controller.signal)) {
         const chunkEvents = parser.feed(chunk);
         events.push(...chunkEvents);
-        setStream((current) => applyStreamEvents(current, chunkEvents));
+        streamBatcher.enqueue(chunkEvents);
       }
       const tail = parser.finish();
       events.push(...tail);
-      setStream((current) => applyStreamEvents(current, tail));
+      streamBatcher.enqueue(tail);
+      streamBatcher.flushNow();
       const parsed = aggregateEvents(events);
       const rawContent = events.filter((event): event is Extract<ParserEvent, { type: 'raw' }> => event.type === 'raw').map((event) => event.chunk).join('').trim();
       const { nextVariables, snapshot } = applyParsedToChat(chatWithUser.variables, parsed);
@@ -394,6 +399,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       setError(sendError instanceof Error ? sendError.message : '生成失败');
       setStatus('failed');
     } finally {
+      streamBatcher.flushNow();
       if (abortRef.current === controller) abortRef.current = null;
     }
   }, [activeCharacter, activeChat, activePersona, activePreset, applyTavernEvents, lorebooks, selectedTransport, settings, status]);

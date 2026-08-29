@@ -1,0 +1,75 @@
+import { expect, test, type Download } from '@playwright/test';
+
+async function downloadJson(download: Download) {
+  const stream = await download.createReadStream();
+  stream.setEncoding('utf8');
+  let text = '';
+  for await (const chunk of stream) text += chunk;
+  return JSON.parse(text) as Record<string, unknown>;
+}
+
+test('角色卡、世界书与预设支持 SillyTavern JSON 导入导出', async ({ page }) => {
+  await page.goto('/operation');
+  await page.locator('#global-tavern-open').click();
+  await expect(page.getByRole('dialog', { name: '酒馆编排中枢' })).toBeVisible();
+
+  await page.locator('#tavern-tab-characters').click();
+  await page.locator('#character-import-input').setInputFiles({
+    name: 'medical-observer.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({
+      spec: 'chara_card_v2',
+      spec_version: '2.0',
+      data: {
+        name: '医疗观察员', description: '负责记录精神负荷。', personality: '严谨', scenario: '罗德岛医疗室',
+        first_mes: '监测已经开始。', mes_example: '', creator_notes: '', system_prompt: '', post_history_instructions: '',
+        alternate_greetings: [], tags: ['医疗'], creator: 'E2E', character_version: '1.0', extensions: {},
+      },
+    })),
+  });
+  const character = page.getByRole('article', { name: '角色卡 医疗观察员' });
+  await expect(character).toBeVisible();
+  const characterDownloadEvent = page.waitForEvent('download');
+  await character.getByRole('button', { name: '导出角色 医疗观察员' }).click();
+  const characterDownload = await characterDownloadEvent;
+  expect(characterDownload.suggestedFilename()).toBe('医疗观察员.json');
+  expect((await downloadJson(characterDownload)).spec).toBe('chara_card_v2');
+
+  await page.locator('#tavern-tab-lorebooks').click();
+  await page.locator('#lorebook-import-input').setInputFiles({
+    name: 'cold-ward.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ name: '低温病区索引', entries: { 0: { key: ['低温'], content: '病区温度异常。', comment: '温度记录' } } })),
+  });
+  await expect(page.getByText(/导入完成：成功 1 项/)).toBeVisible();
+  const lorebook = page.getByRole('article', { name: '世界书 低温病区索引' });
+  const lorebookDownloadEvent = page.waitForEvent('download');
+  await lorebook.getByRole('button', { name: '导出世界书 低温病区索引' }).click();
+  const lorebookDownload = await lorebookDownloadEvent;
+  expect(lorebookDownload.suggestedFilename()).toBe('低温病区索引.json');
+  expect((await downloadJson(lorebookDownload)).name).toBe('低温病区索引');
+
+  await page.locator('#tavern-tab-presets').click();
+  await page.locator('#preset-import-input').setInputFiles({
+    name: 'clinical.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify({ name: '临床叙事预设', temp_openai: 0.55, openai_max_context: 8192 })),
+  });
+  const preset = page.getByRole('article', { name: '生成预设 临床叙事预设' });
+  await expect(preset).toBeVisible();
+  const presetDownloadEvent = page.waitForEvent('download');
+  await preset.getByRole('button', { name: '导出预设 临床叙事预设' }).click();
+  const presetDownload = await presetDownloadEvent;
+  expect(presetDownload.suggestedFilename()).toBe('临床叙事预设.json');
+  expect((await downloadJson(presetDownload)).temp_openai).toBe(0.55);
+});
+
+test('设置页在浏览器内同时报告全部必填字段错误', async ({ page }) => {
+  await page.goto('/settings');
+  await expect(page.getByRole('heading', { name: '接口连接' })).toBeVisible();
+  await page.getByLabel('API 基础 URL').fill('');
+  await page.getByLabel('模型名称', { exact: true }).fill('');
+  await page.locator('#settings-api-save').click();
+  await expect(page.getByText('请输入 API 基础 URL')).toBeVisible();
+  await expect(page.getByText('请输入模型名称')).toBeVisible();
+});
