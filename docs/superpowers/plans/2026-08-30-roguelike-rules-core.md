@@ -137,13 +137,13 @@ Random functions consume a serializable `SeededRandomState` and return `[value, 
 **Files:**
 - Update this plan checkbox state and any tests changed by verified regressions.
 
-- [ ] Audit `src/game` for `Math.random`, React, Zustand, DOM, and Tavern imports; expect none.
-- [ ] Run `pnpm test`; expect zero failures.
-- [ ] Run `pnpm typecheck`; expect exit 0.
-- [ ] Run `pnpm build`; expect exit 0 and no large-chunk warning.
-- [ ] Run `pnpm test:e2e`; expect all browser tests to pass.
-- [ ] Run `git diff --check` and inspect `git status --short`.
-- [ ] Commit: `feat: establish replayable roguelike rules core`.
+- [x] Audit `src/game` for `Math.random`, React, Zustand, DOM, and Tavern imports; expect none.
+- [x] Run `pnpm test`; expect zero failures.
+- [x] Run `pnpm typecheck`; expect exit 0.
+- [x] Run `pnpm build`; expect exit 0 and no large-chunk warning.
+- [x] Run `pnpm test:e2e`; expect all browser tests to pass.
+- [x] Run `git diff --check` and inspect `git status --short`.
+- [x] Commit: `feat: establish replayable roguelike rules core`.
 
 ## Phase completion definition
 
