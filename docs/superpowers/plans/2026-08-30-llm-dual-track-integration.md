@@ -186,12 +186,12 @@ expect(acceptForRun(state, 'old-run', event)).toBe(state);
 - Consumes: all three director capabilities.
 - Produces: evidence that offline and remote paths coexist without secret leakage or rules divergence.
 
-- [ ] **Step 1: Run `pnpm test`**; expect zero failures.
-- [ ] **Step 2: Run `pnpm typecheck` and `pnpm build`**; expect exit 0 and no large-chunk warning.
-- [ ] **Step 3: Run `pnpm test:e2e`**; expect all existing offline flows plus mocked remote event/quote/novel flows to pass at four viewports.
-- [ ] **Step 4: Audit `apiKey`, console/log output, notifications, localStorage, exported backups,人物图片, `Math.random()`, and interactive IDs**; expect no secret or authority-boundary violations.
-- [ ] **Step 5: Run `git diff --check`, inspect `git status --short`, and review the branch diff against this specification**.
-- [ ] **Step 6: Commit** with `feat: complete optional llm game director`.
+- [x] **Step 1: Run `pnpm test`**; expect zero failures.
+- [x] **Step 2: Run `pnpm typecheck` and `pnpm build`**; expect exit 0 and no large-chunk warning.
+- [x] **Step 3: Run `pnpm test:e2e`**; expect all existing offline flows plus mocked remote event/quote/novel flows to pass at four viewports.
+- [x] **Step 4: Audit `apiKey`, console/log output, notifications, localStorage, exported backups,人物图片, `Math.random()`, and interactive IDs**; expect no secret or authority-boundary violations.
+- [x] **Step 5: Run `git diff --check`, inspect `git status --short`, and review the branch diff against this specification**.
+- [x] **Step 6: Commit** with `feat: complete optional llm game director`.
 
 ## Phase completion definition
 

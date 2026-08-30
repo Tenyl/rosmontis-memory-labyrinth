@@ -46,6 +46,7 @@ test('迷迭香状态页使用可替换空白立绘且没有随行档案入口',
 
 test('档案详情与未保存批注确认保持嵌套层级', async ({ page }) => {
   await page.goto('/archive');
+  await page.getByRole('tab', { name: '叙事档案' }).click();
   const trigger = page.locator('#archive-detail-open-archive-wet-record');
   await trigger.click();
   await expect(page.getByRole('dialog', { name: '潮湿的儿童病历' })).toBeVisible();
