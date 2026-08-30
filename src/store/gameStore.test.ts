@@ -1,6 +1,7 @@
 import { deepMemoryClue, buildDemoState } from '../data/demoData';
 import { projectTavernTurn } from '../features/tavern/projection/tavern-turn-projector';
-import { useGameStore } from './gameStore';
+import type { MemoryFragment } from '../game/types';
+import { sanitizeSingleProtagonistState, useGameStore } from './gameStore';
 
 beforeEach(() => {
   useGameStore.getState().resetDemoState();
@@ -34,6 +35,233 @@ test('keeps only the initial scenario and preferences when autosave is disabled'
 
   expect(persisted.state.operators.byId.rosmontis.stress).toBe(41);
   expect(persisted.state.ui.preferences.autosave).toBe(false);
+});
+
+test('旧持久化状态载入时过滤其他干员', () => {
+  const legacyState = buildDemoState();
+  const legacyOperator = {
+    ...legacyState.operators.byId.rosmontis,
+    id: 'legacy-companion',
+    name: '旧随行干员',
+  };
+  legacyState.operators = {
+    byId: {
+      ...legacyState.operators.byId,
+      [legacyOperator.id]: legacyOperator,
+    },
+    squadOrder: ['rosmontis', legacyOperator.id],
+    formation: '旧小队编成',
+  };
+
+  const migrated = sanitizeSingleProtagonistState(legacyState);
+
+  expect(Object.keys(migrated.operators.byId)).toEqual(['rosmontis']);
+  expect(migrated.operators.squadOrder).toEqual(['rosmontis']);
+  expect(migrated.operators.formation).toBe('单人认知潜入');
+});
+
+test('starts and advances a deterministic Run through store adapters', () => {
+  useGameStore.getState().startRun('STORE-RUN', 'preset', false);
+  let state = useGameStore.getState();
+  const target = state.maze.edges.find((edge) => (
+    edge.sourceId === state.run.currentNodeId
+    && state.maze.nodes.find((node) => node.id === edge.targetId)?.state === 'reachable'
+  ))!.targetId;
+
+  expect(state.run).toMatchObject({ seed: 'STORE-RUN', mode: 'preset', phase: 'exploring' });
+  useGameStore.getState().moveToNode(target);
+  state = useGameStore.getState();
+
+  expect(state.run.currentNodeId).toBe(target);
+  expect(state.ruleLog.at(-1)).toMatchObject({ type: 'run.moved', targetNodeId: target });
+});
+
+test('binds director requests to the active Run and settles event intent through local rules', () => {
+  useGameStore.getState().startRun('DIRECTOR-RUN', 'preset', true);
+  const token = useGameStore.getState().beginDirectorRequest('event', 'node-trigger');
+  useGameStore.getState().markDirectorTriggerHandled('event:node-trigger');
+  useGameStore.getState().acceptDirectorEvent(token, 'node-trigger', {
+    title: '逆流雨幕',
+    situation: '雨滴带走倒影。',
+    choices: [
+      { id: 'scan-rain', label: '读取雨声', description: '确认记忆残留。', intent: 'scan' },
+      { id: 'hold-line', label: '守住边界', description: '拒绝异常靠近。', intent: 'guard' },
+    ],
+  }, 'remote');
+
+  expect(useGameStore.getState().llmDirector).toMatchObject({
+    runId: useGameStore.getState().run.id,
+    handledTriggers: ['event:node-trigger'],
+    event: { triggerKey: 'node-trigger', source: 'remote', resolvedChoiceId: null },
+  });
+
+  useGameStore.getState().resolveDirectorChoice('scan-rain');
+  expect(useGameStore.getState().rosmontis).toMatchObject({ sanity: 99, overload: 7 });
+  expect(useGameStore.getState().llmDirector.event?.resolvedChoiceId).toBe('scan-rain');
+});
+
+test('rejects stale director responses and resets director content for a new Run', () => {
+  useGameStore.getState().startRun('DIRECTOR-OLD', 'preset', true);
+  const staleToken = useGameStore.getState().beginDirectorRequest('quote', 'rule-1');
+  useGameStore.getState().startRun('DIRECTOR-NEW', 'preset', true);
+
+  useGameStore.getState().acceptDirectorQuote(staleToken, 'rule-1', { text: '我还在旧的记忆里。' }, 'remote');
+
+  const state = useGameStore.getState();
+  expect(state.llmDirector.runId).toBe(state.run.id);
+  expect(state.llmDirector.quote).toBeNull();
+  expect(state.llmDirector.handledTriggers).toEqual([]);
+});
+
+test('settles greatswords through pure rules and synchronizes the status-page adapter', () => {
+  useGameStore.getState().startRun('STORE-SWORD', 'preset', false);
+  useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'thought-rest' });
+  const state = useGameStore.getState();
+
+  expect(state.rosmontis).toMatchObject({ actionPoints: 3, overload: 5, guard: 24 });
+  expect(state.operators.byId.rosmontis).toMatchObject({ actionPoints: 3, stress: 5, sanity: 100 });
+  expect(state.ruleLog.at(-1)).toMatchObject({ type: 'greatsword.used', swordId: 'watch' });
+});
+
+test('resolves a persisted fragment overflow choice through the store adapter', () => {
+  useGameStore.getState().startRun('STORE-FRAGMENT', 'preset', false);
+  useGameStore.setState((state) => ({
+    run: { ...state.run, phase: 'fragment-overflow' },
+    memoryInventory: {
+      ...state.memoryInventory,
+      capacity: 1,
+      fragments: [{ id: 'kept', name: '保留记忆', kind: 'standard', tags: [] }],
+      pendingFragment: { id: 'pending', name: '待选记忆', kind: 'standard', tags: [] },
+    },
+  }));
+
+  useGameStore.getState().resolveFragmentChoice({ type: 'replace', fragmentId: 'kept' });
+  const state = useGameStore.getState();
+
+  expect(state.run.phase).toBe('exploring');
+  expect(state.memoryInventory.fragments.map((fragment) => fragment.id)).toEqual(['pending']);
+  expect(state.memoryInventory.pendingFragment).toBeNull();
+});
+
+test('completes the current node through rules and blocks the Run on fragment overflow', () => {
+  const reward: MemoryFragment = {
+    id: 'fragment-store-overflow',
+    name: '走廊尽头的雨声',
+    kind: 'standard',
+    tags: ['雨声'],
+  };
+  useGameStore.getState().startRun('STORE-NODE-REWARD', 'preset', false);
+  useGameStore.setState((state) => ({
+    memoryInventory: {
+      ...state.memoryInventory,
+      capacity: 1,
+      fragments: [{ id: 'fragment-kept', name: '仍被记住的名字', kind: 'standard', tags: ['名字'] }],
+    },
+  }));
+
+  useGameStore.getState().completeCurrentNode(reward);
+  const state = useGameStore.getState();
+
+  expect(state.run.phase).toBe('fragment-overflow');
+  expect(state.memoryInventory.pendingFragment).toEqual(reward);
+  expect(state.ruleLog.slice(-2)).toEqual([
+    { type: 'node.completed', nodeId: state.run.currentNodeId },
+    { type: 'fragment.overflow', fragmentId: reward.id },
+  ]);
+});
+
+test('applies vital changes through rules and synchronizes a defeated Rosmontis', () => {
+  useGameStore.getState().startRun('STORE-VITALS', 'preset', false);
+
+  useGameStore.getState().applyRunVitals(-100, 0);
+  const state = useGameStore.getState();
+
+  expect(state.run).toMatchObject({ phase: 'defeat', result: 'defeat' });
+  expect(state.rosmontis.sanity).toBe(0);
+  expect(state.operators.byId.rosmontis).toMatchObject({
+    sanity: 0,
+    stress: 0,
+    condition: '认知链路中断',
+  });
+  expect(state.ruleLog.at(-1)).toEqual({ type: 'run.ended', result: 'defeat' });
+});
+
+test('stabilizes the current memory core and persists first-clear progression', () => {
+  useGameStore.getState().startRun('STORE-FIRST-CLEAR', 'preset', false);
+  useGameStore.setState((state) => ({
+    run: { ...state.run, currentNodeId: state.maze.coreNodeId },
+    rosmontis: { ...state.rosmontis, coreStability: 100 },
+    maze: {
+      ...state.maze,
+      nodes: state.maze.nodes.map((node) => ({
+        ...node,
+        state: node.id === state.maze.coreNodeId
+          ? 'current'
+          : node.state === 'current' ? 'completed' : node.state,
+      })),
+    },
+  }));
+
+  useGameStore.getState().stabilizeMemoryCore();
+  const state = useGameStore.getState();
+
+  expect(state.run).toMatchObject({ phase: 'victory', result: 'victory' });
+  expect(state.progression).toEqual({ firstClear: true, completedRuns: 1 });
+  expect(state.ruleLog.at(-1)).toEqual({ type: 'run.ended', result: 'victory' });
+  expect(state.runHistory.at(-1)).toMatchObject({
+    runId: state.run.id,
+    seed: 'STORE-FIRST-CLEAR',
+    mode: 'preset',
+    result: 'victory',
+    finalSanity: 100,
+  });
+});
+
+test('adds recovered fragments to the permanent memory compendium', () => {
+  const reward: MemoryFragment = {
+    id: 'fragment-compendium',
+    name: '雨幕中的病历页',
+    kind: 'standard',
+    tags: ['病区', '雨声'],
+  };
+  useGameStore.getState().startRun('STORE-COMPENDIUM', 'preset', false);
+  useGameStore.getState().completeCurrentNode(reward);
+  const state = useGameStore.getState();
+  const acquired = state.memoryInventory.fragments[0];
+
+  expect(acquired).toBeDefined();
+  expect(state.memoryCompendium).toContainEqual(expect.objectContaining({
+    id: acquired.id,
+    name: acquired.name,
+    kind: acquired.kind,
+    discoveredRunId: state.run.id,
+    discoveries: 1,
+  }));
+});
+
+test('persists the explicit roguelike schema version', () => {
+  useGameStore.getState().setOperatorStress('rosmontis', 44);
+  const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
+
+  expect(persisted.version).toBe(4);
+  expect(persisted.state.run.seed).toBeTruthy();
+  expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(4);
+  expect(persisted.state.runHistory).toEqual(expect.any(Array));
+  expect(persisted.state.memoryCompendium).toEqual(expect.any(Array));
+});
+
+test('resets only the active Run while preserving permanent progression', () => {
+  useGameStore.getState().startRun('TEMPORARY-RUN', 'preset', false);
+  useGameStore.getState().completeCurrentNode();
+  useGameStore.setState({ progression: { firstClear: true, completedRuns: 2 } });
+
+  useGameStore.getState().resetRun();
+  const state = useGameStore.getState();
+
+  expect(state.run).toMatchObject({ seed: 'PRESET-RAIN-ECHO', mode: 'preset', phase: 'exploring', turn: 1 });
+  expect(state.memoryInventory.fragments).toEqual([]);
+  expect(state.progression).toEqual({ firstClear: true, completedRuns: 2 });
+  expect(state.ruleLog).toEqual([]);
 });
 
 test('applies each Tavern turn once and restores an independent projection per chat', () => {

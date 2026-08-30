@@ -1,4 +1,4 @@
-import { createLocalNarrativeEngine } from './narrativeEngine';
+import { classifyOfflineCommand, createLocalNarrativeEngine } from './narrativeEngine';
 
 afterEach(() => {
   vi.useRealTimers();
@@ -39,4 +39,46 @@ test('uses the configured presentation speed for local narrative chunks', async 
 
   expect(delays[0]).toBe(300);
   expect(delays.slice(1)).toContain(520);
+});
+
+test.each([
+  ['命令巨剑破壁攻击', 'echo-combat', 'breach'],
+  ['让迷迭香进入守望阵位', 'thought-rest', 'watch'],
+  ['扫描空白断层并进行战术感知', 'blank-event', 'perception'],
+  ['与记忆核心共鸣', 'memory-core', 'resonance'],
+] as const)('maps recognized offline command %s to a defined action', (command, nodeType, swordId) => {
+  expect(classifyOfflineCommand(command, nodeType)).toMatchObject({
+    kind: 'action',
+    action: {
+      type: 'use-greatsword',
+      action: { swordId, nodeType },
+    },
+  });
+});
+
+test('keeps investigation commands in the local narrative lane', () => {
+  expect(classifyOfflineCommand('让迷迭香读取残留意识', 'thought-rest')).toMatchObject({
+    kind: 'narrative',
+    topic: 'memory',
+  });
+});
+
+test('returns recovery suggestions instead of guessing an unknown command', () => {
+  const result = classifyOfflineCommand('向不存在的月亮唱歌', 'blank-event');
+
+  expect(result).toMatchObject({
+    kind: 'recovery',
+    message: expect.stringContaining('未识别'),
+  });
+  if (result.kind === 'recovery') {
+    expect(result.suggestions).toHaveLength(3);
+    expect(result.suggestions).toContain('扫描空白断层');
+  }
+});
+
+test('returns recovery guidance when a sword command is illegal at the current node', () => {
+  expect(classifyOfflineCommand('使用破壁攻击', 'thought-rest')).toMatchObject({
+    kind: 'recovery',
+    message: expect.stringContaining('当前节点不能使用破壁'),
+  });
 });

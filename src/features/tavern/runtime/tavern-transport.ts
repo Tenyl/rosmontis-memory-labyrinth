@@ -1,4 +1,5 @@
 import type { ApiSettings, Task } from '../../../sillytavern/types';
+import type { SelectPresetEventInput } from '../../../game/presetEvents';
 
 export interface TavernTransportRequest {
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>;
@@ -8,6 +9,8 @@ export interface TavernTransportRequest {
   temperature?: number;
   maxTokens?: number;
   stream?: boolean;
+  offlineContext?: SelectPresetEventInput;
+  gameTask?: 'event' | 'quote' | 'novel';
 }
 
 export interface TavernTransport {

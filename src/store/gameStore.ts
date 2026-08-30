@@ -1,6 +1,26 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { buildDemoState, deepMemoryClue, deepMemoryNode } from '../data/demoData';
+import { createRun, reduceRunAction } from '../game/run';
+import type {
+  FragmentOverflowChoice,
+  GreatswordAction,
+  MemoryFragment,
+  RoguelikeState,
+  RuleEvent,
+  RunMode,
+} from '../game/types';
+import {
+  acceptForRun,
+  beginDirectorRequest as beginDirectorRequestState,
+  createLlmDirectorState,
+  failDirectorRequest as failDirectorRequestState,
+  markDirectorTriggerHandled as markDirectorTriggerHandledState,
+  resolveIntentEffect,
+  type DirectorContentSource,
+} from '../llm/directorState';
+import type { IndependentEventContent, NovelBlueprintContent, TemporaryQuoteContent } from '../llm/gameContent';
+import type { GameContentRequestErrorCode, GameContentTask } from '../llm/gameContentClient';
 import type {
   ArchiveRecord,
   ArchiveKind,
@@ -11,11 +31,30 @@ import type {
   MemoryNode,
   NarrativeOutcome,
   NotificationItem,
+  MemoryCompendiumEntry,
+  RunHistoryRecord,
   TacticalDomainEvent,
   UiPreferences,
 } from '../types/game';
+import { migrateGameState } from './gameStateMigration';
 
 interface GameActions {
+  startRun: (seed: string, mode: RunMode, llmEnabled: boolean) => void;
+  moveToNode: (nodeId: string) => void;
+  useGreatsword: (action: GreatswordAction) => void;
+  completeCurrentNode: (fragment?: MemoryFragment) => void;
+  applyRunVitals: (sanityDelta: number, overloadDelta: number) => void;
+  stabilizeMemoryCore: () => void;
+  resolveFragmentChoice: (choice: FragmentOverflowChoice) => void;
+  resetRun: () => void;
+  beginDirectorRequest: (kind: GameContentTask, triggerKey: string) => string;
+  acceptDirectorEvent: (token: string, triggerKey: string, content: IndependentEventContent, source: DirectorContentSource) => void;
+  acceptDirectorQuote: (token: string, triggerKey: string, content: TemporaryQuoteContent, source: DirectorContentSource) => void;
+  acceptNovelBlueprint: (token: string, triggerKey: string, content: NovelBlueprintContent, source: DirectorContentSource) => void;
+  failDirectorRequest: (kind: GameContentTask, token: string, errorCode: GameContentRequestErrorCode) => void;
+  markDirectorTriggerHandled: (triggerKey: string) => void;
+  resolveDirectorChoice: (choiceId: string) => void;
+  resetDirectorForRun: () => void;
   setNarrativeDraft: (draft: string) => void;
   setInputMode: (inputMode: InputMode) => void;
   setGenerationStatus: (generationStatus: GenerationStatus) => void;
@@ -48,6 +87,121 @@ interface GameActions {
 
 export type GameStore = GameDataState & GameActions;
 
+function selectRoguelikeState(state: GameStore): RoguelikeState {
+  return {
+    run: state.run,
+    maze: state.maze,
+    rosmontis: state.rosmontis,
+    memoryInventory: state.memoryInventory,
+    progression: state.progression,
+    randomState: state.randomState,
+  };
+}
+
+function applyRoguelikeState(
+  state: GameStore,
+  next: RoguelikeState,
+  events: RuleEvent[],
+): Partial<GameStore> {
+  const operator = state.operators.byId.rosmontis;
+  const memoryCompendium = updateMemoryCompendium(state.memoryCompendium, next, events);
+  const runHistory = updateRunHistory(state.runHistory, next, events);
+  return {
+    run: next.run,
+    maze: next.maze,
+    rosmontis: next.rosmontis,
+    memoryInventory: next.memoryInventory,
+    progression: next.progression,
+    randomState: next.randomState,
+    ruleLog: [...state.ruleLog, ...events],
+    memoryCompendium,
+    runHistory,
+    operators: {
+      ...state.operators,
+      byId: {
+        rosmontis: {
+          ...operator,
+          sanity: next.rosmontis.sanity,
+          stress: next.rosmontis.overload,
+          actionPoints: next.rosmontis.actionPoints,
+          condition: next.run.phase === 'defeat' ? '认知链路中断' : operator.condition,
+        },
+      },
+      squadOrder: ['rosmontis'],
+      formation: '单人认知潜入',
+    },
+  };
+}
+
+function updateMemoryCompendium(
+  current: MemoryCompendiumEntry[],
+  next: RoguelikeState,
+  events: RuleEvent[],
+): MemoryCompendiumEntry[] {
+  const acquiredIds = new Set(events.flatMap((event) => {
+    if (event.type === 'fragment.acquired') return [event.fragmentId];
+    if (event.type === 'fragment.replaced') return [event.acquiredFragmentId];
+    return [];
+  }));
+  if (acquiredIds.size === 0) return current;
+  const fragments = [...next.memoryInventory.fragments, ...next.memoryInventory.coreFragments];
+  return [...acquiredIds].reduce<MemoryCompendiumEntry[]>((entries, fragmentId) => {
+    const fragment = fragments.find((item) => item.id === fragmentId);
+    if (!fragment) return entries;
+    const existing = entries.find((item) => item.id === fragmentId);
+    if (existing) {
+      return entries.map((item) => item.id === fragmentId
+        ? { ...item, discoveries: item.discoveries + 1 }
+        : item);
+    }
+    return [...entries, {
+      id: fragment.id,
+      name: fragment.name,
+      kind: fragment.kind,
+      tags: [...fragment.tags],
+      discoveredRunId: next.run.id,
+      discoveries: 1,
+    }];
+  }, current);
+}
+
+function updateRunHistory(
+  current: RunHistoryRecord[],
+  next: RoguelikeState,
+  events: RuleEvent[],
+): RunHistoryRecord[] {
+  const ended = events.find((event) => event.type === 'run.ended');
+  if (!ended || current.some((record) => record.runId === next.run.id)) return current;
+  return [...current, {
+    id: `history-${next.run.id}`,
+    runId: next.run.id,
+    seed: next.run.seed,
+    mode: next.run.mode,
+    result: ended.result,
+    floor: next.run.floor,
+    turns: next.run.turn,
+    completedNodes: next.maze.nodes.filter((node) => node.state === 'completed').length,
+    fragmentsRecovered: next.memoryInventory.fragments.length + next.memoryInventory.coreFragments.length,
+    finalSanity: next.rosmontis.sanity,
+    finalOverload: next.rosmontis.overload,
+    recordedAt: timestamp(),
+  }];
+}
+
+export function sanitizeSingleProtagonistState(state: GameDataState): GameDataState {
+  const fallback = buildDemoState().operators.byId.rosmontis;
+  const rosmontis = state.operators.byId.rosmontis ?? fallback;
+
+  return {
+    ...state,
+    operators: {
+      byId: { rosmontis: { ...rosmontis } },
+      squadOrder: ['rosmontis'],
+      formation: '单人认知潜入',
+    },
+  };
+}
+
 function buildPersistedState(state: GameStore): GameDataState {
   const ui = { ...state.ui, activeDialog: null, notifications: [] };
   if (!state.ui.preferences.autosave) {
@@ -59,6 +213,16 @@ function buildPersistedState(state: GameStore): GameDataState {
   }
 
   return {
+    run: state.run,
+    maze: state.maze,
+    rosmontis: state.rosmontis,
+    memoryInventory: state.memoryInventory,
+    progression: state.progression,
+    ruleLog: state.ruleLog,
+    randomState: state.randomState,
+    llmDirector: state.llmDirector,
+    memoryCompendium: state.memoryCompendium,
+    runHistory: state.runHistory,
     session: state.session,
     narrative: state.narrative,
     memoryMap: state.memoryMap,
@@ -253,8 +417,116 @@ function materializeSession(state: GameStore, sessionId: string | null, events: 
 
 export const useGameStore = create<GameStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...buildDemoState(),
+      startRun: (seed, mode, llmEnabled) =>
+        set((state) => {
+          const next = createRun({ seed, mode, progression: state.progression, llmEnabled });
+          return {
+            ...applyRoguelikeState(state, next, []),
+            ruleLog: [],
+            llmDirector: createLlmDirectorState(next.run.id),
+          };
+        }),
+      moveToNode: (nodeId) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'move-to-node', nodeId });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      useGreatsword: (action) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'use-greatsword', action });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      completeCurrentNode: (fragment) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'complete-node', fragment });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      applyRunVitals: (sanityDelta, overloadDelta) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), {
+            type: 'apply-vitals',
+            sanityDelta,
+            overloadDelta,
+          });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      stabilizeMemoryCore: () =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'stabilize-core' });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      resolveFragmentChoice: (choice) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'resolve-fragment-overflow', choice });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      resetRun: () =>
+        set((state) => {
+          const next = createRun({
+            seed: 'PRESET-RAIN-ECHO',
+            mode: 'preset',
+            progression: state.progression,
+            llmEnabled: false,
+          });
+          return {
+            ...applyRoguelikeState(state, next, []),
+            ruleLog: [],
+            llmDirector: createLlmDirectorState(next.run.id),
+          };
+        }),
+      beginDirectorRequest: (kind, triggerKey) => {
+        const result = beginDirectorRequestState(get().llmDirector, kind, triggerKey);
+        set({ llmDirector: result.state });
+        return result.token;
+      },
+      acceptDirectorEvent: (token, triggerKey, content, source) =>
+        set((state) => ({
+          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'event', token, (director) => ({
+            ...director,
+            event: { triggerKey, content, source, resolvedChoiceId: null },
+          })),
+        })),
+      acceptDirectorQuote: (token, triggerKey, content, source) =>
+        set((state) => ({
+          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'quote', token, (director) => ({
+            ...director,
+            quote: { triggerKey, content, source },
+          })),
+        })),
+      acceptNovelBlueprint: (token, triggerKey, content, source) =>
+        set((state) => ({
+          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'novel', token, (director) => ({
+            ...director,
+            novel: { triggerKey, content, source },
+          })),
+        })),
+      failDirectorRequest: (kind, token, errorCode) =>
+        set((state) => ({
+          llmDirector: failDirectorRequestState(state.llmDirector, state.run.id, kind, token, errorCode),
+        })),
+      markDirectorTriggerHandled: (triggerKey) =>
+        set((state) => ({ llmDirector: markDirectorTriggerHandledState(state.llmDirector, triggerKey) })),
+      resolveDirectorChoice: (choiceId) =>
+        set((state) => {
+          const event = state.llmDirector.event;
+          if (!event || event.resolvedChoiceId) return state;
+          const choice = event.content.choices.find((item) => item.id === choiceId);
+          if (!choice) return state;
+          const effect = resolveIntentEffect(choice.intent, state.rosmontis);
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'apply-vitals', ...effect });
+          if (!resolution.accepted) return state;
+          return {
+            ...applyRoguelikeState(state, resolution.state, resolution.events),
+            llmDirector: {
+              ...state.llmDirector,
+              event: { ...event, resolvedChoiceId: choiceId },
+            },
+          };
+        }),
+      resetDirectorForRun: () =>
+        set((state) => ({ llmDirector: createLlmDirectorState(state.run.id) })),
       setNarrativeDraft: (draft) =>
         set((state) => ({ narrative: { ...state.narrative, draft, inputError: null } })),
       setInputMode: (inputMode) =>
@@ -532,7 +804,7 @@ export const useGameStore = create<GameStore>()(
                   id: `notification-path-created-${suffix}`,
                   kind: 'success',
                   title: '路径已建立',
-                  message: `新节点“${profile.title}”已写入意识战场，等待小队确认进入。`,
+                  message: `新节点“${profile.title}”已写入意识战场，等待迷迭香确认进入。`,
                   dismissible: true,
                 },
               ],
@@ -729,8 +1001,14 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
+      migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),
+      merge: (persistedState, currentState) => {
+        const migrated = migrateGameState(persistedState, buildDemoState());
+        return { ...currentState, ...migrated };
+      },
     },
   ),
 );

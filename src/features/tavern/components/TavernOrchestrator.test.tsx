@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { clearAllData } from '../../../sillytavern/database';
@@ -15,6 +15,18 @@ const transport: TavernTransport = {
 
 beforeEach(async () => clearAllData());
 afterEach(async () => clearAllData());
+
+test('does not expose multi-character management in the orchestrator', async () => {
+  render(
+    <TavernProvider transport={transport}>
+      <TavernOrchestrator open onClose={vi.fn()} />
+    </TavernProvider>,
+  );
+
+  const dialog = await screen.findByRole('dialog', { name: '酒馆编排中枢' });
+  await within(dialog).findByText('雨幕回声');
+  expect(within(dialog).queryByRole('tab', { name: /^角色/ })).not.toBeInTheDocument();
+});
 
 test('creates, renames, loads and confirms deletion of sessions', async () => {
   const user = userEvent.setup();

@@ -4,6 +4,8 @@ import type {
   MemoryNode,
   Operator,
 } from '../types/game';
+import { createRun } from '../game/run';
+import { createLlmDirectorState } from '../llm/directorState';
 
 const surfaceNodes: MemoryNode[] = [
   {
@@ -77,66 +79,9 @@ const rosmontis: Operator = {
   traits: ['思维感应', '重力操控', '记忆碎片捕获'],
   abilities: ['意识回声定位', '质量投射', '战术装备压制'],
   equipment: ['制式神经监测环', '四单元战术装备', '医疗应急注射器'],
-  relation: '小队信任稳定；对 R-09 投影存在无法解释的熟悉感。',
+  relation: '与指挥者的神经链路稳定；对 R-09 投影存在无法解释的熟悉感。',
   temporaryFeatures: ['雨声触发记忆闪回'],
 };
-
-const squad: Operator[] = [
-  {
-    id: 'amiya',
-    name: '阿米娅',
-    code: 'LEADER / AMI-01',
-    role: '术师 / 战术指挥',
-    health: 86,
-    stress: 28,
-    actionPoints: 2,
-    position: '中轴位',
-    condition: '警戒',
-    nextAction: '维持精神屏障',
-    attributes: [{ label: '指挥', value: 17 }, { label: '意志', value: 18 }],
-    traits: ['情绪感知', '源石技艺屏障'],
-    abilities: ['战术链接', '精神稳定'],
-    equipment: ['指挥终端', '源石技艺抑制环'],
-    relation: '持续关注迷迭香的精神状态。',
-    temporaryFeatures: ['对广播脉冲产生共鸣'],
-  },
-  {
-    id: 'hibiscus',
-    name: '末药',
-    code: 'MEDIC / HIB-06',
-    role: '医疗干员',
-    health: 94,
-    stress: 17,
-    actionPoints: 2,
-    position: '后卫位',
-    condition: '药剂充足',
-    nextAction: '监测精神负荷',
-    attributes: [{ label: '医疗', value: 15 }, { label: '观察', value: 13 }],
-    traits: ['快速治疗', '污染诊断'],
-    abilities: ['应急治疗', '神经稳定剂'],
-    equipment: ['战地医疗包', '便携监测仪'],
-    relation: '对意识潜入流程保持谨慎。',
-    temporaryFeatures: ['已标记安全撤离阈值'],
-  },
-  {
-    id: 'cuora',
-    name: '蛇屠箱',
-    code: 'DEFENDER / CUO-03',
-    role: '重装干员',
-    health: 78,
-    stress: 22,
-    actionPoints: 1,
-    position: '前线位',
-    condition: '前线掩护',
-    nextAction: '封锁西侧走廊',
-    attributes: [{ label: '防护', value: 18 }, { label: '耐力', value: 17 }],
-    traits: ['阵线固守', '冲击吸收'],
-    abilities: ['临时掩体', '强制拦截'],
-    equipment: ['复合战术盾', '短距信标'],
-    relation: '将迷迭香视为优先保护目标。',
-    temporaryFeatures: ['盾面残留异常雨水'],
-  },
-];
 
 const archiveRecords: ArchiveRecord[] = [
   {
@@ -147,7 +92,7 @@ const archiveRecords: ArchiveRecord[] = [
     summary: '纸张保持潮湿，但墨迹来自三个彼此矛盾的年份；患者编号均指向 R-09。',
     sourceEntryId: 'narrative-scan-03',
     discoveredIn: '第一章 / 医疗站入口',
-    discoveredBy: '末药',
+    discoveredBy: '迷迭香',
     confidence: 82,
     contamination: 'B',
     verification: '存在冲突',
@@ -165,7 +110,7 @@ const archiveRecords: ArchiveRecord[] = [
     summary: '自称疗养院夜班护理员，能够准确说出封闭区域内部结构，但镜面中没有投影。',
     sourceEntryId: 'narrative-dialogue-04',
     discoveredIn: '第一章 / 护理站',
-    discoveredBy: '阿米娅',
+    discoveredBy: '迷迭香',
     confidence: 43,
     contamination: 'A',
     verification: '未验证',
@@ -201,7 +146,7 @@ const archiveRecords: ArchiveRecord[] = [
     summary: '恢复的数据表明记录遭到七次人工覆盖，最后一次覆盖发生在疗养院停用后四年。',
     sourceEntryId: 'narrative-system-06',
     discoveredIn: '第一章 / 数据终端',
-    discoveredBy: '阿米娅',
+    discoveredBy: '迷迭香',
     confidence: 91,
     contamination: 'C',
     verification: '已验证',
@@ -250,7 +195,23 @@ export const deepMemoryNode: MemoryNode = {
 };
 
 export function buildDemoState(): GameDataState {
+  const roguelike = createRun({
+    seed: 'PRESET-RAIN-ECHO',
+    mode: 'preset',
+    progression: { firstClear: false, completedRuns: 0 },
+    llmEnabled: false,
+  });
   return {
+    run: roguelike.run,
+    maze: roguelike.maze,
+    rosmontis: roguelike.rosmontis,
+    memoryInventory: roguelike.memoryInventory,
+    progression: roguelike.progression,
+    ruleLog: [],
+    randomState: roguelike.randomState,
+    llmDirector: createLlmDirectorState(roguelike.run.id),
+    memoryCompendium: [],
+    runHistory: [],
     session: {
       operationCode: '雨幕回声',
       chapter: '第一章 / 失温病历',
@@ -258,7 +219,7 @@ export function buildDemoState(): GameDataState {
       objective: '确认 R-09 隔离区异常意识来源',
       connection: '本地模拟已连接',
       globalRisk: 'B',
-      squadStatus: '小队链路正常',
+      squadStatus: '认知链路稳定',
     },
     narrative: {
       entries: [
@@ -267,7 +228,7 @@ export function buildDemoState(): GameDataState {
           index: 7,
           kind: '叙事',
           title: '雨幕下的入口',
-          body: '小队穿过积水漫过脚踝的接待厅。雨水沿着破损玻璃向上爬升，远处的应急灯以并不属于电路故障的节奏闪烁。',
+          body: '迷迭香穿过积水漫过脚踝的接待厅。雨水沿着破损玻璃向上爬升，远处的应急灯以并不属于电路故障的节奏闪烁。',
           timestamp: '03:20:14',
           relatedIds: ['memory-sanatorium'],
         },
@@ -293,7 +254,7 @@ export function buildDemoState(): GameDataState {
       ],
       inputMode: '行动描述',
       draft: '',
-      suggestions: ['检查西侧隔离门', '让迷迭香读取残留意识', '命令小队进入防御队形'],
+      suggestions: ['检查西侧隔离门', '让迷迭香读取残留意识', '命令巨剑进入守望阵位'],
       generationStatus: 'idle',
       activeEntryId: null,
       inputError: null,
@@ -309,9 +270,9 @@ export function buildDemoState(): GameDataState {
       viewport: { x: 0, y: 0, zoom: 1 },
     },
     operators: {
-      byId: Object.fromEntries([rosmontis, ...squad].map((operator) => [operator.id, { ...operator }])),
-      squadOrder: ['rosmontis', 'amiya', 'hibiscus', 'cuora'],
-      formation: '楔形调查队列',
+      byId: { rosmontis: { ...rosmontis } },
+      squadOrder: ['rosmontis'],
+      formation: '单人认知潜入',
     },
     archive: {
       records: archiveRecords.map((record) => ({ ...record, relatedIds: [...record.relatedIds] })),
@@ -326,11 +287,11 @@ export function buildDemoState(): GameDataState {
       sort: '最近更新',
     },
     actionLog: [
-      { id: 'log-chapter', kind: '章节', title: '进入失温病历', summary: '小队抵达废弃医疗站。', timestamp: '03:20:00', actor: '系统', chapter: '第一章' },
-      { id: 'log-command', kind: '指令', title: '调查接待厅', summary: '玩家要求小队确认可用入口。', timestamp: '03:20:11', actor: '玩家', chapter: '第一章' },
+      { id: 'log-chapter', kind: '章节', title: '进入失温病历', summary: '迷迭香抵达废弃医疗站。', timestamp: '03:20:00', actor: '系统', chapter: '第一章' },
+      { id: 'log-command', kind: '指令', title: '调查接待厅', summary: '玩家要求迷迭香确认可用入口。', timestamp: '03:20:11', actor: '玩家', chapter: '第一章' },
       { id: 'log-check', kind: '检定', title: '环境感知检定', summary: '发现墙体后异常心智回声。', timestamp: '03:22:37', actor: '迷迭香', chapter: '第一章', sourceEntryId: 'narrative-scan-03' },
-      { id: 'log-archive', kind: '情报入库', title: '潮湿的儿童病历', summary: '新增冲突线索。', timestamp: '03:22:41', actor: '末药', chapter: '第一章', relatedPath: '/archive' },
-      { id: 'log-state', kind: '状态变化', title: '未知通讯接入', summary: '护理员伊莲进入小队通讯。', timestamp: '03:24:09', actor: '系统', chapter: '第一章', relatedPath: '/archive' },
+      { id: 'log-archive', kind: '情报入库', title: '潮湿的儿童病历', summary: '新增冲突线索。', timestamp: '03:22:41', actor: '迷迭香', chapter: '第一章', relatedPath: '/archive' },
+      { id: 'log-state', kind: '状态变化', title: '未知通讯接入', summary: '护理员伊莲接入迷迭香的认知通讯。', timestamp: '03:24:09', actor: '系统', chapter: '第一章', relatedPath: '/archive' },
     ],
     tavernProjection: {
       activeSessionId: null,

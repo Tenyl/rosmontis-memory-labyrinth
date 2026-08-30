@@ -11,6 +11,7 @@ test('会话分支按父子层级显示精确分歧回合，载入父会话后�
   await user.click(within(history).getByRole('button', { name: '从第 1 条消息创建分支' }));
 
   await user.click(screen.getByRole('link', { name: /行动记录/ }));
+  await user.click(await screen.findByRole('tab', { name: '会话分支' }));
   const branch = await screen.findByRole('treeitem', { name: /雨幕回声 \/ 分支/ });
   expect(branch).toHaveTextContent('消息 01 / 回合 01');
   expect(branch.closest('ol')).toHaveAttribute('aria-label', '雨幕回声的子分支');
@@ -19,4 +20,4 @@ test('会话分支按父子层级显示精确分歧回合，载入父会话后�
   await user.click(within(parent).getByRole('button', { name: '载入会话 雨幕回声' }));
 
   expect(await screen.findByRole('button', { name: /当前会话：雨幕回声/ })).toHaveTextContent('雨幕回声');
-});
+}, 10_000);

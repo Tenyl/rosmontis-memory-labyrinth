@@ -7,7 +7,7 @@ import {
   DoorOpen,
   Pulse,
   Scan,
-  UsersThree,
+  UserFocus,
   WarningDiamond,
 } from '@phosphor-icons/react';
 import { Meter } from '../../components/Meter';
@@ -46,7 +46,7 @@ export function MemoryInspector({ node, onExpand, onEnter, onNotify }: MemoryIns
 
       <div className="memory-force-grid">
         <div><span><WarningDiamond size={15} weight="fill" aria-hidden />敌对驻守</span><strong>{node.hostileCount ?? '未知'}</strong><small>{node.hostileCount === null ? '信号受污染' : '已定位单位'}</small></div>
-        <div><span><UsersThree size={15} aria-hidden />友方驻守</span><strong>{node.alliedCount}</strong><small>{node.alliedCount > 0 ? '神经链路稳定' : '无小队驻留'}</small></div>
+        <div><span><UserFocus size={15} aria-hidden />迷迭香信标</span><strong>{node.alliedCount > 0 ? '在线' : '未建立'}</strong><small>{node.alliedCount > 0 ? '神经链路稳定' : '当前节点未接入'}</small></div>
       </div>
 
       <section className="memory-inspector-section"><h3><Pulse size={15} aria-hidden />环境效应</h3><ul>{node.effects.map((effect) => <li key={effect}>{effect}</li>)}</ul></section>
@@ -64,7 +64,7 @@ export function MemoryInspector({ node, onExpand, onEnter, onNotify }: MemoryIns
       <div className="memory-node-actions">
         <button id="memory-node-enter" className="terminal-button is-primary" type="button" onClick={onEnter}><DoorOpen size={17} aria-hidden />进入节点</button>
         <button id="memory-node-anchor" className="terminal-button is-secondary" type="button" onClick={() => onNotify('锚定协议已排队', '该节点将在下一次回合结算后固化为安全返回点。')}><AnchorSimple size={17} aria-hidden />建立锚点</button>
-        <button id="memory-node-rescan" className="terminal-button is-secondary" type="button" onClick={() => onNotify('深度扫描已启动', '环境信号正在与情报档案库进行交叉比对。')}><Scan size={17} aria-hidden />深度扫描</button>
+        <button id="memory-node-rescan" className="terminal-button is-secondary" type="button" onClick={() => onNotify('深度扫描已启动', '环境信号正在与记忆图鉴进行交叉比对。')}><Scan size={17} aria-hidden />深度扫描</button>
       </div>
     </aside>
   );

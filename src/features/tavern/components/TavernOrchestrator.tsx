@@ -1,7 +1,6 @@
 import { Database, Pulse, ShieldCheck } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Dialog } from '../../../components/Dialog';
-import { CharacterManager } from '../characters/CharacterManager';
 import { LorebookManager } from '../lorebooks/LorebookManager';
 import { PresetManager } from '../presets/PresetManager';
 import { SessionManager } from './SessionManager';
@@ -20,7 +19,6 @@ export function TavernOrchestrator({ open, onClose }: TavernOrchestratorProps) {
   const [activeTab, setActiveTab] = useState<TavernTab>('sessions');
   const counts = {
     sessions: runtime.chats.length,
-    characters: runtime.characters.length,
     lorebooks: runtime.lorebooks.length,
     presets: runtime.presets.length,
     variables: Object.keys(runtime.activeChat?.variables ?? {}).length,
@@ -38,7 +36,6 @@ export function TavernOrchestrator({ open, onClose }: TavernOrchestratorProps) {
           {!runtime.initialized ? <div className="tavern-empty-state" role="status">正在恢复角色、会话与世界书索引。</div> : null}
           {runtime.initialized && activeTab === 'sessions' ? <SessionManager /> : null}
           {runtime.initialized && activeTab === 'variables' ? <VariablesPanel /> : null}
-          {runtime.initialized && activeTab === 'characters' ? <CharacterManager /> : null}
           {runtime.initialized && activeTab === 'lorebooks' ? <LorebookManager /> : null}
           {runtime.initialized && activeTab === 'presets' ? <PresetManager /> : null}
         </div>

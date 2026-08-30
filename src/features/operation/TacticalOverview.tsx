@@ -1,4 +1,4 @@
-import { Crosshair, MapPin, Pulse, UsersThree } from '@phosphor-icons/react';
+import { Crosshair, Lightning, MapPin, Pulse } from '@phosphor-icons/react';
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { Operator, SessionState } from '../../types/game';
@@ -6,12 +6,10 @@ import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
 
 interface TacticalOverviewProps {
   session: SessionState;
-  operators: Operator[];
+  rosmontis?: Operator;
 }
 
-export function TacticalOverview({ session, operators }: TacticalOverviewProps) {
-  const rosmontis = operators[0];
-
+export function TacticalOverview({ session, rosmontis }: TacticalOverviewProps) {
   return (
     <aside className="tactical-overview" aria-labelledby="tactical-overview-title">
       <header className="tactical-overview-header">
@@ -42,17 +40,20 @@ export function TacticalOverview({ session, operators }: TacticalOverviewProps) 
 
       <section className="turn-order" aria-labelledby="turn-order-title">
         <div className="overview-section-title">
-          <span id="turn-order-title"><UsersThree size={15} aria-hidden />行动序列</span>
-          <small>{operators.length} 名干员</small>
+          <h3 id="turn-order-title"><Lightning size={15} aria-hidden />迷迭香行动资源</h3>
+          <small>{rosmontis?.actionPoints ?? 0} AP 可用</small>
         </div>
         <ol>
-          {operators.map((operator, index) => (
-            <li key={operator.id} className={index === 0 ? 'is-current' : ''}>
-              <span>{String(index + 1).padStart(2, '0')}</span>
-              <div><strong>{operator.name}</strong><small>{operator.position} · {operator.nextAction}</small></div>
-              <em>{operator.actionPoints} AP</em>
-            </li>
-          ))}
+          <li className="is-current">
+            <span>01</span>
+            <div><strong>当前行动</strong><small>{rosmontis?.nextAction ?? '等待指挥'}</small></div>
+            <em>{rosmontis?.actionPoints ?? 0} AP</em>
+          </li>
+          <li>
+            <span>02</span>
+            <div><strong>战术定位</strong><small>{rosmontis?.position ?? '单人认知潜入'}</small></div>
+            <em>RSM</em>
+          </li>
         </ol>
       </section>
 

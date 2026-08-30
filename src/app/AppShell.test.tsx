@@ -4,8 +4,8 @@ import { renderApp } from '../test/renderApp';
 test.each([
   ['/operation', '作战主控台'],
   ['/memory', '意识战场'],
-  ['/operators', '干员与小队'],
-  ['/archive', '情报档案库'],
+  ['/operators', '迷迭香状态'],
+  ['/archive', '记忆图鉴'],
   ['/log', '行动记录'],
   ['/settings', '系统设置'],
 ])('renders %s with active navigation', async (path, heading) => {
@@ -26,4 +26,11 @@ test('顶部栏以文字公开酒馆连接、模型、角色和预设状态', as
   expect(tavernButton).toHaveTextContent('迷迭香');
   expect(tavernButton).toHaveTextContent('认知战术叙事');
   expect(tavernButton).toHaveTextContent('gpt-3.5-turbo');
+});
+
+test('主导航只公开迷迭香的单主角状态入口', async () => {
+  renderApp('/operation');
+
+  expect(await screen.findByRole('link', { name: /迷迭香状态/ })).toBeVisible();
+  expect(document.body).not.toHaveTextContent(/干员与小队|随行小队|小队链路/);
 });

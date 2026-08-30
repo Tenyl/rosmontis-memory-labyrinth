@@ -74,7 +74,7 @@ export function HighRiskDialog({ node, open, onClose, onConfirm }: HighRiskDialo
         </>
       )}
     >
-      <div className="high-risk-content"><WarningDiamond size={38} weight="fill" aria-hidden /><div><strong>{node?.title}</strong><p>节点存在持续精神污染与敌对意识投影。建议保持阿米娅精神屏障，并将迷迭香负荷控制在 70 以下。</p></div></div>
+      <div className="high-risk-content"><WarningDiamond size={38} weight="fill" aria-hidden /><div><strong>{node?.title}</strong><p>节点存在持续精神污染与敌对意识投影。建议先启用巨剑守望协议，并将迷迭香负荷控制在 70 以下。</p></div></div>
     </Dialog>
   );
 }

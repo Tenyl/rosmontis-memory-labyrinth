@@ -1,56 +1,39 @@
 import { Graph, ListDashes } from '@phosphor-icons/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { useGameStore } from '../../store/gameStore';
-import type { MemoryDirection } from '../../types/game';
-import { ExpansionDialog, HighRiskDialog } from './ExpansionDialog';
-import { MemoryGraph } from './MemoryGraph';
-import { MemoryInspector } from './MemoryInspector';
-import { MemoryList } from './MemoryList';
+import { RunMazePanel } from './RunMazePanel';
+import { NovelMazeBrief } from './NovelMazeBrief';
 import './memory.css';
 
-export default function MemoryPage() {
-  const memoryMap = useGameStore((state) => state.memoryMap);
-  const selectMemoryNode = useGameStore((state) => state.selectMemoryNode);
-  const setMemoryView = useGameStore((state) => state.setMemoryView);
-  const expandMemoryNode = useGameStore((state) => state.expandMemoryNode);
-  const addNotification = useGameStore((state) => state.addNotification);
-  const [expansionDirection, setExpansionDirection] = useState<MemoryDirection | null>(null);
-  const [highRiskOpen, setHighRiskOpen] = useState(false);
+const RUN_PHASE_LABELS = {
+  idle: '待机',
+  exploring: '探索中',
+  resolving: '结算中',
+  'fragment-overflow': '等待遗忘选择',
+  victory: '已逃离',
+  defeat: '链路中断',
+} as const;
 
-  const selectedNode = memoryMap.nodes.find((node) => node.id === memoryMap.selectedNodeId) ?? null;
+export default function MemoryPage() {
+  const viewMode = useGameStore((state) => state.memoryMap.viewMode);
+  const setMemoryView = useGameStore((state) => state.setMemoryView);
+  const run = useGameStore((state) => state.run);
+  const maze = useGameStore((state) => state.maze);
+  const rosmontis = useGameStore((state) => state.rosmontis);
+  const inventory = useGameStore((state) => state.memoryInventory);
+  const moveToNode = useGameStore((state) => state.moveToNode);
+  const novel = useGameStore((state) => state.llmDirector.novel);
 
   useEffect(() => {
-    if (window.matchMedia?.('(max-width: 767px)').matches && memoryMap.viewMode === 'graph') {
+    if (window.matchMedia?.('(max-width: 767px)').matches && viewMode === 'graph') {
       setMemoryView('list');
     }
-  }, []); // Keep the user's stored desktop selection after the first mobile adaptation.
+  }, []); // Apply the mobile-safe list once without overriding later user choices.
 
-  const notify = (title: string, message: string) => {
-    addNotification({
-      id: `memory-notification-${title}`,
-      kind: 'processing',
-      title,
-      message,
-      dismissible: true,
-    });
-  };
-
-  const enterNode = () => {
-    if (!selectedNode) return;
-    if (selectedNode.risk === 'A' || selectedNode.risk === 'S') {
-      setHighRiskOpen(true);
-      return;
-    }
-    notify('节点接入中', `小队正向“${selectedNode.title}”移动，叙事上下文将在作战主控台继续。`);
-  };
-
-  const confirmExpansion = () => {
-    if (!selectedNode || !expansionDirection) return;
-    expandMemoryNode(selectedNode.id, expansionDirection);
-    setExpansionDirection(null);
-  };
+  const completedNodeCount = maze.nodes.filter((node) => node.state === 'completed').length;
+  const reachableNodeCount = maze.nodes.filter((node) => node.state === 'reachable').length;
 
   return (
     <section className="route-page memory-route" aria-labelledby="memory-page-title">
@@ -58,15 +41,15 @@ export default function MemoryPage() {
         id="memory-page-title"
         code="02"
         title="意识战场"
-        description="在表层记忆中定位战术节点，向下侵入深层潜意识，或向左右未解析战局建立可追溯路径。"
-        meta={`LAYER 00 / ${memoryMap.nodes.length} NODES`}
+        description="读取当前 Run 的神经拓扑，选择已连通节点，引导迷迭香穿过破碎记忆并抵达记忆核心。"
+        meta={`FLOOR ${String(run.floor).padStart(2, '0')} / ${maze.nodes.length} NODES`}
         actions={(
           <SegmentedControl
             id="memory-view-switch"
-            label="意识战场视图"
-            value={memoryMap.viewMode}
+            label="记忆迷宫视图"
+            value={viewMode}
             items={[
-              { value: 'graph', label: '拓扑图', count: memoryMap.nodes.length },
+              { value: 'graph', label: '拓扑图', count: maze.nodes.length },
               { value: 'list', label: '战术列表' },
             ]}
             onChange={setMemoryView}
@@ -74,36 +57,28 @@ export default function MemoryPage() {
         )}
       />
 
-      <div className="memory-summary-strip" aria-label="意识战场概况">
-        <div><span>表层节点</span><strong>03</strong><small>已建立</small></div>
-        <div><span>深层路径</span><strong>{String(memoryMap.nodes.filter((node) => node.layer === '深层潜意识').length).padStart(2, '0')}</strong><small>待解析</small></div>
-        <div><span>意识污染</span><strong>37.4</strong><small>% 波动</small></div>
-        <div><span>当前载荷</span><strong>41</strong><small>/ 100</small></div>
-        <div className="memory-signal"><Graph size={18} aria-hidden /><span>拓扑信号</span><strong>稳定</strong></div>
+      <div className="memory-summary-strip" aria-label="当前迷宫概况">
+        <div><span>当前层级</span><strong>第 {run.floor} 层</strong><small>{run.mode.toUpperCase()}</small></div>
+        <div><span>迷宫规模</span><strong>{maze.nodes.length} 个节点</strong><small>{completedNodeCount} 已完成</small></div>
+        <div><span>可选路径</span><strong>{String(reachableNodeCount).padStart(2, '0')}</strong><small>条已连通</small></div>
+        <div><span>记忆载荷</span><strong>{inventory.fragments.length + inventory.coreFragments.length}</strong><small>/ {inventory.capacity} 常规槽</small></div>
+        <div className="memory-signal"><Graph size={18} aria-hidden /><span>认知链路</span><strong>{RUN_PHASE_LABELS[run.phase]} · {rosmontis.sanity}</strong></div>
       </div>
 
-      <div className="memory-workbench">
-        <div className="memory-primary">
-          {memoryMap.viewMode === 'graph' ? (
-            <MemoryGraph nodes={memoryMap.nodes} edges={memoryMap.edges} selectedNodeId={memoryMap.selectedNodeId} onSelect={selectMemoryNode} />
-          ) : (
-            <MemoryList nodes={memoryMap.nodes} selectedNodeId={memoryMap.selectedNodeId} onSelect={selectMemoryNode} />
-          )}
-          <div className="memory-access-note"><ListDashes size={16} aria-hidden /><span>所有拓扑节点均可通过“战术列表”以键盘完整访问。</span></div>
-        </div>
-        <MemoryInspector node={selectedNode} onExpand={setExpansionDirection} onEnter={enterNode} onNotify={notify} />
-      </div>
-
-      <ExpansionDialog source={selectedNode} direction={expansionDirection} onClose={() => setExpansionDirection(null)} onConfirm={confirmExpansion} />
-      <HighRiskDialog
-        node={selectedNode}
-        open={highRiskOpen}
-        onClose={() => setHighRiskOpen(false)}
-        onConfirm={() => {
-          setHighRiskOpen(false);
-          notify('高危节点接入中', `小队已确认进入“${selectedNode?.title ?? '未知节点'}”，医疗监测提升至战术级。`);
-        }}
+      <RunMazePanel
+        maze={maze}
+        currentNodeId={run.currentNodeId}
+        viewMode={viewMode}
+        onMove={moveToNode}
+        nodeBriefs={run.mode === 'novel' ? novel?.content.nodeBriefs : undefined}
       />
+
+      <NovelMazeBrief mode={run.mode} novel={novel} />
+
+      <div className="memory-access-note">
+        <ListDashes size={16} aria-hidden />
+        <span>拓扑图与战术列表使用同一组节点；战术列表可用键盘完成全部移动。</span>
+      </div>
     </section>
   );
 }

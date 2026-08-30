@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { OpenAiTavernTransport } from './openai-tavern-transport';
 
 function sseResponse(parts: string[]): Response {
@@ -13,8 +13,27 @@ function sseResponse(parts: string[]): Response {
 }
 
 describe('OpenAiTavernTransport', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('resolves the browser fetch implementation when a default transport is used', async () => {
+    const transport = new OpenAiTavernTransport();
+    const fetchImpl = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({
+      choices: [{ message: { content: '{"title":"ok"}' } }],
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchImpl);
+    const chunks: string[] = [];
+
+    for await (const chunk of transport.stream({
+      messages: [{ role: 'user', content: '生成蓝图' }],
+      api: { baseUrl: 'https://llm.example/v1', apiKey: 'sk-private', model: 'story-model', timeout: 1000 },
+    }, new AbortController().signal)) chunks.push(chunk);
+
+    expect(chunks).toEqual(['{"title":"ok"}']);
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
   it('parses OpenAI-compatible SSE deltas across network chunks', async () => {
-    const fetchImpl = vi.fn(async () => sseResponse([
+    const fetchImpl = vi.fn<typeof fetch>(async () => sseResponse([
       'data: {"choices":[{"delta":{"content":"<main"}}]}\n\n',
       'data: {"choices":[{"delta":{"content":"text>雨声</maintext>"}}]}\n\n',
       'data: [DONE]\n\n',
@@ -25,6 +44,7 @@ describe('OpenAiTavernTransport', () => {
     for await (const chunk of transport.stream({
       messages: [{ role: 'user', content: '前进' }],
       api: { baseUrl: 'https://llm.example/v1/', apiKey: 'sk-private', model: 'story-model', timeout: 1000 },
+      gameTask: 'event',
     }, new AbortController().signal)) chunks.push(chunk);
 
     expect(chunks).toEqual(['<main', 'text>雨声</maintext>']);
@@ -32,6 +52,10 @@ describe('OpenAiTavernTransport', () => {
       method: 'POST',
       headers: expect.objectContaining({ Authorization: 'Bearer sk-private' }),
     }));
+    const request = fetchImpl.mock.calls[0]?.[1];
+    const body = JSON.parse(String(request?.body)) as Record<string, unknown>;
+    expect(body).not.toHaveProperty('gameTask');
+    expect(body).not.toHaveProperty('offlineContext');
   });
 
   it('does not expose an API key in HTTP errors', async () => {

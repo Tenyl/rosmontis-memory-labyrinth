@@ -33,5 +33,6 @@ test('新会话可完成本地回合、刷新恢复变量并建立来源分支',
   await expect(page.getByRole('button', { name: /当前会话：低温病历复核 \/ 分支 1/ })).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('link', { name: /行动记录/ }).click();
+  await page.getByRole('tab', { name: '会话分支' }).click();
   await expect(page.getByRole('treeitem', { name: '低温病历复核 / 分支 1' })).toContainText(/消息 \d+ \/ 回合 \d+/);
 });

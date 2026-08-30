@@ -1,7 +1,7 @@
-import { Books, CardsThree, ChatsCircle, SlidersHorizontal, UserFocus } from '@phosphor-icons/react';
+import { Books, CardsThree, ChatsCircle, SlidersHorizontal } from '@phosphor-icons/react';
 import type { ComponentType } from 'react';
 
-export type TavernTab = 'sessions' | 'characters' | 'lorebooks' | 'presets' | 'variables';
+export type TavernTab = 'sessions' | 'lorebooks' | 'presets' | 'variables';
 
 interface TavernEntityTabsProps {
   active: TavernTab;
@@ -11,7 +11,6 @@ interface TavernEntityTabsProps {
 
 const tabs: Array<{ id: TavernTab; label: string; caption: string; icon: ComponentType<{ size?: number; 'aria-hidden'?: boolean }> }> = [
   { id: 'sessions', label: '会话', caption: 'SESSIONS', icon: ChatsCircle },
-  { id: 'characters', label: '角色', caption: 'CHARACTERS', icon: UserFocus },
   { id: 'lorebooks', label: '世界书', caption: 'LOREBOOKS', icon: Books },
   { id: 'presets', label: '预设', caption: 'PRESETS', icon: SlidersHorizontal },
   { id: 'variables', label: '变量', caption: 'VARIABLES', icon: CardsThree },
