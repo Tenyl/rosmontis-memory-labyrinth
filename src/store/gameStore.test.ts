@@ -208,15 +208,46 @@ test('stabilizes the current memory core and persists first-clear progression', 
   expect(state.run).toMatchObject({ phase: 'victory', result: 'victory' });
   expect(state.progression).toEqual({ firstClear: true, completedRuns: 1 });
   expect(state.ruleLog.at(-1)).toEqual({ type: 'run.ended', result: 'victory' });
+  expect(state.runHistory.at(-1)).toMatchObject({
+    runId: state.run.id,
+    seed: 'STORE-FIRST-CLEAR',
+    mode: 'preset',
+    result: 'victory',
+    finalSanity: 100,
+  });
+});
+
+test('adds recovered fragments to the permanent memory compendium', () => {
+  const reward: MemoryFragment = {
+    id: 'fragment-compendium',
+    name: '雨幕中的病历页',
+    kind: 'standard',
+    tags: ['病区', '雨声'],
+  };
+  useGameStore.getState().startRun('STORE-COMPENDIUM', 'preset', false);
+  useGameStore.getState().completeCurrentNode(reward);
+  const state = useGameStore.getState();
+  const acquired = state.memoryInventory.fragments[0];
+
+  expect(acquired).toBeDefined();
+  expect(state.memoryCompendium).toContainEqual(expect.objectContaining({
+    id: acquired.id,
+    name: acquired.name,
+    kind: acquired.kind,
+    discoveredRunId: state.run.id,
+    discoveries: 1,
+  }));
 });
 
 test('persists the explicit roguelike schema version', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 44);
   const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
 
-  expect(persisted.version).toBe(3);
+  expect(persisted.version).toBe(4);
   expect(persisted.state.run.seed).toBeTruthy();
   expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(4);
+  expect(persisted.state.runHistory).toEqual(expect.any(Array));
+  expect(persisted.state.memoryCompendium).toEqual(expect.any(Array));
 });
 
 test('resets only the active Run while preserving permanent progression', () => {

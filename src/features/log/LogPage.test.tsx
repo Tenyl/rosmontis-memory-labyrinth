@@ -4,6 +4,31 @@ import { renderApp } from '../../test/renderApp';
 import { useGameStore } from '../../store/gameStore';
 import { projectTavernTurn } from '../tavern/projection/tavern-turn-projector';
 
+test('shows completed Run history and the current local rule log', async () => {
+  const user = userEvent.setup();
+  renderApp('/log');
+  act(() => useGameStore.setState({
+    runHistory: [{
+      id: 'run-history-1',
+      runId: 'run-history-1',
+      seed: 'HISTORY-SEED',
+      mode: 'preset',
+      result: 'victory',
+      floor: 1,
+      turns: 8,
+      completedNodes: 7,
+      fragmentsRecovered: 3,
+      finalSanity: 76,
+      finalOverload: 42,
+      recordedAt: '03:40:00',
+    }],
+  }));
+
+  expect(await screen.findByRole('region', { name: 'Run 历史' })).toHaveTextContent('HISTORY-SEED');
+  await user.click(screen.getByRole('tab', { name: '局内规则日志' }));
+  expect(screen.getByRole('region', { name: '局内规则日志' })).toBeVisible();
+});
+
 test('filters the action timeline and opens source replay', async () => {
   const user = userEvent.setup();
   renderApp('/log');

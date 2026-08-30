@@ -265,6 +265,30 @@ export interface UiState {
   preferences: UiPreferences;
 }
 
+export interface MemoryCompendiumEntry {
+  id: string;
+  name: string;
+  kind: 'standard' | 'core';
+  tags: string[];
+  discoveredRunId: string;
+  discoveries: number;
+}
+
+export interface RunHistoryRecord {
+  id: string;
+  runId: string;
+  seed: string;
+  mode: RunMode;
+  result: 'victory' | 'defeat';
+  floor: number;
+  turns: number;
+  completedNodes: number;
+  fragmentsRecovered: number;
+  finalSanity: number;
+  finalOverload: number;
+  recordedAt: string;
+}
+
 export interface GameDataState {
   run: RunState;
   maze: MazeGraph;
@@ -274,6 +298,8 @@ export interface GameDataState {
   ruleLog: RuleEvent[];
   randomState: SeededRandomState;
   llmDirector: LlmDirectorState;
+  memoryCompendium: MemoryCompendiumEntry[];
+  runHistory: RunHistoryRecord[];
   session: SessionState;
   narrative: NarrativeState;
   memoryMap: MemoryMapState;
@@ -289,6 +315,7 @@ import type {
   MemoryInventory,
   ProgressionState,
   RuleEvent,
+  RunMode,
   RunState,
   SeededRandomState,
 } from '../game/types';

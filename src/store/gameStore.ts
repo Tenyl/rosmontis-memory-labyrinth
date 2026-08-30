@@ -31,6 +31,8 @@ import type {
   MemoryNode,
   NarrativeOutcome,
   NotificationItem,
+  MemoryCompendiumEntry,
+  RunHistoryRecord,
   TacticalDomainEvent,
   UiPreferences,
 } from '../types/game';
@@ -102,6 +104,8 @@ function applyRoguelikeState(
   events: RuleEvent[],
 ): Partial<GameStore> {
   const operator = state.operators.byId.rosmontis;
+  const memoryCompendium = updateMemoryCompendium(state.memoryCompendium, next, events);
+  const runHistory = updateRunHistory(state.runHistory, next, events);
   return {
     run: next.run,
     maze: next.maze,
@@ -110,6 +114,8 @@ function applyRoguelikeState(
     progression: next.progression,
     randomState: next.randomState,
     ruleLog: [...state.ruleLog, ...events],
+    memoryCompendium,
+    runHistory,
     operators: {
       ...state.operators,
       byId: {
@@ -125,6 +131,61 @@ function applyRoguelikeState(
       formation: '单人认知潜入',
     },
   };
+}
+
+function updateMemoryCompendium(
+  current: MemoryCompendiumEntry[],
+  next: RoguelikeState,
+  events: RuleEvent[],
+): MemoryCompendiumEntry[] {
+  const acquiredIds = new Set(events.flatMap((event) => {
+    if (event.type === 'fragment.acquired') return [event.fragmentId];
+    if (event.type === 'fragment.replaced') return [event.acquiredFragmentId];
+    return [];
+  }));
+  if (acquiredIds.size === 0) return current;
+  const fragments = [...next.memoryInventory.fragments, ...next.memoryInventory.coreFragments];
+  return [...acquiredIds].reduce<MemoryCompendiumEntry[]>((entries, fragmentId) => {
+    const fragment = fragments.find((item) => item.id === fragmentId);
+    if (!fragment) return entries;
+    const existing = entries.find((item) => item.id === fragmentId);
+    if (existing) {
+      return entries.map((item) => item.id === fragmentId
+        ? { ...item, discoveries: item.discoveries + 1 }
+        : item);
+    }
+    return [...entries, {
+      id: fragment.id,
+      name: fragment.name,
+      kind: fragment.kind,
+      tags: [...fragment.tags],
+      discoveredRunId: next.run.id,
+      discoveries: 1,
+    }];
+  }, current);
+}
+
+function updateRunHistory(
+  current: RunHistoryRecord[],
+  next: RoguelikeState,
+  events: RuleEvent[],
+): RunHistoryRecord[] {
+  const ended = events.find((event) => event.type === 'run.ended');
+  if (!ended || current.some((record) => record.runId === next.run.id)) return current;
+  return [...current, {
+    id: `history-${next.run.id}`,
+    runId: next.run.id,
+    seed: next.run.seed,
+    mode: next.run.mode,
+    result: ended.result,
+    floor: next.run.floor,
+    turns: next.run.turn,
+    completedNodes: next.maze.nodes.filter((node) => node.state === 'completed').length,
+    fragmentsRecovered: next.memoryInventory.fragments.length + next.memoryInventory.coreFragments.length,
+    finalSanity: next.rosmontis.sanity,
+    finalOverload: next.rosmontis.overload,
+    recordedAt: timestamp(),
+  }];
 }
 
 export function sanitizeSingleProtagonistState(state: GameDataState): GameDataState {
@@ -160,6 +221,8 @@ function buildPersistedState(state: GameStore): GameDataState {
     ruleLog: state.ruleLog,
     randomState: state.randomState,
     llmDirector: state.llmDirector,
+    memoryCompendium: state.memoryCompendium,
+    runHistory: state.runHistory,
     session: state.session,
     narrative: state.narrative,
     memoryMap: state.memoryMap,
@@ -938,7 +1001,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
       migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),

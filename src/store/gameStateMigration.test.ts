@@ -102,4 +102,16 @@ describe('versioned game state migration', () => {
     expect(migratedStale.llmDirector.runId).toBe(migratedStale.run.id);
     expect(migratedStale.llmDirector.requests.event).toEqual({ status: 'idle', token: null, errorCode: null });
   });
+
+  test('adds empty permanent compendium and Run history slices to version-three saves', () => {
+    const current = buildDemoState();
+    const previous = structuredClone(current) as any;
+    delete previous.memoryCompendium;
+    delete previous.runHistory;
+
+    const migrated = migrateGameState(previous, current);
+
+    expect(migrated.memoryCompendium).toEqual([]);
+    expect(migrated.runHistory).toEqual([]);
+  });
 });

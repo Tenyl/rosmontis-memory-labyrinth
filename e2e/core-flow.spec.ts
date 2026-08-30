@@ -15,7 +15,8 @@ test('酒馆回合同步剧情、情报、行动记录与迷迭香投影', async
   await expect(page.getByRole('button', { name: '选择：检查门牌背面的刻痕' })).toBeVisible();
   await expect(page.locator('#operation-rosmontis-stress')).toHaveAttribute('aria-valuenow', '43');
 
-  await page.getByRole('link', { name: /情报档案库/ }).click();
+  await page.getByRole('link', { name: /记忆图鉴/ }).click();
+  await page.getByRole('tab', { name: '叙事档案' }).click();
   await expect(page.getByText('反复翻转的 R-09 门牌', { exact: true })).toBeVisible();
 
   await page.getByRole('link', { name: /行动记录/ }).click();

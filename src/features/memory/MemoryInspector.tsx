@@ -64,7 +64,7 @@ export function MemoryInspector({ node, onExpand, onEnter, onNotify }: MemoryIns
       <div className="memory-node-actions">
         <button id="memory-node-enter" className="terminal-button is-primary" type="button" onClick={onEnter}><DoorOpen size={17} aria-hidden />进入节点</button>
         <button id="memory-node-anchor" className="terminal-button is-secondary" type="button" onClick={() => onNotify('锚定协议已排队', '该节点将在下一次回合结算后固化为安全返回点。')}><AnchorSimple size={17} aria-hidden />建立锚点</button>
-        <button id="memory-node-rescan" className="terminal-button is-secondary" type="button" onClick={() => onNotify('深度扫描已启动', '环境信号正在与情报档案库进行交叉比对。')}><Scan size={17} aria-hidden />深度扫描</button>
+        <button id="memory-node-rescan" className="terminal-button is-secondary" type="button" onClick={() => onNotify('深度扫描已启动', '环境信号正在与记忆图鉴进行交叉比对。')}><Scan size={17} aria-hidden />深度扫描</button>
       </div>
     </aside>
   );

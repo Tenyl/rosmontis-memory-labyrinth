@@ -43,3 +43,22 @@
 .session-dialog-field { display: grid; gap: var(--space-2); color: var(--color-text-secondary); font-size: .66rem; }.session-dialog-field input { width: 100%; min-height: 44px; border: 1px solid var(--color-line-strong); background: var(--color-background-deep); padding: 0 var(--space-3); color: var(--color-text-primary); font: 500 .7rem/1 var(--font-data); }.session-dialog-error { margin: var(--space-3) 0 0; color: var(--color-danger-red); font-size: .64rem; }
 @media (max-width: 1100px) { .log-filters { grid-template-columns: 1fr auto; }.log-filters>div { grid-column: 1/-1; grid-row: 2; }.log-workbench,.log-session-layout { grid-template-columns: 1fr; }.log-summary { position: static; }.session-tree-viewport { border-right: 0; border-bottom: 1px solid var(--color-line-subtle); } }
 @media (max-width: 767px) { .log-workspace-tabs { align-items: stretch; flex-direction: column; }.log-workspace-tabs .segmented-control { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }.log-workspace-tabs > span { padding: 0 var(--space-3) var(--space-3); }.log-filters { grid-template-columns: 1fr; }.log-filters>div { grid-column: auto; grid-row: auto; }.log-filters>label:last-child { border-left: 0; }.action-log-entry { grid-template-columns: 54px minmax(0,1fr); }.log-time { padding-inline: var(--space-2); }.log-rail { display: none; }.log-content { padding-inline: var(--space-4); }.log-summary { padding: var(--space-5); }.session-tree-viewport { padding: var(--space-3); }.session-branch-actions button { min-height: 44px; }.session-branch-tree ol { margin-left: 22px; padding-left: 20px; } }
+.run-history-panel,.rule-log-panel { border: 1px solid var(--color-line-subtle); background: linear-gradient(145deg,rgba(18,24,30,.88),rgba(7,10,14,.96)); box-shadow: var(--shadow-base); }
+.run-history-list,.rule-log-list { display: grid; gap: 1px; margin: 0; padding: 0; background: var(--color-line-subtle); list-style: none; }
+.run-history-list>li { display: grid; min-width: 0; align-items: center; gap: var(--space-4); grid-template-columns: 46px minmax(180px,.8fr) minmax(0,1.5fr); padding: var(--space-5) var(--space-6); border-left: 2px solid var(--color-arts-green); background: var(--color-surface-primary); }
+.run-history-list>li.is-defeat { border-left-color: var(--color-danger-red); }
+.run-history-list>li>span { color: var(--color-memory-blue); font: 500 .62rem/1 var(--font-data); }
+.run-history-list strong,.run-history-list small { display: block; }
+.run-history-list small { margin-top: var(--space-2); color: var(--color-text-tertiary); font-size: .61rem; }
+.run-history-list dl { display: grid; gap: 1px; grid-template-columns: repeat(6,minmax(60px,1fr)); margin: 0; background: var(--color-line-subtle); }
+.run-history-list dl>div { padding: var(--space-3); background: rgba(9,13,17,.94); }
+.run-history-list dt { color: var(--color-text-tertiary); font-size: .56rem; }
+.run-history-list dd { margin: var(--space-2) 0 0; font: 600 .68rem/1 var(--font-data); }
+.rule-log-list li { display: grid; min-width: 0; align-items: center; gap: var(--space-4); grid-template-columns: 48px minmax(160px,.5fr) minmax(0,1.5fr); padding: var(--space-4) var(--space-6); background: var(--color-surface-primary); }
+.rule-log-list li>span { color: var(--color-memory-blue); font: 500 .6rem/1 var(--font-data); }
+.rule-log-list li>strong { font-size: .72rem; }
+.rule-log-list code { min-width: 0; overflow: hidden; color: var(--color-text-tertiary); font: 500 .6rem/1.5 var(--font-data); text-overflow: ellipsis; white-space: nowrap; }
+.run-history-empty { display: grid; min-height: 260px; place-items: center; align-content: center; gap: var(--space-3); padding: var(--space-8); text-align: center; }
+.run-history-empty p { margin: 0; color: var(--color-text-tertiary); font-size: .7rem; }
+@media (max-width: 900px) { .run-history-list>li { grid-template-columns: 38px minmax(0,1fr); } .run-history-list dl { grid-column: 1/-1; } .rule-log-list li { grid-template-columns: 38px minmax(0,1fr); } .rule-log-list code { grid-column: 1/-1; white-space: normal; overflow-wrap: anywhere; } }
+@media (max-width: 767px) { .run-history-list>li,.rule-log-list li { padding: var(--space-4); } .run-history-list dl { grid-template-columns: repeat(3,minmax(0,1fr)); } }

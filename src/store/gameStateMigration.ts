@@ -27,6 +27,12 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
       },
     },
   } as GameDataState;
+  merged.memoryCompendium = Array.isArray(persisted.memoryCompendium)
+    ? persisted.memoryCompendium
+    : current.memoryCompendium;
+  merged.runHistory = Array.isArray(persisted.runHistory)
+    ? persisted.runHistory
+    : current.runHistory;
 
   if (!hasValidRoguelikeState(persisted)) {
     for (const key of roguelikeKeys) {

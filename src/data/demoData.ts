@@ -210,6 +210,8 @@ export function buildDemoState(): GameDataState {
     ruleLog: [],
     randomState: roguelike.randomState,
     llmDirector: createLlmDirectorState(roguelike.run.id),
+    memoryCompendium: [],
+    runHistory: [],
     session: {
       operationCode: '雨幕回声',
       chapter: '第一章 / 失温病历',

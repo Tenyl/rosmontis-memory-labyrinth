@@ -11,7 +11,7 @@ const routes = [
   ['/operation', '作战主控台'],
   ['/memory', '意识战场'],
   ['/operators', '迷迭香状态'],
-  ['/archive', '情报档案库'],
+  ['/archive', '记忆图鉴'],
   ['/log', '行动记录'],
   ['/settings', '系统设置'],
 ] as const;

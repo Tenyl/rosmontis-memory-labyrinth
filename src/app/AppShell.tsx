@@ -34,7 +34,7 @@ const navItems: NavItem[] = [
   { path: '/operation', label: '作战主控台', caption: 'OPERATION', icon: Command },
   { path: '/memory', label: '意识战场', caption: 'MEMORY', icon: Graph },
   { path: '/operators', label: '迷迭香状态', caption: 'ROSMONTIS', icon: UserFocus },
-  { path: '/archive', label: '情报档案库', caption: 'ARCHIVE', icon: Archive },
+  { path: '/archive', label: '记忆图鉴', caption: 'COMPENDIUM', icon: Archive },
   { path: '/log', label: '行动记录', caption: 'ACTION LOG', icon: ClockCounterClockwise },
   { path: '/settings', label: '系统设置', caption: 'SYSTEM', icon: SlidersHorizontal },
 ];

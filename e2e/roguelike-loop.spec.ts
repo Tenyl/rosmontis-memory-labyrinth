@@ -44,6 +44,13 @@ test('clears the offline preset through normal UI and unlocks local endless', as
   await expect(victory.getByText('本地无尽模式已解锁。')).toBeVisible();
   await victory.getByRole('button', { name: '重新开始预设迷宫' }).click();
 
+  await page.locator('#nav-archive-open').click();
+  await expect(page.getByRole('heading', { name: '记忆图鉴' })).toBeVisible();
+  await expect(page.locator('[id^="memory-compendium-entry-"]').first()).toBeVisible();
+  await page.locator('#nav-log-open').click();
+  await expect(page.getByRole('region', { name: 'Run 历史' })).toContainText('PRESET-RAIN-ECHO');
+  await page.locator('#nav-operation-open').click();
+
   const endlessMode = page.locator('#run-mode-endless');
   await expect(endlessMode).toBeEnabled();
   await endlessMode.check();
