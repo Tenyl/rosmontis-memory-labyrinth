@@ -17,6 +17,7 @@ import {
 } from '../../../sillytavern';
 import { useTavern } from '../runtime/useTavern';
 import { PresetEditorDialog } from './PresetEditorDialog';
+import '../components/tavern-components.css';
 
 interface PresetManagerProps {
   embedded?: boolean;

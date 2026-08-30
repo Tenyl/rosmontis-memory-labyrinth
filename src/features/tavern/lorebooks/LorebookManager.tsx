@@ -4,6 +4,7 @@ import { Dialog } from '../../../components/Dialog';
 import { createDefaultLorebook, exportLorebook, exportToJson, importLorebook, type Lorebook, type SillyTavernLorebookExport } from '../../../sillytavern';
 import { useTavern } from '../runtime/useTavern';
 import { LorebookEditorDialog } from './LorebookEditorDialog';
+import '../components/tavern-components.css';
 
 export function LorebookManager() {
   const runtime = useTavern();

@@ -16,9 +16,9 @@ test('校验主接口字段、可切换密钥可见性，且次接口默认关�
   renderApp('/settings');
   await user.click(await screen.findByRole('tab', { name: '接口连接' }));
 
-  const baseUrl = screen.getByLabelText('API 基础 URL');
-  const model = screen.getByLabelText('模型名称');
-  const key = screen.getByLabelText(/^API 密钥/);
+  const baseUrl = await screen.findByLabelText('API 基础 URL');
+  const model = await screen.findByLabelText('模型名称');
+  const key = await screen.findByLabelText(/^API 密钥/);
   await user.clear(baseUrl);
   await user.tab();
   expect(screen.getByText('请输入 API 基础 URL')).toBeVisible();

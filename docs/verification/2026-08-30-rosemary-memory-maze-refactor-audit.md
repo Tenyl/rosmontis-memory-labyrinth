@@ -34,8 +34,8 @@
 
 - Vitest：65 个测试文件通过，306 个测试通过。
 - TypeScript：`pnpm typecheck` 退出码 0。
-- Vite：`pnpm build` 退出码 0；最大入口块 358.63 kB（gzip 113.68 kB），无大块警告。
-- Playwright：44 个 Chromium E2E 测试通过，用时约 2.6 分钟；包含铅笔入口二级编辑弹窗逐项分行、375px 无溢出，以及主设置页桌面双栏布局回归。
+- Vite：`pnpm build` 退出码 0；最大入口块 358.64 kB（gzip 113.67 kB），无大块警告。
+- Playwright：46 个 Chromium E2E 测试通过，用时约 2.8 分钟；分别覆盖“系统设置 → 生成预设”和“记忆图鉴 → 世界书”的铅笔入口，验证二级编辑弹窗逐项分行、375px 无溢出，以及主设置页桌面双栏布局不受影响。
 - 源码格式：`git diff --check` 无空白错误。
 
 关键浏览器覆盖包括：

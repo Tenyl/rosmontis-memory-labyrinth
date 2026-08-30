@@ -80,13 +80,11 @@ test('设置页在浏览器内同时报告全部必填字段错误', async ({ pa
   await expect(page.getByText('请输入模型名称')).toBeVisible();
 });
 
-test('铅笔入口打开的二级编辑窗口逐项分行且不改变主设置页布局', async ({ page }) => {
+test('系统设置页的预设编辑器逐项分行并保持在弹窗宽度内', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/operation');
-  await page.locator('#global-tavern-open').click();
-
-  await page.locator('#tavern-tab-presets').click();
-  await page.locator('button[id^="preset-edit-"]').first().click();
+  await page.goto('/settings');
+  await page.getByRole('tab', { name: '生成预设' }).click();
+  await page.locator('button[id^="settings-preset-edit-"]').first().click();
   const presetDialog = page.getByRole('dialog', { name: '预设编辑器' });
   await expect(presetDialog).toBeVisible();
   await expectFieldsOnSeparateRows(presetDialog.locator('.tavern-sampling-grid'));
@@ -94,19 +92,23 @@ test('铅笔入口打开的二级编辑窗口逐项分行且不改变主设置�
   await page.setViewportSize({ width: 375, height: 812 });
   await expectFieldsOnSeparateRows(presetDialog.locator('.tavern-sampling-grid'));
   await expect.poll(async () => presetDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
-  await page.setViewportSize({ width: 1280, height: 900 });
-  await presetDialog.getByRole('button', { name: '关闭', exact: true }).click();
+});
 
-  await page.locator('#tavern-tab-lorebooks').click();
+test('记忆图鉴页的世界书编辑器逐项分行并保持在弹窗宽度内', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/archive');
+  await page.getByRole('tab', { name: '世界书' }).click();
   await page.locator('button[id^="lorebook-edit-"]').first().click();
   const lorebookDialog = page.getByRole('dialog', { name: '世界书编辑器' });
   await expect(lorebookDialog).toBeVisible();
   await expectFieldsOnSeparateRows(lorebookDialog.locator('.tavern-entry-form .tavern-editor-grid').first());
   await expect.poll(async () => lorebookDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
-
   await page.setViewportSize({ width: 375, height: 812 });
+  await expectFieldsOnSeparateRows(lorebookDialog.locator('.tavern-entry-form .tavern-editor-grid').first());
   await expect.poll(async () => lorebookDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+});
 
+test('二级编辑器排版不会改变主设置页桌面双栏布局', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/settings');
   await expect(page.getByRole('heading', { name: '接口连接' })).toBeVisible();
