@@ -50,11 +50,11 @@
 - Consumes: `run`, `rosmontis`, `progression`, and `CharacterArtwork`.
 - Produces: `RunStatusBar` with named meters and stable IDs.
 
-- [ ] **Step 1: Write a failing component test** expecting the blank portrait, Run mode/floor/turn, sanity, overload, AP, and explicit overload warning text at 70/85/100.
-- [ ] **Step 2: Verify RED** with `pnpm exec vitest run src/features/operation/RunStatusBar.test.tsx`.
-- [ ] **Step 3: Implement `RunStatusBar`** and insert it before the operation workbench; use `role="meter"` for both vitals and text labels for severity.
-- [ ] **Step 4: Verify GREEN, typecheck, and 375px no-overflow behavior** with focused Vitest and Playwright.
-- [ ] **Step 5: Commit** with `feat: add memory maze run HUD`.
+- [x] **Step 1: Write a failing component test** expecting the blank portrait, Run mode/floor/turn, sanity, overload, AP, and explicit overload warning text at 70/85/100.
+- [x] **Step 2: Verify RED** with `pnpm exec vitest run src/features/operation/RunStatusBar.test.tsx`.
+- [x] **Step 3: Implement `RunStatusBar`** and insert it before the operation workbench; use `role="meter"` for both vitals and text labels for severity.
+- [x] **Step 4: Verify GREEN, typecheck, and 375px no-overflow behavior** with focused Vitest and Playwright.
+- [x] **Step 5: Commit** with `feat: add memory maze run HUD`.
 
 ### Task 3: Playable generated topology
 
