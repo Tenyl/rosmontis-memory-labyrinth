@@ -14,7 +14,7 @@ function sseResponse(parts: string[]): Response {
 
 describe('OpenAiTavernTransport', () => {
   it('parses OpenAI-compatible SSE deltas across network chunks', async () => {
-    const fetchImpl = vi.fn(async () => sseResponse([
+    const fetchImpl = vi.fn<typeof fetch>(async () => sseResponse([
       'data: {"choices":[{"delta":{"content":"<main"}}]}\n\n',
       'data: {"choices":[{"delta":{"content":"text>雨声</maintext>"}}]}\n\n',
       'data: [DONE]\n\n',
@@ -25,6 +25,7 @@ describe('OpenAiTavernTransport', () => {
     for await (const chunk of transport.stream({
       messages: [{ role: 'user', content: '前进' }],
       api: { baseUrl: 'https://llm.example/v1/', apiKey: 'sk-private', model: 'story-model', timeout: 1000 },
+      gameTask: 'event',
     }, new AbortController().signal)) chunks.push(chunk);
 
     expect(chunks).toEqual(['<main', 'text>雨声</maintext>']);
@@ -32,6 +33,10 @@ describe('OpenAiTavernTransport', () => {
       method: 'POST',
       headers: expect.objectContaining({ Authorization: 'Bearer sk-private' }),
     }));
+    const request = fetchImpl.mock.calls[0]?.[1];
+    const body = JSON.parse(String(request?.body)) as Record<string, unknown>;
+    expect(body).not.toHaveProperty('gameTask');
+    expect(body).not.toHaveProperty('offlineContext');
   });
 
   it('does not expose an API key in HTTP errors', async () => {

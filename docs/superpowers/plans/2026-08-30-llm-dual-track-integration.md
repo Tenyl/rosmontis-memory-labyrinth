@@ -63,7 +63,7 @@ expect(() => parseTemporaryQuote({ text: '这是一段超过三十个汉字并�
 - Consumes: `TavernTransport`, existing `ApiSettings`, an `AbortSignal`, prompt messages, and a parser callback.
 - Produces: `requestStructuredGameContent<T>({ transport, api, task, messages, parse, signal }): Promise<T>` and error class `GameContentRequestError` with codes `configuration | transport | invalid-response | aborted`.
 
-- [ ] **Step 1: Write failing client tests** for multi-chunk JSON, fenced JSON, plain prose rejection, parser failure wrapping, abort propagation, and secret-free error strings.
+- [x] **Step 1: Write failing client tests** for multi-chunk JSON, fenced JSON, plain prose rejection, parser failure wrapping, abort propagation, and secret-free error strings.
 
 ```ts
 const transport: TavernTransport = {
@@ -73,11 +73,11 @@ const transport: TavernTransport = {
 await expect(requestStructuredGameContent({ transport, api, task: 'quote', messages, parse: parseTemporaryQuote, signal })).resolves.toEqual({ text: '我会继续。' });
 ```
 
-- [ ] **Step 2: Run RED client test**; expect the client export to be missing.
-- [ ] **Step 3: Implement the client** by concatenating streamed chunks, extracting one JSON object from an optional Markdown fence, parsing once after stream completion, and mapping errors to the four safe codes.
-- [ ] **Step 4: Add task metadata** `gameTask?: 'event' | 'quote' | 'novel'` to `TavernTransportRequest`; confirm the OpenAI transport still serializes only standard Chat Completions fields.
-- [ ] **Step 5: Run GREEN client and existing transport tests** with `pnpm vitest run src/llm/gameContentClient.test.ts src/features/tavern/runtime/openai-tavern-transport.test.ts`.
-- [ ] **Step 6: Commit** with `feat: add structured llm task client`.
+- [x] **Step 2: Run RED client test**; expect the client export to be missing.
+- [x] **Step 3: Implement the client** by concatenating streamed chunks, extracting one JSON object from an optional Markdown fence, parsing once after stream completion, and mapping errors to the four safe codes.
+- [x] **Step 4: Add task metadata** `gameTask?: 'event' | 'quote' | 'novel'` to `TavernTransportRequest`; confirm the OpenAI transport still serializes only standard Chat Completions fields.
+- [x] **Step 5: Run GREEN client and existing transport tests** with `pnpm vitest run src/llm/gameContentClient.test.ts src/features/tavern/runtime/openai-tavern-transport.test.ts`.
+- [x] **Step 6: Commit** with `feat: add structured llm task client`.
 
 ### Task 3: Persisted director state and local authoritative settlements
 

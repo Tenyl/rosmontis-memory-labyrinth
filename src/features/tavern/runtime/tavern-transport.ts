@@ -10,6 +10,7 @@ export interface TavernTransportRequest {
   maxTokens?: number;
   stream?: boolean;
   offlineContext?: SelectPresetEventInput;
+  gameTask?: 'event' | 'quote' | 'novel';
 }
 
 export interface TavernTransport {
