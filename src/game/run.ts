@@ -1,7 +1,7 @@
 import { clampVital } from './checks';
 import { createEncounter, resolveEncounterChoice } from './encounters';
 import { sellFragment } from './economy';
-import { useExplorationPower } from './exploration';
+import { spendScoutPoint, useExplorationPower } from './exploration';
 import { acquireFragment, resolveFragmentOverflow } from './fragments';
 import { resolveGreatswordAction } from './greatswords';
 import { generateMaze } from './maze';
@@ -154,6 +154,23 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
       economy: resolution.state.economy,
       modules: resolution.state.modules,
       explorationCharges: resolution.state.explorationCharges,
+      routeEffects: resolution.state.routeEffects,
+    }, []);
+  }
+  if (action.type === 'spend-scout-point') {
+    const resolution = spendScoutPoint({
+      maze: state.maze,
+      economy: state.economy,
+      modules: state.modules,
+      explorationCharges: state.explorationCharges,
+      routeEffects: state.routeEffects,
+      currentNodeId: state.run.currentNodeId,
+    }, action.nodeId);
+    if (!resolution.accepted) return rejected(state, resolution.reason ?? '节点侦测无法执行。');
+    return accepted({
+      ...state,
+      maze: resolution.state.maze,
+      economy: resolution.state.economy,
       routeEffects: resolution.state.routeEffects,
     }, []);
   }

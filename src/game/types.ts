@@ -239,6 +239,7 @@ export type RunAction =
   | { type: 'purchase-offer'; offerId: string }
   | { type: 'sell-fragment'; fragmentId: string }
   | { type: 'use-exploration-power'; action: ExplorationPowerAction }
+  | { type: 'spend-scout-point'; nodeId: string }
   | { type: 'advance-floor' }
   | { type: 'complete-node'; fragment?: MemoryFragment }
   | { type: 'use-greatsword'; action: GreatswordAction }

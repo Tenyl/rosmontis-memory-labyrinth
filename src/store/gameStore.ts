@@ -47,6 +47,7 @@ interface GameActions {
   purchaseShopOffer: (offerId: string) => void;
   sellRunFragment: (fragmentId: string) => void;
   useExplorationPower: (action: ExplorationPowerAction) => void;
+  spendScoutPoint: (nodeId: string) => void;
   advanceRunFloor: () => void;
   useGreatsword: (action: GreatswordAction) => void;
   completeCurrentNode: (fragment?: MemoryFragment) => void;
@@ -478,6 +479,11 @@ export const useGameStore = create<GameStore>()(
       useExplorationPower: (action) =>
         set((state) => {
           const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'use-exploration-power', action });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      spendScoutPoint: (nodeId) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'spend-scout-point', nodeId });
           return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
         }),
       advanceRunFloor: () =>

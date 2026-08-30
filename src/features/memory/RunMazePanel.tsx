@@ -1,6 +1,22 @@
-import type { CSSProperties } from 'react';
-import type { MazeGraph, MazeNode, MazeNodeState, MazeNodeType } from '../../game/types';
+import {
+  Crown,
+  Crosshair,
+  FirstAid,
+  Question,
+  Sparkle,
+  Storefront,
+} from '@phosphor-icons/react';
+import { useEffect, useState, type CSSProperties } from 'react';
+import type {
+  ExplorationCharges,
+  ExplorationPowerAction,
+  MazeGraph,
+  MazeNode,
+  MazeNodeState,
+  MazeNodeType,
+} from '../../game/types';
 import type { NovelNodeBrief } from '../../llm/gameContent';
+import { NodeIntelPanel } from './NodeIntelPanel';
 
 interface RunMazePanelProps {
   maze: MazeGraph;
@@ -8,6 +24,10 @@ interface RunMazePanelProps {
   viewMode: 'graph' | 'list';
   onMove: (nodeId: string) => void;
   nodeBriefs?: readonly NovelNodeBrief[];
+  explorationCharges?: ExplorationCharges;
+  scoutPoints?: number;
+  onUseExplorationPower?: (action: ExplorationPowerAction) => void;
+  onSpendScoutPoint?: (nodeId: string) => void;
 }
 
 const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
@@ -59,7 +79,8 @@ function RunMazeNodeButton({
   isCurrent,
   variant,
   position,
-  onMove,
+  selected,
+  onSelect,
   brief,
 }: {
   node: MazeNode;
@@ -67,10 +88,14 @@ function RunMazeNodeButton({
   isCurrent: boolean;
   variant: 'graph' | 'list';
   position?: NodePosition;
-  onMove: (nodeId: string) => void;
+  selected: boolean;
+  onSelect: (nodeId: string) => void;
   brief?: NovelNodeBrief;
 }) {
-  const canMove = node.state === 'reachable';
+  const canSelect = !['hidden', 'corrupted'].includes(node.state);
+  const revealedType = node.type === 'unknown' && node.revealed && node.hiddenType
+    ? NODE_TYPE_LABELS[node.hiddenType]
+    : null;
   const typeLabel = NODE_TYPE_LABELS[node.type];
   const stateLabel = isCurrent ? NODE_STATE_LABELS.current : NODE_STATE_LABELS[node.state];
   const style = variant === 'graph' && position
@@ -81,16 +106,22 @@ function RunMazeNodeButton({
     <button
       id={`run-maze-node-${node.id}`}
       type="button"
-      className={`run-maze-node is-${variant} is-${node.type} is-${node.state}`}
+      className={`run-maze-node is-${variant} is-${node.type} is-${node.state}${selected ? ' is-selected' : ''}`}
       style={style}
-      aria-label={`${typeLabel}，${stateLabel}，第 ${node.floor} 层，深度 ${node.depth}`}
+      aria-label={`${typeLabel}${revealedType ? `，已揭示为${revealedType}` : ''}，风险 ${node.risk}，${stateLabel}，第 ${node.floor} 层，深度 ${node.depth}`}
       aria-current={isCurrent ? 'step' : undefined}
+      aria-pressed={selected}
       data-node-state={isCurrent ? 'current' : node.state}
-      disabled={!canMove}
-      onClick={() => onMove(node.id)}
+      disabled={!canSelect}
+      onClick={() => onSelect(node.id)}
     >
-      <span className="run-maze-node-code">N-{String(index + 1).padStart(2, '0')}</span>
+      <span className="run-maze-node-heading">
+        <NodeTypeIcon type={node.type} />
+        <span className="run-maze-node-code">N-{String(index + 1).padStart(2, '0')}</span>
+        <span className={`run-maze-node-risk is-${node.risk}`}>RISK {node.risk}</span>
+      </span>
       <strong>{brief?.title ?? typeLabel}</strong>
+      {revealedType ? <span className="run-maze-node-reveal">侦测：{revealedType}</span> : null}
       {brief ? <span className="run-maze-node-brief">{typeLabel} · {brief.description}</span> : null}
       <span className="run-maze-node-state">{stateLabel}</span>
       <small>DEPTH {String(node.depth).padStart(2, '0')}</small>
@@ -98,12 +129,41 @@ function RunMazeNodeButton({
   );
 }
 
-export function RunMazePanel({ maze, currentNodeId, viewMode, onMove, nodeBriefs = [] }: RunMazePanelProps) {
+function NodeTypeIcon({ type }: { type: MazeNodeType }) {
+  const props = { size: 18, weight: 'regular' as const, 'aria-hidden': true };
+  if (type === 'combat') return <Crosshair {...props} />;
+  if (type === 'rest') return <FirstAid {...props} />;
+  if (type === 'shop') return <Storefront {...props} />;
+  if (type === 'wonder') return <Sparkle {...props} />;
+  if (type === 'unknown') return <Question {...props} />;
+  return <Crown {...props} />;
+}
+
+export function RunMazePanel({
+  maze,
+  currentNodeId,
+  viewMode,
+  onMove,
+  nodeBriefs = [],
+  explorationCharges = { breach: 0, watch: 0, perception: 0, resonance: 0 },
+  scoutPoints = 0,
+  onUseExplorationPower = () => undefined,
+  onSpendScoutPoint = () => undefined,
+}: RunMazePanelProps) {
   const positions = buildNodePositions(maze.nodes);
   const briefsById = new Map(nodeBriefs.map((brief) => [brief.nodeId, brief]));
+  const [selectedNodeId, setSelectedNodeId] = useState(currentNodeId);
 
-  if (viewMode === 'list') {
-    return (
+  useEffect(() => {
+    if (!maze.nodes.some((node) => node.id === selectedNodeId)) setSelectedNodeId(currentNodeId);
+  }, [currentNodeId, maze.nodes, selectedNodeId]);
+
+  const selectedNode = maze.nodes.find((node) => node.id === selectedNodeId)
+    ?? maze.nodes.find((node) => node.id === currentNodeId)
+    ?? maze.nodes[0];
+  const lockedEdges = maze.edges.filter((edge) => edge.sourceId === currentNodeId && edge.locked);
+
+  const panel = viewMode === 'list' ? (
       <section className="run-maze-panel is-list" aria-labelledby="run-maze-list-title">
         <header className="run-maze-panel-header">
           <div>
@@ -120,16 +180,14 @@ export function RunMazePanel({ maze, currentNodeId, viewMode, onMove, nodeBriefs
               index={index}
               isCurrent={node.id === currentNodeId}
               variant="list"
-              onMove={onMove}
+              selected={node.id === selectedNode.id}
+              onSelect={setSelectedNodeId}
               brief={briefsById.get(node.id)}
             />
           ))}
         </div>
       </section>
-    );
-  }
-
-  return (
+  ) : (
     <section className="run-maze-panel is-graph" aria-labelledby="run-maze-graph-title">
       <header className="run-maze-panel-header">
         <div>
@@ -153,6 +211,7 @@ export function RunMazePanel({ maze, currentNodeId, viewMode, onMove, nodeBriefs
             return (
               <line
                 key={edge.id}
+                className={edge.locked ? 'is-locked' : undefined}
                 x1={source.x}
                 y1={source.y}
                 x2={target.x}
@@ -169,7 +228,8 @@ export function RunMazePanel({ maze, currentNodeId, viewMode, onMove, nodeBriefs
             isCurrent={node.id === currentNodeId}
             variant="graph"
             position={positions.get(node.id)}
-            onMove={onMove}
+            selected={node.id === selectedNode.id}
+            onSelect={setSelectedNodeId}
             brief={briefsById.get(node.id)}
           />
         ))}
@@ -178,7 +238,24 @@ export function RunMazePanel({ maze, currentNodeId, viewMode, onMove, nodeBriefs
         {(['current', 'reachable', 'hidden', 'completed'] as const).map((state) => (
           <span key={state} className={`is-${state}`}><i />{NODE_STATE_LABELS[state]}</span>
         ))}
+        <span className="is-locked"><i />封锁路径</span>
       </div>
     </section>
+  );
+
+  return (
+    <div className={`run-maze-workbench is-${viewMode}`}>
+      {panel}
+      <NodeIntelPanel
+        node={selectedNode}
+        currentNodeId={currentNodeId}
+        lockedEdges={lockedEdges}
+        explorationCharges={explorationCharges}
+        scoutPoints={scoutPoints}
+        onMove={onMove}
+        onUseExplorationPower={onUseExplorationPower}
+        onSpendScoutPoint={onSpendScoutPoint}
+      />
+    </div>
   );
 }

@@ -23,7 +23,12 @@ export default function MemoryPage() {
   const maze = useGameStore((state) => state.maze);
   const rosmontis = useGameStore((state) => state.rosmontis);
   const inventory = useGameStore((state) => state.memoryInventory);
+  const economy = useGameStore((state) => state.economy);
+  const modules = useGameStore((state) => state.modules);
+  const explorationCharges = useGameStore((state) => state.explorationCharges);
   const moveToNode = useGameStore((state) => state.moveToNode);
+  const useExplorationPower = useGameStore((state) => state.useExplorationPower);
+  const spendScoutPoint = useGameStore((state) => state.spendScoutPoint);
   const novel = useGameStore((state) => state.llmDirector.novel);
 
   useEffect(() => {
@@ -58,11 +63,12 @@ export default function MemoryPage() {
       />
 
       <div className="memory-summary-strip" aria-label="当前迷宫概况">
-        <div><span>当前层级</span><strong>第 {run.floor} 层</strong><small>{run.mode.toUpperCase()}</small></div>
+        <div><span>当前层级</span><strong>第 {run.floor} / {run.maxFloor} 层</strong><small>{run.mode.toUpperCase()}</small></div>
         <div><span>迷宫规模</span><strong>{maze.nodes.length} 个节点</strong><small>{completedNodeCount} 已完成</small></div>
-        <div><span>可选路径</span><strong>{String(reachableNodeCount).padStart(2, '0')}</strong><small>条已连通</small></div>
+        <div><span>残响 / 侦测</span><strong>{economy.echoes} / {economy.scoutPoints}</strong><small>局内资源</small></div>
+        <div><span>认知模块</span><strong>{modules.length}</strong><small>已装载</small></div>
         <div><span>记忆载荷</span><strong>{inventory.fragments.length + inventory.coreFragments.length}</strong><small>/ {inventory.capacity} 常规槽</small></div>
-        <div className="memory-signal"><Graph size={18} aria-hidden /><span>认知链路</span><strong>{RUN_PHASE_LABELS[run.phase]} · {rosmontis.sanity}</strong></div>
+        <div className="memory-signal"><Graph size={18} aria-hidden /><span>认知链路</span><strong>{RUN_PHASE_LABELS[run.phase]} · {rosmontis.sanity} / 路径 {reachableNodeCount}</strong></div>
       </div>
 
       <RunMazePanel
@@ -70,6 +76,10 @@ export default function MemoryPage() {
         currentNodeId={run.currentNodeId}
         viewMode={viewMode}
         onMove={moveToNode}
+        explorationCharges={explorationCharges}
+        scoutPoints={economy.scoutPoints}
+        onUseExplorationPower={useExplorationPower}
+        onSpendScoutPoint={spendScoutPoint}
         nodeBriefs={run.mode === 'novel' ? novel?.content.nodeBriefs : undefined}
       />
 

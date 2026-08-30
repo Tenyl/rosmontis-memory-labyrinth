@@ -37,34 +37,34 @@ test('renders all node types and exposes current, reachable, and hidden states w
   );
 
   expect(screen.getByRole('heading', { name: '迷宫拓扑图' })).toBeVisible();
-  expect(screen.getByText('战斗')).toBeVisible();
-  expect(screen.getByText('奇境')).toBeVisible();
-  expect(screen.getByText('商店')).toBeVisible();
-  expect(screen.getByText('未知')).toBeVisible();
-  expect(screen.getByText('休息处')).toBeVisible();
-  expect(screen.getByText('Boss 房')).toBeVisible();
+  for (const label of ['战斗', '奇境', '商店', '未知', '休息处', 'Boss 房']) {
+    expect(screen.getAllByText(label)[0]).toBeVisible();
+  }
   expect(container.querySelector('.run-maze-edges')).toHaveStyle({ pointerEvents: 'none' });
 
   expect(screen.getByRole('button', { name: /战斗.*当前节点/ })).toHaveAttribute('aria-current', 'step');
-  const reachable = screen.getByRole('button', { name: /奇境.*可抵达/ });
+  const reachable = screen.getByRole('button', { name: /奇境.*风险 A.*可抵达/ });
   expect(reachable).toBeEnabled();
   expect(reachable).toHaveAttribute('id', 'run-maze-node-node-reachable');
   expect(screen.getByRole('button', { name: /休息处.*未侦测/ })).toBeDisabled();
 
   await user.click(reachable);
+  expect(screen.getByRole('heading', { name: '奇境' })).toBeVisible();
+  expect(onMove).not.toHaveBeenCalled();
+  await user.click(screen.getByRole('button', { name: '进入节点' }));
   expect(onMove).toHaveBeenCalledOnce();
   expect(onMove).toHaveBeenCalledWith('node-reachable');
 });
 
 test('provides an equivalent tactical list with stable node IDs', () => {
-  render(<RunMazePanel maze={maze} currentNodeId="node-current" viewMode="list" onMove={vi.fn()} />);
+  const { container } = render(<RunMazePanel maze={maze} currentNodeId="node-current" viewMode="list" onMove={vi.fn()} />);
 
   expect(screen.getByRole('heading', { name: '节点战术列表' })).toBeVisible();
-  expect(screen.getByRole('button', { name: /奇境.*可抵达/ })).toHaveAttribute(
+  expect(screen.getByRole('button', { name: /奇境.*风险 A.*可抵达/ })).toHaveAttribute(
     'id',
     'run-maze-node-node-reachable',
   );
-  expect(screen.getAllByRole('button')).toHaveLength(6);
+  expect(container.querySelectorAll('.run-maze-node')).toHaveLength(6);
 });
 
 test('attaches novel briefs by node ID without changing graph order or movement', () => {
