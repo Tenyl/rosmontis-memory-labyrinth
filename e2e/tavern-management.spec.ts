@@ -21,6 +21,19 @@ async function expectFieldsOnSeparateRows(
   expect(new Set(tops).size).toBe(count);
 }
 
+async function expectFieldsOnSameRow(
+  container: Locator,
+  selector: string,
+) {
+  const fields = container.locator(selector);
+  const count = await fields.count();
+  expect(count).toBeGreaterThan(1);
+  const tops = await fields.evaluateAll((elements) => elements.map((element) => (
+    Math.round(element.getBoundingClientRect().top)
+  )));
+  expect(new Set(tops).size).toBe(1);
+}
+
 test('单主角编排隐藏角色管理且世界书与预设支持 SillyTavern JSON 导入导出', async ({ page }) => {
   await page.goto('/operation');
   await page.locator('#global-tavern-open').click();
@@ -67,7 +80,7 @@ test('设置页在浏览器内同时报告全部必填字段错误', async ({ pa
   await expect(page.getByText('请输入模型名称')).toBeVisible();
 });
 
-test('所有设置编辑窗口均将字段逐项分行并保持在弹窗宽度内', async ({ page }) => {
+test('铅笔入口打开的二级编辑窗口逐项分行且不改变主设置页布局', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/operation');
   await page.locator('#global-tavern-open').click();
@@ -97,8 +110,8 @@ test('所有设置编辑窗口均将字段逐项分行并保持在弹窗宽度�
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/settings');
   await expect(page.getByRole('heading', { name: '接口连接' })).toBeVisible();
-  await expectFieldsOnSeparateRows(page.locator('.settings-connection-grid'), ':scope > fieldset');
+  await expectFieldsOnSameRow(page.locator('.settings-connection-grid'), ':scope > fieldset');
   await page.getByRole('tab', { name: '解析协议' }).click();
   await expect(page.getByRole('heading', { name: '解析协议' })).toBeVisible();
-  await expectFieldsOnSeparateRows(page.locator('.settings-parsing-layout'), ':scope > section');
+  await expectFieldsOnSameRow(page.locator('.settings-parsing-layout'), ':scope > section');
 });
