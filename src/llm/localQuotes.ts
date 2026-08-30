@@ -26,6 +26,12 @@ export function describeRuleEvent(event: RuleEvent): string {
       return '向新的迷宫节点移动';
     case 'node.completed':
       return '完成当前迷宫节点的解析';
+    case 'economy.echoes-changed':
+      return event.delta >= 0 ? '获得记忆残响' : '消耗记忆残响';
+    case 'module.acquired':
+      return '装载新的认知模块';
+    case 'fragment.sold':
+      return '将普通记忆碎片转化为残响';
     case 'run.ended':
       return event.result === 'victory' ? '成功逃离本层记忆迷宫' : '本次认知潜入中断';
   }
@@ -55,6 +61,12 @@ export function selectLocalQuote(
       return { text: '我会沿着这条路继续。' };
     case 'node.completed':
       return { text: '我已经把这个节点记下了。' };
+    case 'economy.echoes-changed':
+      return { text: '这些残响还能帮助我们继续。' };
+    case 'module.acquired':
+      return { text: '新回路已经接入，我能感觉到。' };
+    case 'fragment.sold':
+      return { text: '放下它，不代表我忘记了。' };
     case 'run.ended':
       return { text: event.result === 'victory'
         ? '我找到出口了，也找回了自己。'

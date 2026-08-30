@@ -186,6 +186,9 @@ function ruleEventLabel(event: RuleEvent) {
     'fragment.replaced': '记忆碎片已替换',
     'run.moved': '迷宫节点已移动',
     'node.completed': '迷宫节点已完成',
+    'economy.echoes-changed': '记忆残响已变更',
+    'module.acquired': '认知模块已装载',
+    'fragment.sold': '记忆碎片已出售',
     'run.ended': 'Run 已结束',
   };
   return labels[event.type];

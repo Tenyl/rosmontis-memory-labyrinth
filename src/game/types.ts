@@ -6,6 +6,28 @@ export type MazeRisk = 'C' | 'B' | 'A' | 'S';
 export type MazeNodeState = 'hidden' | 'detected' | 'reachable' | 'current' | 'completed' | 'corrupted';
 export type GreatswordId = 'breach' | 'watch' | 'perception' | 'resonance';
 export type GreatswordTarget = 'hostile' | 'self' | 'maze' | 'memory';
+export type ModuleId =
+  | 'breach-circuit'
+  | 'watch-prism'
+  | 'perception-array'
+  | 'resonance-wire'
+  | 'overload-filter'
+  | 'memory-cache'
+  | 'echo-recycler'
+  | 'white-noise';
+
+export interface CognitiveModule {
+  id: ModuleId;
+  name: string;
+  rarity: 'common' | 'rare';
+  description: string;
+}
+
+export interface EconomyState {
+  echoes: number;
+  scoutPoints: number;
+  shopPurchases: string[];
+}
 
 export interface SeededRandomState {
   seed: string;
@@ -61,6 +83,9 @@ export type RuleEvent =
   | { type: 'fragment.replaced'; forgottenFragmentId: string; acquiredFragmentId: string }
   | { type: 'run.moved'; sourceNodeId: string; targetNodeId: string }
   | { type: 'node.completed'; nodeId: string }
+  | { type: 'economy.echoes-changed'; delta: number; balance: number }
+  | { type: 'module.acquired'; moduleId: ModuleId }
+  | { type: 'fragment.sold'; fragmentId: string; echoes: number }
   | { type: 'run.ended'; result: 'victory' | 'defeat' };
 
 export interface GreatswordCombatState {
@@ -92,6 +117,19 @@ export interface MemoryInventory {
   fragments: MemoryFragment[];
   coreFragments: MemoryFragment[];
   pendingFragment: MemoryFragment | null;
+}
+
+export interface EconomyRuleState {
+  economy: EconomyState;
+  modules: ModuleId[];
+  memoryInventory: MemoryInventory;
+}
+
+export interface ModuleShopOffer {
+  id: string;
+  kind: 'module';
+  moduleId: ModuleId;
+  price: number;
 }
 
 export interface FragmentRuleState {
