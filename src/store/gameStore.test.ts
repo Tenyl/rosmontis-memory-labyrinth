@@ -115,7 +115,7 @@ test('rejects stale director responses and resets director content for a new Run
 
 test('settles greatswords through pure rules and synchronizes the status-page adapter', () => {
   useGameStore.getState().startRun('STORE-SWORD', 'preset', false);
-  useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'thought-rest' });
+  useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'rest' });
   const state = useGameStore.getState();
 
   expect(state.rosmontis).toMatchObject({ actionPoints: 3, overload: 5, guard: 24 });

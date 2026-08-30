@@ -3,10 +3,10 @@ import type { MazeNode } from '../game/types';
 import { createLocalNovelBlueprint } from './localNovelBlueprint';
 
 const nodes: Pick<MazeNode, 'id' | 'type'>[] = [
-  { id: 'node-a', type: 'echo-combat' },
-  { id: 'node-b', type: 'blank-event' },
-  { id: 'node-c', type: 'thought-rest' },
-  { id: 'node-d', type: 'memory-core' },
+  { id: 'node-a', type: 'combat' },
+  { id: 'node-b', type: 'wonder' },
+  { id: 'node-c', type: 'rest' },
+  { id: 'node-d', type: 'boss' },
 ];
 
 describe('local novel blueprint', () => {

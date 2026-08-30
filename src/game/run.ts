@@ -17,6 +17,7 @@ interface CreateRunInput {
   progression: ProgressionState;
   llmEnabled: boolean;
   floor?: number;
+  maxFloor?: number;
   targetNodeCount?: number;
 }
 
@@ -50,6 +51,7 @@ export function createRun(input: CreateRunInput): RoguelikeState {
     seed: input.seed,
     mode: input.mode,
     floor,
+    maxFloor: input.maxFloor ?? 3,
     targetNodeCount: input.targetNodeCount ?? 10,
   });
   const rosmontis: GreatswordCombatState = {

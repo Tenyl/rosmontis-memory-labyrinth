@@ -23,7 +23,7 @@ test('renders four configured tactical cards with AP, cooldown, and overload cos
   render(
     <GreatswordActions
       rosmontis={rosmontis}
-      currentNodeType="echo-combat"
+      currentNodeType="combat"
       ruleLog={[]}
       onUse={vi.fn()}
     />,
@@ -53,7 +53,7 @@ test('disables node-incompatible and cooling swords while dispatching a legal co
         ...rosmontis,
         greatswords: { ...rosmontis.greatswords, watch: { cooldown: 1 } },
       }}
-      currentNodeType="blank-event"
+      currentNodeType="wonder"
       ruleLog={[]}
       onUse={onUse}
     />,
@@ -70,7 +70,7 @@ test('disables node-incompatible and cooling swords while dispatching a legal co
   expect(onUse).toHaveBeenCalledWith({
     swordId: 'perception',
     target: 'maze',
-    nodeType: 'blank-event',
+    nodeType: 'wonder',
   });
 });
 
@@ -83,7 +83,7 @@ test('reports the newest settled sword event without recalculating its values', 
   render(
     <GreatswordActions
       rosmontis={rosmontis}
-      currentNodeType="blank-event"
+      currentNodeType="wonder"
       ruleLog={ruleLog}
       onUse={vi.fn()}
     />,

@@ -31,10 +31,10 @@ describe('four greatsword tactics', () => {
     cooldown: number;
     overload: number;
   }>([
-    { swordId: 'breach', target: 'hostile', nodeType: 'echo-combat', expected: { enemyIntegrity: 70 }, ap: 2, cooldown: 2, overload: 32 },
-    { swordId: 'watch', target: 'self', nodeType: 'echo-combat', expected: { guard: 24 }, ap: 1, cooldown: 1, overload: 25 },
-    { swordId: 'perception', target: 'maze', nodeType: 'blank-event', expected: { insight: 2 }, ap: 1, cooldown: 2, overload: 27 },
-    { swordId: 'resonance', target: 'memory', nodeType: 'memory-core', expected: { coreStability: 25 }, ap: 2, cooldown: 3, overload: 35 },
+    { swordId: 'breach', target: 'hostile', nodeType: 'combat', expected: { enemyIntegrity: 70 }, ap: 2, cooldown: 2, overload: 32 },
+    { swordId: 'watch', target: 'self', nodeType: 'combat', expected: { guard: 24 }, ap: 1, cooldown: 1, overload: 25 },
+    { swordId: 'perception', target: 'maze', nodeType: 'wonder', expected: { insight: 2 }, ap: 1, cooldown: 2, overload: 27 },
+    { swordId: 'resonance', target: 'memory', nodeType: 'boss', expected: { coreStability: 25 }, ap: 2, cooldown: 3, overload: 35 },
   ])('$swordId applies only its configured settlement', ({ swordId, target, nodeType, expected, ap, cooldown, overload }) => {
     const before = buildCombatState();
     const randomState = createSeededRandom(`sword-${swordId}`);
@@ -58,9 +58,9 @@ describe('four greatsword tactics', () => {
   });
 
   test.each([
-    ['breach', 'self', 'echo-combat'],
-    ['perception', 'maze', 'echo-combat'],
-    ['resonance', 'memory', 'blank-event'],
+    ['breach', 'self', 'combat'],
+    ['perception', 'maze', 'combat'],
+    ['resonance', 'memory', 'wonder'],
   ] as const)('rejects illegal %s target/node combinations without mutation', (swordId, target, nodeType) => {
     const before = buildCombatState();
     const snapshot = structuredClone(before);
@@ -82,8 +82,8 @@ describe('four greatsword tactics', () => {
     lowApState.actionPoints = 1;
     const randomState = createSeededRandom('resource-guards');
 
-    const cooldown = resolveGreatswordAction(cooldownState, { swordId: 'watch', target: 'self', nodeType: 'echo-combat' }, randomState);
-    const lowAp = resolveGreatswordAction(lowApState, { swordId: 'breach', target: 'hostile', nodeType: 'echo-combat' }, randomState);
+    const cooldown = resolveGreatswordAction(cooldownState, { swordId: 'watch', target: 'self', nodeType: 'combat' }, randomState);
+    const lowAp = resolveGreatswordAction(lowApState, { swordId: 'breach', target: 'hostile', nodeType: 'combat' }, randomState);
 
     expect(cooldown).toMatchObject({ accepted: false, state: cooldownState, reason: '巨剑仍在冷却中。', events: [] });
     expect(lowAp).toMatchObject({ accepted: false, state: lowApState, reason: '行动点不足。', events: [] });
@@ -97,7 +97,7 @@ describe('four greatsword tactics', () => {
 
     const resolution = resolveGreatswordAction(
       before,
-      { swordId: 'watch', target: 'self', nodeType: 'echo-combat' },
+      { swordId: 'watch', target: 'self', nodeType: 'combat' },
       createSeededRandom('overload-limit'),
     );
 

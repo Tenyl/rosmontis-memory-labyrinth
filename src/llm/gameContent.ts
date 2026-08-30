@@ -40,7 +40,7 @@ export interface NovelBlueprintContent {
   nodeBriefs: NovelNodeBrief[];
 }
 
-const nodeTypes = new Set<MazeNodeType>(['echo-combat', 'blank-event', 'thought-rest', 'memory-core']);
+const nodeTypes = new Set<MazeNodeType>(['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss']);
 const directorIntents = new Set<string>(DIRECTOR_INTENTS);
 const forbiddenChoiceKeys = ['effect', 'effects', 'threshold', 'difficulty', 'reward', 'damage', 'sanityDelta', 'overloadDelta'];
 

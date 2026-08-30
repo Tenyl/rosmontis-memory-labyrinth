@@ -1,10 +1,39 @@
 import { describe, expect, test } from 'vitest';
+
 import { generateMaze, getReachableNodeIds, validateMaze } from './maze';
 
+const REQUIRED_NODE_TYPES = ['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss'] as const;
+
 describe('memory maze generation', () => {
-  test('100 seeds produce unique, connected, valid and replayable graphs', () => {
+  test('a three-floor run contains every required node type and one final boss', () => {
+    const floors = [1, 2, 3].map((floor) =>
+      generateMaze({
+        seed: 'SIX-TYPES',
+        mode: 'preset',
+        floor,
+        maxFloor: 3,
+        targetNodeCount: 10,
+      }),
+    );
+    const nodes = floors.flatMap((graph) => graph.nodes);
+
+    expect(new Set(nodes.map((node) => node.type))).toEqual(
+      new Set(REQUIRED_NODE_TYPES),
+    );
+    expect(nodes.filter((node) => node.type === 'boss')).toHaveLength(1);
+    expect(floors[0].nodes.find((node) => node.id === floors[0].startNodeId)?.type).toBe('rest');
+    expect(floors[2].nodes.at(-1)?.type).toBe('boss');
+  });
+
+  test('100 seeds produce connected, acyclic, valid and replayable floor graphs', () => {
     for (let index = 0; index < 100; index += 1) {
-      const input = { seed: `maze-seed-${index}`, mode: 'preset' as const, floor: 1, targetNodeCount: 12 };
+      const input = {
+        seed: `maze-seed-${index}`,
+        mode: 'preset' as const,
+        floor: (index % 3) + 1,
+        maxFloor: 3,
+        targetNodeCount: 8 + (index % 4),
+      };
       const graph = generateMaze(input);
       const replay = generateMaze(input);
       const nodeIds = graph.nodes.map((node) => node.id);
@@ -12,40 +41,59 @@ describe('memory maze generation', () => {
 
       expect(replay).toEqual(graph);
       expect(nodeIdSet.size).toBe(graph.nodes.length);
-      expect(graph.nodes.filter((node) => node.id === graph.startNodeId)).toHaveLength(1);
-      expect(graph.nodes.filter((node) => node.type === 'memory-core')).toHaveLength(1);
-      expect(graph.coreNodeId).toBe(graph.nodes.find((node) => node.type === 'memory-core')?.id);
       expect(graph.edges.every((edge) => nodeIdSet.has(edge.sourceId) && nodeIdSet.has(edge.targetId))).toBe(true);
+      expect(graph.edges.every((edge) => {
+        const source = graph.nodes.find((node) => node.id === edge.sourceId);
+        const target = graph.nodes.find((node) => node.id === edge.targetId);
+        return source && target && source.depth < target.depth;
+      })).toBe(true);
+      expect(graph.edges.some((edge) => edge.locked)).toBe(true);
       expect(getReachableNodeIds(graph, graph.startNodeId).size).toBe(graph.nodes.length);
       expect(validateMaze(graph)).toEqual({ valid: true, issues: [] });
     }
   });
 
-  test('creates a non-linear graph using only approved node types and states', () => {
-    const graph = generateMaze({ seed: 'branching', mode: 'endless', floor: 7, targetNodeCount: 10 });
+  test('unknown results are deterministic but hidden from the public type', () => {
+    const input = {
+      seed: 'HIDDEN',
+      mode: 'preset' as const,
+      floor: 2,
+      maxFloor: 3,
+      targetNodeCount: 10,
+    };
+    const first = generateMaze(input);
+    const second = generateMaze(input);
+    const unknownNodes = first.nodes.filter((node) => node.type === 'unknown');
 
-    expect(graph.edges.length).toBeGreaterThanOrEqual(graph.nodes.length);
-    expect(graph.nodes.every((node) => [
-      'echo-combat',
-      'blank-event',
-      'thought-rest',
-      'memory-core',
-    ].includes(node.type))).toBe(true);
-    expect(graph.nodes.filter((node) => node.state === 'current')).toHaveLength(1);
-    expect(graph.nodes.find((node) => node.id === graph.startNodeId)?.state).toBe('current');
+    expect(first).toEqual(second);
+    expect(unknownNodes.length).toBeGreaterThan(0);
+    expect(unknownNodes.every((node) => node.hiddenType && !node.revealed)).toBe(true);
   });
 
-  test('changes the graph when seed, mode, or floor changes', () => {
-    const baseline = generateMaze({ seed: 'stable', mode: 'preset', floor: 1, targetNodeCount: 8 });
+  test('each floor provides combat, rest and a non-combat decision node', () => {
+    for (const floor of [1, 2, 3]) {
+      const graph = generateMaze({
+        seed: 'FLOOR-QUOTAS',
+        mode: 'endless',
+        floor,
+        maxFloor: 3,
+        targetNodeCount: 8,
+      });
+      const types = new Set(graph.nodes.map((node) => node.type));
 
-    expect(generateMaze({ seed: 'changed', mode: 'preset', floor: 1, targetNodeCount: 8 })).not.toEqual(baseline);
-    expect(generateMaze({ seed: 'stable', mode: 'endless', floor: 1, targetNodeCount: 8 })).not.toEqual(baseline);
-    expect(generateMaze({ seed: 'stable', mode: 'preset', floor: 2, targetNodeCount: 8 })).not.toEqual(baseline);
+      expect(types.has('combat')).toBe(true);
+      expect(types.has('rest')).toBe(true);
+      expect([...types].some((type) => ['shop', 'wonder', 'unknown'].includes(type))).toBe(true);
+    }
   });
 
   test('rejects malformed generation requests', () => {
-    expect(() => generateMaze({ seed: 'small', mode: 'preset', floor: 1, targetNodeCount: 3 })).toThrow(/至少 4/);
-    expect(() => generateMaze({ seed: 'fraction', mode: 'preset', floor: 1, targetNodeCount: 7.5 })).toThrow(/整数/);
-    expect(() => generateMaze({ seed: 'floor', mode: 'preset', floor: 0, targetNodeCount: 8 })).toThrow(/层数/);
+    const base = { seed: 'invalid', mode: 'preset' as const, floor: 1, maxFloor: 3 };
+
+    expect(() => generateMaze({ ...base, targetNodeCount: 7 })).toThrow(/8/);
+    expect(() => generateMaze({ ...base, targetNodeCount: 11.5 })).toThrow(/整数/);
+    expect(() => generateMaze({ ...base, floor: 0, targetNodeCount: 8 })).toThrow(/层数/);
+    expect(() => generateMaze({ ...base, maxFloor: 0, targetNodeCount: 8 })).toThrow(/总层数/);
+    expect(() => generateMaze({ ...base, floor: 4, targetNodeCount: 8 })).toThrow(/总层数/);
   });
 });

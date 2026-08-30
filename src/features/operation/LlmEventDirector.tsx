@@ -30,7 +30,7 @@ const activeRequests = new Map<string, ActiveEventRequest>();
 const fallbackIntents = ['scan', 'guard', 'press-on'] as const;
 
 export function shouldTriggerLlmEvent(run: RunState, node: MazeNode): boolean {
-  if (run.phase !== 'exploring' || node.type !== 'blank-event') return false;
+  if (run.phase !== 'exploring' || node.type !== 'wonder') return false;
   if (run.mode === 'novel') return true;
   const [draw] = nextRandom(createSeededRandom(`${run.seed}:${node.id}:llm-event`));
   return draw < 0.5;

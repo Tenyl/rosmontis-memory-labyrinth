@@ -17,10 +17,12 @@ const SWORD_COMMANDS: Array<{ swordId: GreatswordId; name: string; pattern: RegE
 ];
 
 const RECOVERY_SUGGESTIONS: Record<MazeNodeType, string[]> = {
-  'echo-combat': ['使用破壁攻击', '展开守望护盾', '检查残响实体'],
-  'blank-event': ['扫描空白断层', '展开守望护盾', '检查环境异常'],
-  'thought-rest': ['让迷迭香短暂休整', '展开守望护盾', '读取残留意识'],
-  'memory-core': ['与记忆核心共鸣', '展开守望护盾', '检查核心结构'],
+  'combat': ['使用破壁攻击', '展开守望护盾', '检查残响实体'],
+  'wonder': ['扫描空白断层', '展开守望护盾', '检查环境异常'],
+  'rest': ['让迷迭香短暂休整', '展开守望护盾', '读取残留意识'],
+  'shop': ['检查商店库存', '核对记忆残响', '离开交易终端'],
+  'unknown': ['扫描未知信号', '展开守望护盾', '评估风险等级'],
+  'boss': ['与记忆核心共鸣', '展开守望护盾', '检查核心结构'],
 };
 
 export function classifyOfflineCommand(command: string, nodeType: MazeNodeType): OfflineCommandResult {

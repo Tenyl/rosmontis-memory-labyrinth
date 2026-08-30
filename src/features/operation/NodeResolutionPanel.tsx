@@ -13,17 +13,21 @@ const REWARD_PRESETS: Record<MazeNode['type'], {
   kind: MemoryFragment['kind'];
   tag: string;
 }> = {
-  'echo-combat': { name: '残响结构样本', kind: 'standard', tag: '战斗' },
-  'blank-event': { name: '断层中的空白句', kind: 'standard', tag: '事件' },
-  'thought-rest': { name: '温室休整记录', kind: 'standard', tag: '休整' },
-  'memory-core': { name: '核心记忆：仍被呼唤的名字', kind: 'core', tag: '核心' },
+  'combat': { name: '残响结构样本', kind: 'standard', tag: '战斗' },
+  'wonder': { name: '断层中的空白句', kind: 'standard', tag: '事件' },
+  'rest': { name: '温室休整记录', kind: 'standard', tag: '休整' },
+  'shop': { name: '交易终端访问记录', kind: 'standard', tag: '商店' },
+  'unknown': { name: '未辨识的意识切片', kind: 'standard', tag: '未知' },
+  'boss': { name: '核心记忆：仍被呼唤的名字', kind: 'core', tag: '核心' },
 };
 
 const NODE_TYPE_LABELS: Record<MazeNode['type'], string> = {
-  'echo-combat': '残响实体',
-  'blank-event': '空白断层',
-  'thought-rest': '思维温室',
-  'memory-core': '记忆核心',
+  combat: '战斗',
+  rest: '休息处',
+  shop: '商店',
+  wonder: '奇境',
+  unknown: '未知',
+  boss: 'Boss 房',
 };
 
 export function getNodeReward(run: RunState, node: MazeNode): MemoryFragment {

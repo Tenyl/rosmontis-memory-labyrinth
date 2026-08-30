@@ -149,7 +149,7 @@
 .run-maze-node:disabled { cursor: default; opacity: .58; }
 .run-maze-node.is-current { border-color: var(--color-arts-green); border-left-color: var(--color-arts-green); background: linear-gradient(135deg,var(--color-arts-green-soft),rgba(12,17,22,.97)); opacity: 1; }
 .run-maze-node.is-reachable { border-color: var(--color-memory-blue); box-shadow: 0 0 0 1px rgba(142,215,247,.1); opacity: 1; }
-.run-maze-node.is-memory-core { border-left-color: var(--color-danger-red); }
+.run-maze-node.is-boss { border-left-color: var(--color-danger-red); }
 .run-maze-node-code,.run-maze-node small { color: var(--color-text-tertiary); font: 500 .57rem/1.2 var(--font-data); letter-spacing: .06em; }
 .run-maze-node strong { font-size: .78rem; }
 .run-maze-node-state { color: var(--color-memory-blue); font: 500 .62rem/1.2 var(--font-data); }

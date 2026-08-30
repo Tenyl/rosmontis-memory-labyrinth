@@ -6,7 +6,7 @@ describe('task-specific LLM game prompts', () => {
     const messages = buildEventPrompt({
       seed: 'RAIN-09',
       floor: 2,
-      nodeType: 'blank-event',
+      nodeType: 'wonder',
       sanity: 63,
       overload: 41,
       fragmentNames: ['逆流的雨声'],
@@ -42,13 +42,13 @@ describe('task-specific LLM game prompts', () => {
       overload: 41,
       fragmentNames: ['潮湿病历'],
       nodes: [
-        { id: 'maze-a', type: 'thought-rest' },
-        { id: 'maze-b', type: 'memory-core' },
+        { id: 'maze-a', type: 'rest' },
+        { id: 'maze-b', type: 'boss' },
       ],
     }).map((message) => message.content).join('\n');
 
     expect(prompt).toContain('maze-a');
-    expect(prompt).toContain('thought-rest');
+    expect(prompt).toContain('rest');
     expect(prompt).toContain('maze-b');
     expect(prompt).toMatch(/不得新增、删除、重排或重连节点/);
     expect(prompt).toContain('nodeBriefs');

@@ -17,10 +17,14 @@ const run: RunState = {
 
 const echoNode: MazeNode = {
   id: 'node-echo',
-  type: 'echo-combat',
+  type: 'combat',
   state: 'current',
   floor: 3,
   depth: 0,
+  risk: 'B',
+  hiddenType: null,
+  revealed: true,
+  modifiers: [],
 };
 
 test('collects one deterministic standard reward for the current node', async () => {
@@ -46,7 +50,7 @@ test('collects one deterministic standard reward for the current node', async ()
 });
 
 test('creates a protected core reward outside ordinary fragment capacity', () => {
-  const coreNode: MazeNode = { ...echoNode, id: 'node-core', type: 'memory-core', depth: 9 };
+  const coreNode: MazeNode = { ...echoNode, id: 'node-core', type: 'boss', depth: 9 };
   const reward = getNodeReward({ ...run, currentNodeId: coreNode.id }, coreNode);
 
   expect(reward).toMatchObject({

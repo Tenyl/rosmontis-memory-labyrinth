@@ -28,7 +28,7 @@ function prepareBlankNovelNode() {
       maze: {
         ...state.maze,
         nodes: state.maze.nodes.map((node) => node.id === state.run.currentNodeId
-          ? { ...node, type: 'blank-event' }
+          ? { ...node, type: 'wonder' }
           : node),
       },
     }));
@@ -46,14 +46,14 @@ function renderDirector(transport: TavernTransport, apiOverride: ApiSettings | n
 }
 
 describe('LLM independent event director', () => {
-  test('uses a deterministic trigger and always enables eligible novel blank-event nodes', () => {
+  test('uses a deterministic trigger and always enables eligible novel wonder nodes', () => {
     const state = useGameStore.getState();
-    const node = { ...state.maze.nodes[0], type: 'blank-event' as const };
+    const node = { ...state.maze.nodes[0], type: 'wonder' as const };
     expect(shouldTriggerLlmEvent({ ...state.run, mode: 'novel' }, node)).toBe(true);
     expect(shouldTriggerLlmEvent({ ...state.run, mode: 'preset' }, node)).toBe(
       shouldTriggerLlmEvent({ ...state.run, mode: 'preset' }, node),
     );
-    expect(shouldTriggerLlmEvent(state.run, { ...node, type: 'thought-rest' })).toBe(false);
+    expect(shouldTriggerLlmEvent(state.run, { ...node, type: 'rest' })).toBe(false);
   });
 
   test('does not request or render AI events without API configuration', async () => {

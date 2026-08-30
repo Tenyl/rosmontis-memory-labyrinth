@@ -46,7 +46,7 @@ export default function OperationPage() {
         run={run}
         progression={progression}
         llmEnabled={llmEnabled}
-        currentNodeIsCore={currentNode.type === 'memory-core'}
+        currentNodeIsCore={currentNode.type === 'boss'}
         coreStability={runRosmontis.coreStability}
         onStart={startRun}
         onReset={resetRun}

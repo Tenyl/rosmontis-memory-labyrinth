@@ -35,7 +35,7 @@ export class LocalTavernTransport implements TavernTransport {
 }
 
 function buildPresetEventChunks(event: PresetEventDraft, context: NonNullable<TavernTransportRequest['offlineContext']>) {
-  const isOpeningEvent = event.id === 'thought-rest-r09-breathing';
+  const isOpeningEvent = event.id === 'rest-r09-breathing';
   const summary = isOpeningEvent
     ? 'R-09 门后出现三个同步意识回声，迷迭香建立临时安全线。'
     : `${event.title}已完成本地事件建模，等待玩家选择处理方式。`;

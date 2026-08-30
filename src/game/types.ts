@@ -1,6 +1,8 @@
 export type RunMode = 'preset' | 'endless' | 'novel';
 export type RunPhase = 'idle' | 'exploring' | 'resolving' | 'fragment-overflow' | 'victory' | 'defeat';
-export type MazeNodeType = 'echo-combat' | 'blank-event' | 'thought-rest' | 'memory-core';
+export type MazeNodeType = 'combat' | 'rest' | 'shop' | 'wonder' | 'unknown' | 'boss';
+export type HiddenMazeNodeType = Exclude<MazeNodeType, 'unknown' | 'boss'>;
+export type MazeRisk = 'C' | 'B' | 'A' | 'S';
 export type MazeNodeState = 'hidden' | 'detected' | 'reachable' | 'current' | 'completed' | 'corrupted';
 export type GreatswordId = 'breach' | 'watch' | 'perception' | 'resonance';
 export type GreatswordTarget = 'hostile' | 'self' | 'maze' | 'memory';
@@ -129,18 +131,24 @@ export interface MazeNode {
   state: MazeNodeState;
   floor: number;
   depth: number;
+  risk: MazeRisk;
+  hiddenType: HiddenMazeNodeType | null;
+  revealed: boolean;
+  modifiers: string[];
 }
 
 export interface MazeEdge {
   id: string;
   sourceId: string;
   targetId: string;
+  locked: boolean;
 }
 
 export interface MazeGraph {
   seed: string;
   mode: RunMode;
   floor: number;
+  maxFloor: number;
   startNodeId: string;
   coreNodeId: string;
   nodes: MazeNode[];

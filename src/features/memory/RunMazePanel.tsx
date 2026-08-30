@@ -11,10 +11,12 @@ interface RunMazePanelProps {
 }
 
 const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
-  'echo-combat': '残响实体',
-  'blank-event': '空白断层',
-  'thought-rest': '思维温室',
-  'memory-core': '记忆核心',
+  combat: '战斗',
+  rest: '休息处',
+  shop: '商店',
+  wonder: '奇境',
+  unknown: '未知',
+  boss: 'Boss 房',
 };
 
 const NODE_STATE_LABELS: Record<MazeNodeState, string> = {

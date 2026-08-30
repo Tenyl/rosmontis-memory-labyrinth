@@ -6,9 +6,9 @@ import {
 } from './gameContent';
 
 const expectedNodes = [
-  { id: 'maze-1-start', type: 'thought-rest' as const },
-  { id: 'maze-1-event', type: 'blank-event' as const },
-  { id: 'maze-1-core', type: 'memory-core' as const },
+  { id: 'maze-1-start', type: 'rest' as const },
+  { id: 'maze-1-event', type: 'wonder' as const },
+  { id: 'maze-1-core', type: 'boss' as const },
 ];
 
 describe('LLM independent event contract', () => {
@@ -94,7 +94,7 @@ describe('LLM novel blueprint contract', () => {
     }, expectedNodes)).toThrow(/重复/);
     expect(() => parseNovelBlueprint({
       ...valid,
-      nodeBriefs: valid.nodeBriefs.map((brief, index) => index === 2 ? { ...brief, nodeType: 'echo-combat' } : brief),
+      nodeBriefs: valid.nodeBriefs.map((brief, index) => index === 2 ? { ...brief, nodeType: 'combat' } : brief),
     }, expectedNodes)).toThrow(/节点类型/);
   });
 });

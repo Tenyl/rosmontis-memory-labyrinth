@@ -33,10 +33,10 @@ export interface SelectPresetEventInput {
 interface PresetEventTemplate extends Omit<PresetEventDraft, 'context'> {}
 
 const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
-  'echo-combat': [
+  'combat': [
     {
-      id: 'echo-combat-collapsed-ward',
-      nodeType: 'echo-combat',
+      id: 'combat-collapsed-ward',
+      nodeType: 'combat',
       title: '坍塌病区的回声',
       body: '废弃病床在走廊上自行排成封锁线，床帘后反复传来同一次短促的求救。迷迭香确认那并非活人的声音。',
       choices: [
@@ -46,8 +46,8 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
     {
-      id: 'echo-combat-weightless-classroom',
-      nodeType: 'echo-combat',
+      id: 'combat-weightless-classroom',
+      nodeType: 'combat',
       title: '失重教室',
       body: '桌椅悬在半空，粉笔字从黑板上剥落并凝成攻击性的白色轮廓。每一次擦除都会令它们变得更清晰。',
       choices: [
@@ -56,10 +56,10 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
   ],
-  'blank-event': [
+  'wonder': [
     {
-      id: 'blank-event-reversed-rain',
-      nodeType: 'blank-event',
+      id: 'wonder-reversed-rain',
+      nodeType: 'wonder',
       title: '向上坠落的雨',
       body: '雨滴从地面积水升向天花板，带走沿途所有可以辨认的倒影。迷迭香在其中看见一段被剪去开头的病历。',
       choices: [
@@ -69,8 +69,8 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
     {
-      id: 'blank-event-missing-stair',
-      nodeType: 'blank-event',
+      id: 'wonder-missing-stair',
+      nodeType: 'wonder',
       title: '缺失的第十三阶',
       body: '楼梯每次被计数都会少去同一阶。空缺处没有深坑，只有一段无法被语言描述的白色间隔。',
       choices: [
@@ -79,10 +79,10 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
   ],
-  'thought-rest': [
+  'rest': [
     {
-      id: 'thought-rest-r09-breathing',
-      nodeType: 'thought-rest',
+      id: 'rest-r09-breathing',
+      nodeType: 'rest',
       title: '反复翻转的 R-09 门牌',
       body: '迷迭香抬起手，雨滴在她身前三厘米处停住。走廊尽头的金属门牌从 R-08 缓慢翻转为 R-09，门后传来三个频率完全相同的呼吸声。',
       choices: [
@@ -92,8 +92,8 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
     {
-      id: 'thought-rest-glass-greenhouse',
-      nodeType: 'thought-rest',
+      id: 'rest-glass-greenhouse',
+      nodeType: 'rest',
       title: '玻璃思维温室',
       body: '透明墙面后长满没有气味的迷迭香。叶片碰触玻璃时，会播放一段安静到近乎虚假的午后。',
       choices: [
@@ -102,10 +102,34 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
   ],
-  'memory-core': [
+  'shop': [
     {
-      id: 'memory-core-name-erasure',
-      nodeType: 'memory-core',
+      id: 'shop-silent-terminal',
+      nodeType: 'shop',
+      title: '无声回收终端',
+      body: '一台没有操作员的终端仍在运行，屏幕以记忆残响标注认知零件的交换价值。',
+      choices: [
+        { id: 'inspect-stock', label: '检查本次库存', description: '核对可用模块与当前残响。', effect: { sanityDelta: 0, overloadDelta: 1 } },
+        { id: 'leave-shop', label: '保留残响并离开', description: '不在此处暴露更多记忆信息。', effect: { sanityDelta: 1, overloadDelta: -1 } },
+      ],
+    },
+  ],
+  'unknown': [
+    {
+      id: 'unknown-unresolved-signal',
+      nodeType: 'unknown',
+      title: '无法解析的信号',
+      body: '路径尽头的信号被白噪声覆盖，终端只能确认风险等级，真实结构仍藏在雾后。',
+      choices: [
+        { id: 'scan-signal', label: '尝试解析信号', description: '在进入前寻找真实节点的轮廓。', effect: { sanityDelta: -1, overloadDelta: 4 } },
+        { id: 'enter-unknown', label: '维持队形直接进入', description: '承担未知风险并保留行动节奏。', effect: { sanityDelta: -2, overloadDelta: 6 } },
+      ],
+    },
+  ],
+  'boss': [
+    {
+      id: 'boss-name-erasure',
+      nodeType: 'boss',
       title: '被擦去姓名的核心',
       body: '记忆核心像一枚悬空的透明种子，内部排列着大量空白档案。每当迷迭香靠近，她自己的姓名也会从终端上淡去。',
       choices: [
@@ -114,8 +138,8 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
     {
-      id: 'memory-core-four-shadows',
-      nodeType: 'memory-core',
+      id: 'boss-four-shadows',
+      nodeType: 'boss',
       title: '四柄巨剑的影子',
       body: '核心周围投下四道不属于任何实体的剑影。它们指向不同的过去，并要求迷迭香承认其中只有一段是真实的。',
       choices: [
@@ -135,7 +159,7 @@ export function selectPresetEvent(input: SelectPresetEventInput): {
   const [draw, randomState] = randomInt(input.randomState, 0, pool.length - 1);
   const pressureOffset = input.overload >= 70 || input.sanity <= 40 ? 1 : 0;
   const fragmentOffset = input.fragments.length % pool.length;
-  const nodeTypeOffset = input.nodeType === 'thought-rest' ? 1 : 0;
+  const nodeTypeOffset = input.nodeType === 'rest' ? 1 : 0;
   const template = pool[(draw + pressureOffset + fragmentOffset + nodeTypeOffset) % pool.length];
   const fragmentName = input.fragments.at(-1)?.name;
   const context = fragmentName

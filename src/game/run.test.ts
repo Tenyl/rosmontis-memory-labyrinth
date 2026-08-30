@@ -59,7 +59,7 @@ describe('run reducer', () => {
     const before = createRun({ seed: 'node-resources', mode: 'preset', progression: freshProgression, llmEnabled: false });
     const afterWatch = reduceRunAction(before, {
       type: 'use-greatsword',
-      action: { swordId: 'watch', target: 'self', nodeType: 'thought-rest' },
+      action: { swordId: 'watch', target: 'self', nodeType: 'rest' },
     }).state;
     const target = afterWatch.maze.edges.find((edge) => edge.sourceId === afterWatch.run.currentNodeId)!.targetId;
 
@@ -98,7 +98,7 @@ describe('run reducer', () => {
     const before = createRun({ seed: 'sword-action', mode: 'preset', progression: freshProgression, llmEnabled: false });
     const resolution = reduceRunAction(before, {
       type: 'use-greatsword',
-      action: { swordId: 'watch', target: 'self', nodeType: 'thought-rest' },
+      action: { swordId: 'watch', target: 'self', nodeType: 'rest' },
     });
 
     expect(resolution.accepted).toBe(true);
@@ -187,7 +187,7 @@ describe('run reducer', () => {
     const settled = reduceRunAction(atCore, { type: 'complete-node', fragment: coreFragment });
     const resonated = reduceRunAction(settled.state, {
       type: 'use-greatsword',
-      action: { swordId: 'resonance', target: 'memory', nodeType: 'memory-core' },
+      action: { swordId: 'resonance', target: 'memory', nodeType: 'boss' },
     });
     const victory = reduceRunAction(resonated.state, { type: 'stabilize-core' });
 
