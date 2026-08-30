@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
 import { TavernGameView } from '../tavern/game/TavernGameView';
@@ -5,7 +6,7 @@ import { useTavern } from '../tavern/runtime/useTavern';
 import { FragmentOverflowDialog } from './FragmentOverflowDialog';
 import { GreatswordActions } from './GreatswordActions';
 import { LlmEventDirector } from './LlmEventDirector';
-import { NodeResolutionPanel } from './NodeResolutionPanel';
+import { ModuleInventory } from './ModuleInventory';
 import { NovelRunDirector } from './NovelRunDirector';
 import { RunLifecycleDialog } from './RunLifecycleDialog';
 import { RunStatusBar } from './RunStatusBar';
@@ -24,13 +25,24 @@ export default function OperationPage() {
   const ruleLog = useGameStore((state) => state.ruleLog);
   const useGreatsword = useGameStore((state) => state.useGreatsword);
   const memoryInventory = useGameStore((state) => state.memoryInventory);
-  const completeCurrentNode = useGameStore((state) => state.completeCurrentNode);
+  const economy = useGameStore((state) => state.economy);
+  const modules = useGameStore((state) => state.modules);
+  const routeEffects = useGameStore((state) => state.routeEffects);
+  const pendingEncounter = useGameStore((state) => state.pendingEncounter);
+  const beginCurrentEncounter = useGameStore((state) => state.beginCurrentEncounter);
+  const resolveEncounterChoice = useGameStore((state) => state.resolveEncounterChoice);
+  const sellRunFragment = useGameStore((state) => state.sellRunFragment);
+  const advanceRunFloor = useGameStore((state) => state.advanceRunFloor);
   const resolveFragmentChoice = useGameStore((state) => state.resolveFragmentChoice);
   const startRun = useGameStore((state) => state.startRun);
   const resetRun = useGameStore((state) => state.resetRun);
   const stabilizeMemoryCore = useGameStore((state) => state.stabilizeMemoryCore);
   const currentNode = maze.nodes.find((node) => node.id === run.currentNodeId) ?? maze.nodes[0];
   const llmEnabled = Boolean(runtime.settings?.api.apiKey.trim());
+
+  useEffect(() => {
+    if (run.phase === 'exploring' && !pendingEncounter) beginCurrentEncounter();
+  }, [beginCurrentEncounter, pendingEncounter, run.currentNodeId, run.phase]);
 
   return (
     <section className="route-page operation-route" aria-labelledby="operation-page-title">
@@ -55,7 +67,14 @@ export default function OperationPage() {
 
       <NovelRunDirector />
 
-      <RunStatusBar run={run} rosmontis={runRosmontis} progression={progression} />
+      <RunStatusBar
+        run={run}
+        rosmontis={runRosmontis}
+        progression={progression}
+        echoes={economy.echoes}
+        scoutPoints={economy.scoutPoints}
+        moduleCount={modules.length}
+      />
       <RosmontisQuotePanel />
 
       <div className="operation-workbench">
@@ -66,12 +85,22 @@ export default function OperationPage() {
             ruleLog={ruleLog}
             onUse={useGreatsword}
           />
-          <NodeResolutionPanel
-            run={run}
-            node={currentNode}
-            ruleLog={ruleLog}
-            onComplete={completeCurrentNode}
+          <EncounterPanel
+            encounter={pendingEncounter}
+            inventory={memoryInventory}
+            echoes={economy.echoes}
+            modules={modules}
+            resonanceActive={routeEffects.resonanceActive}
+            onResolve={resolveEncounterChoice}
+            onSellFragment={sellRunFragment}
+            onAdvanceFloor={advanceRunFloor}
+            canAdvanceFloor={Boolean(
+              pendingEncounter?.resolved
+              && currentNode.id === maze.coreNodeId
+              && run.floor < run.maxFloor
+            )}
           />
+          <ModuleInventory modules={modules} />
           <LlmEventDirector />
           <TavernGameView />
         </div>
@@ -82,3 +111,4 @@ export default function OperationPage() {
     </section>
   );
 }
+import { EncounterPanel } from './EncounterPanel';

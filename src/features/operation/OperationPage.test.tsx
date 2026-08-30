@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useGameStore } from '../../store/gameStore';
 import { renderApp } from '../../test/renderApp';
@@ -21,22 +21,15 @@ test('executes a legal offline greatsword action through the Run store', async (
   expect(screen.getByText('守望已执行 · -1 AP · +5% 过载 · 冷却 1')).toBeVisible();
 });
 
-test('settles the current node and resolves a blocking fragment overflow through the UI', async () => {
+test('settles the current node through its dedicated encounter choices', async () => {
   const user = userEvent.setup();
   renderApp('/operation');
-  act(() => {
-    useGameStore.setState((state) => ({
-      memoryInventory: { ...state.memoryInventory, capacity: 0 },
-    }));
-  });
 
-  await user.click(await screen.findByRole('button', { name: '完成节点并回收记忆碎片' }));
+  await user.click(await screen.findByRole('button', { name: /稳定认知/ }));
 
-  expect(useGameStore.getState().run.phase).toBe('fragment-overflow');
-  expect(screen.getByRole('dialog', { name: '记忆槽位溢出：必须遗忘' })).toBeVisible();
-  await user.click(screen.getByRole('button', { name: /放弃新碎片/ }));
-  expect(useGameStore.getState().run.phase).toBe('exploring');
-  expect(screen.queryByRole('dialog', { name: '记忆槽位溢出：必须遗忘' })).not.toBeInTheDocument();
+  expect(useGameStore.getState().pendingEncounter).toMatchObject({ kind: 'rest', resolved: true });
+  expect(useGameStore.getState().maze.nodes.find((node) => node.id === useGameStore.getState().run.currentNodeId)).toMatchObject({ state: 'completed' });
+  expect(screen.getByText('结算完成')).toBeVisible();
 });
 
 test('validates an empty command inline and completes a Tavern runtime turn', async () => {

@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { resolveImageAsset } from '../../assets/assetRegistry';
 import type { ApiSettings } from '../../sillytavern';
 import { clearAllData } from '../../sillytavern/database';
 import { useGameStore } from '../../store/gameStore';
@@ -51,7 +52,7 @@ describe('temporary Rosmontis quote panel', () => {
     expect(panel).toHaveTextContent('本地预设');
     expect(panel.textContent).toContain('我');
     expect(stream).not.toHaveBeenCalled();
-    expect(panel.querySelector('img')).toHaveAttribute('src', '/assets/characters/blank-character.svg');
+    expect(panel.querySelector('img')).toHaveAttribute('src', resolveImageAsset('rosmontisPortrait'));
   });
 
   test('requests once with action context and displays a validated remote quote', async () => {

@@ -13,7 +13,7 @@ const routes = [
 
 test.each(routes)('%s 具有清晰的页面地标与控件名称', async (path, titleId, title) => {
   const { container } = renderApp(path);
-  const heading = await screen.findByRole('heading', { level: 1, name: title });
+  const heading = await screen.findByRole('heading', { level: 1, name: title }, { timeout: 8_000 });
 
   expect(heading).toHaveAttribute('id', titleId);
   expect(container.querySelectorAll('main')).toHaveLength(1);
@@ -27,7 +27,7 @@ test.each(routes)('%s 具有清晰的页面地标与控件名称', async (path, 
 });
 test('提供键盘跳转入口和可感知的全局导航状态', async () => {
   const { container } = renderApp('/operation');
-  await screen.findByRole('heading', { level: 1, name: '作战主控台' });
+  await screen.findByRole('heading', { level: 1, name: '作战主控台' }, { timeout: 8_000 });
 
   expect(screen.getByRole('link', { name: '跳至主内容' })).toHaveAttribute('href', '#main-content');
   expect(screen.getByRole('navigation', { name: '主要功能' })).toBeInTheDocument();

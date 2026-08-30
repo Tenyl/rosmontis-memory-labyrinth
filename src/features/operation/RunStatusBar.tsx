@@ -5,6 +5,9 @@ interface RunStatusBarProps {
   run: RunState;
   rosmontis: GreatswordCombatState;
   progression: ProgressionState;
+  echoes: number;
+  scoutPoints: number;
+  moduleCount: number;
 }
 
 const RUN_MODE_LABELS: Record<RunState['mode'], string> = {
@@ -20,7 +23,14 @@ function getOverloadState(overload: number) {
   return { level: 'stable', label: '认知同步稳定' };
 }
 
-export function RunStatusBar({ run, rosmontis, progression }: RunStatusBarProps) {
+export function RunStatusBar({
+  run,
+  rosmontis,
+  progression,
+  echoes,
+  scoutPoints,
+  moduleCount,
+}: RunStatusBarProps) {
   const overloadState = getOverloadState(rosmontis.overload);
 
   return (
@@ -47,9 +57,12 @@ export function RunStatusBar({ run, rosmontis, progression }: RunStatusBarProps)
         <span>{RUN_MODE_LABELS[run.mode]}</span>
         <strong>{run.seed}</strong>
         <div>
-          <span>第 {run.floor} 层</span>
+          <span>第 {run.floor} / {run.maxFloor} 层</span>
           <span>回合 {run.turn}</span>
           <span id="run-action-points">行动点 {rosmontis.actionPoints}</span>
+          <span>残响 {echoes}</span>
+          <span>侦测 {scoutPoints}</span>
+          <span>模块 {moduleCount}</span>
         </div>
       </div>
 

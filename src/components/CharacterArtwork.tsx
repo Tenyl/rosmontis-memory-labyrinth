@@ -1,4 +1,6 @@
-export const CHARACTER_ARTWORK_SRC = '/assets/characters/blank-character.svg' as const;
+import { resolveImageAsset } from '../assets/assetRegistry';
+
+export const CHARACTER_ARTWORK_SRC = resolveImageAsset('rosmontisPortrait');
 
 interface CharacterArtworkProps {
   kind: 'avatar' | 'portrait';

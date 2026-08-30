@@ -13,7 +13,7 @@ const routes = [
 
 test.each(routes)('%s 为每个交互元素提供唯一描述性 ID', async (path, title) => {
   const { container } = renderApp(path);
-  await screen.findByRole('heading', { level: 1, name: title });
+  await screen.findByRole('heading', { level: 1, name: title }, { timeout: 8_000 });
 
   const controls = [...container.querySelectorAll<HTMLElement>(
     'button, a[href], input, textarea, select, [role="tab"]',

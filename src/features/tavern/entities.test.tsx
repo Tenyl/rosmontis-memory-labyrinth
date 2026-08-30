@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { resolveImageAsset } from '../../assets/assetRegistry';
 import { clearAllData } from '../../sillytavern/database';
 import { CharacterManager } from './characters/CharacterManager';
 import { TavernOrchestrator } from './components/TavernOrchestrator';
@@ -35,7 +36,7 @@ test('保留的角色卡管理视图始终使用可替换空白头像', async ()
   const character = await screen.findByRole('article', { name: '角色卡 迷迭香' });
   expect(within(character).getByRole('img', { name: '迷迭香角色卡缩略图' })).toHaveAttribute(
     'src',
-    '/assets/characters/blank-character.svg',
+    resolveImageAsset('rosmontisPortrait'),
   );
 });
 

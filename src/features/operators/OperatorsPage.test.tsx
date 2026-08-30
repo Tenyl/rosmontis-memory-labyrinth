@@ -1,4 +1,5 @@
 import { act, screen, within } from '@testing-library/react';
+import { resolveImageAsset } from '../../assets/assetRegistry';
 import { renderApp } from '../../test/renderApp';
 import { useGameStore } from '../../store/gameStore';
 import { projectTavernTurn } from '../tavern/projection/tavern-turn-projector';
@@ -10,7 +11,7 @@ test('只显示迷迭香状态和空白立绘', async () => {
   const profile = screen.getByRole('article', { name: '迷迭香' });
   expect(within(profile).getByRole('img', { name: '迷迭香立绘占位' })).toHaveAttribute(
     'src',
-    '/assets/characters/blank-character.svg',
+    resolveImageAsset('rosmontisPortrait'),
   );
   expect(within(profile).getByText('理智稳定度')).toBeVisible();
   expect(within(profile).getByText('72%')).toBeVisible();

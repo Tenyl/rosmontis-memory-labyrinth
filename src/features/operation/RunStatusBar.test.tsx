@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import type { GreatswordCombatState, ProgressionState, RunState } from '../../game/types';
-import { CHARACTER_ARTWORK_SRC } from '../../components/CharacterArtwork';
+import { resolveImageAsset } from '../../assets/assetRegistry';
 import { RunStatusBar } from './RunStatusBar';
 
 const run: RunState = {
@@ -34,13 +34,25 @@ const rosmontis: GreatswordCombatState = {
 const progression: ProgressionState = { firstClear: false, completedRuns: 0 };
 
 test('renders the replaceable Rosmontis portrait and complete Run telemetry', () => {
-  render(<RunStatusBar run={run} rosmontis={rosmontis} progression={progression} />);
+  render(
+    <RunStatusBar
+      run={run}
+      rosmontis={rosmontis}
+      progression={progression}
+      echoes={18}
+      scoutPoints={2}
+      moduleCount={3}
+    />,
+  );
 
-  expect(screen.getByRole('img', { name: '迷迭香人物立绘占位图' })).toHaveAttribute('src', CHARACTER_ARTWORK_SRC);
+  expect(screen.getByRole('img', { name: '迷迭香人物立绘占位图' })).toHaveAttribute('src', resolveImageAsset('rosmontisPortrait'));
   expect(screen.getByText('预设迷宫')).toBeVisible();
-  expect(screen.getByText('第 2 层')).toBeVisible();
+  expect(screen.getByText('第 2 / 3 层')).toBeVisible();
   expect(screen.getByText('回合 4')).toBeVisible();
   expect(screen.getByText('行动点 3')).toBeVisible();
+  expect(screen.getByText('残响 18')).toBeVisible();
+  expect(screen.getByText('侦测 2')).toBeVisible();
+  expect(screen.getByText('模块 3')).toBeVisible();
   expect(screen.getByText('尚未完成首次逃离')).toBeVisible();
 
   expect(screen.getByRole('meter', { name: '思维稳定性' })).toHaveAttribute('aria-valuenow', '76');
@@ -57,6 +69,9 @@ test.each([
       run={run}
       rosmontis={{ ...rosmontis, overload }}
       progression={progression}
+      echoes={0}
+      scoutPoints={0}
+      moduleCount={0}
     />,
   );
 
