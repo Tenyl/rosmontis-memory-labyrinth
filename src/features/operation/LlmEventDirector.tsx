@@ -82,11 +82,13 @@ export function LlmEventDirector({ apiOverride, transportOverride }: LlmEventDir
       signal: active.controller.signal,
     }).then((content) => {
       const latest = useGameStore.getState();
+      if (latest.run.id !== run.id) return;
       latest.markDirectorTriggerHandled(requestKey);
       latest.acceptDirectorEvent(token, node.id, content, 'remote');
     }).catch((error: unknown) => {
       if (isAborted(error, active.controller.signal)) return;
       const latest = useGameStore.getState();
+      if (latest.run.id !== run.id) return;
       const fallback = createFallbackEvent(run, node, latest);
       latest.markDirectorTriggerHandled(requestKey);
       latest.acceptDirectorEvent(token, node.id, fallback, 'local-fallback');

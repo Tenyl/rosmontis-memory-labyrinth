@@ -8,6 +8,7 @@ import { LlmEventDirector } from './LlmEventDirector';
 import { NodeResolutionPanel } from './NodeResolutionPanel';
 import { RunLifecycleDialog } from './RunLifecycleDialog';
 import { RunStatusBar } from './RunStatusBar';
+import { RosmontisQuotePanel } from './RosmontisQuotePanel';
 import { TacticalOverview } from './TacticalOverview';
 import './operation.css';
 
@@ -52,6 +53,7 @@ export default function OperationPage() {
       />
 
       <RunStatusBar run={run} rosmontis={runRosmontis} progression={progression} />
+      <RosmontisQuotePanel />
 
       <div className="operation-workbench">
         <div className="operation-primary">

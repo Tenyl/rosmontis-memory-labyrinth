@@ -143,13 +143,13 @@ expect(acceptForRun(state, 'old-run', event)).toBe(state);
 - Consumes: latest `RuleEvent`, current vitals, most recent maze event title, API configuration, quote prompt/client, and director quote state.
 - Produces: once-per-rule-event quote generation, deterministic local fallback `selectLocalQuote(event, vitals)`, and live region `rosmontis-temporary-quote` beside the existing blank portrait/status HUD.
 
-- [ ] **Step 1: Write failing tests** for action-to-quote context, deterministic fallback, 30-character enforcement, stale request rejection, and no repeated request after rerender.
-- [ ] **Step 2: Verify RED** with `pnpm vitest run src/llm/localQuotes.test.ts src/features/operation/RosmontisQuotePanel.test.tsx`.
-- [ ] **Step 3: Implement local quotes** as Rosmontis first-person lines keyed by RuleEvent type and overload band; each source string must be at most 30 Han characters.
-- [ ] **Step 4: Implement remote generation** only when API is configured, then validate through `parseTemporaryQuote`; on any error accept the deterministic local quote with source `local-fallback`.
-- [ ] **Step 5: Render quote UI** with `aria-live="polite"`, source text, reduced-motion-safe typewriter presentation, and the shared blank portrait rather than an embedded character image.
-- [ ] **Step 6: Run GREEN, full operation component tests, and `pnpm typecheck`**.
-- [ ] **Step 7: Commit** with `feat: generate contextual rosmontis quotes`.
+- [x] **Step 1: Write failing tests** for action-to-quote context, deterministic fallback, 30-character enforcement, stale request rejection, and no repeated request after rerender.
+- [x] **Step 2: Verify RED** with `pnpm vitest run src/llm/localQuotes.test.ts src/features/operation/RosmontisQuotePanel.test.tsx`.
+- [x] **Step 3: Implement local quotes** as Rosmontis first-person lines keyed by RuleEvent type and overload band; each source string must be at most 30 Han characters.
+- [x] **Step 4: Implement remote generation** only when API is configured, then validate through `parseTemporaryQuote`; on any error accept the deterministic local quote with source `local-fallback`.
+- [x] **Step 5: Render quote UI** with `aria-live="polite"`, source text, reduced-motion-safe typewriter presentation, and the shared blank portrait rather than an embedded character image.
+- [x] **Step 6: Run GREEN, full operation component tests, and `pnpm typecheck`**.
+- [x] **Step 7: Commit** with `feat: generate contextual rosmontis quotes`.
 
 ### Task 6: Novel-mode themed maze narrative
 
