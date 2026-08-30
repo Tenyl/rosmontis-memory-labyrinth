@@ -1,5 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useGameStore } from '../../store/gameStore';
 import { renderApp } from '../../test/renderApp';
 
 test('只显示迷迭香的行动资源与认知链路状态', async () => {
@@ -8,6 +9,16 @@ test('只显示迷迭香的行动资源与认知链路状态', async () => {
   expect(await screen.findByRole('heading', { name: '迷迭香行动资源' })).toBeVisible();
   expect(screen.getByText('RSM-04 / 迷迭香')).toBeVisible();
   expect(document.body).not.toHaveTextContent(/小队|名干员/);
+});
+
+test('executes a legal offline greatsword action through the Run store', async () => {
+  const user = userEvent.setup();
+  renderApp('/operation');
+
+  await user.click(await screen.findByRole('button', { name: /守望.*巨剑护盾/ }));
+
+  expect(useGameStore.getState().rosmontis).toMatchObject({ actionPoints: 3, overload: 5, guard: 24 });
+  expect(screen.getByText('守望已执行 · -1 AP · +5% 过载 · 冷却 1')).toBeVisible();
 });
 
 test('validates an empty command inline and completes a Tavern runtime turn', async () => {

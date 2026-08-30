@@ -87,12 +87,12 @@
 - Consumes: `GREATSWORD_CONFIG`, current node type, `rosmontis`, and `useGreatsword(action)`.
 - Produces: four stable action cards for 破壁、守望、感知、共鸣.
 
-- [ ] **Step 1: Write failing tests** for all four cards, AP/cooldown/overload copy, disabled illegal actions, and one successful Store dispatch.
-- [ ] **Step 2: Verify RED**.
-- [ ] **Step 3: Implement cards** with IDs `btn-greatsword-breach`, `btn-greatsword-watch`, `btn-greatsword-perception`, and `btn-greatsword-resonance`.
-- [ ] **Step 4: Add status feedback** sourced from the newest `greatsword.used` RuleEvent; do not reproduce settlement constants in JSX.
-- [ ] **Step 5: Verify GREEN and typecheck**.
-- [ ] **Step 6: Commit** with `feat: add four offline tactical cards`.
+- [x] **Step 1: Write failing tests** for all four cards, AP/cooldown/overload copy, disabled illegal actions, and one successful Store dispatch.
+- [x] **Step 2: Verify RED**.
+- [x] **Step 3: Implement cards** with IDs `btn-greatsword-breach`, `btn-greatsword-watch`, `btn-greatsword-perception`, and `btn-greatsword-resonance`.
+- [x] **Step 4: Add status feedback** sourced from the newest `greatsword.used` RuleEvent; do not reproduce settlement constants in JSX.
+- [x] **Step 5: Verify GREEN and typecheck**.
+- [x] **Step 6: Commit** with `feat: add four offline tactical cards`.
 
 ### Task 5: Node settlement and fragment overflow modal
 

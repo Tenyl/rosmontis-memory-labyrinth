@@ -1,6 +1,7 @@
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
 import { TavernGameView } from '../tavern/game/TavernGameView';
+import { GreatswordActions } from './GreatswordActions';
 import { RunStatusBar } from './RunStatusBar';
 import { TacticalOverview } from './TacticalOverview';
 import './operation.css';
@@ -11,6 +12,10 @@ export default function OperationPage() {
   const run = useGameStore((state) => state.run);
   const runRosmontis = useGameStore((state) => state.rosmontis);
   const progression = useGameStore((state) => state.progression);
+  const maze = useGameStore((state) => state.maze);
+  const ruleLog = useGameStore((state) => state.ruleLog);
+  const useGreatsword = useGameStore((state) => state.useGreatsword);
+  const currentNode = maze.nodes.find((node) => node.id === run.currentNodeId) ?? maze.nodes[0];
 
   return (
     <section className="route-page operation-route" aria-labelledby="operation-page-title">
@@ -26,6 +31,12 @@ export default function OperationPage() {
 
       <div className="operation-workbench">
         <div className="operation-primary">
+          <GreatswordActions
+            rosmontis={runRosmontis}
+            currentNodeType={currentNode.type}
+            ruleLog={ruleLog}
+            onUse={useGreatsword}
+          />
           <TavernGameView />
         </div>
         <TacticalOverview session={session} rosmontis={rosmontis} />
