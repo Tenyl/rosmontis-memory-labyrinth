@@ -17,6 +17,7 @@ interface DialogProps {
   eyebrow?: string;
   danger?: boolean;
   closeOnEscape?: boolean;
+  dismissible?: boolean;
 }
 
 const focusableSelector = [
@@ -37,7 +38,8 @@ export function Dialog({
   footer,
   eyebrow = 'RHODES / SECURE WINDOW',
   danger = false,
-  closeOnEscape = true,
+  dismissible = true,
+  closeOnEscape = dismissible,
 }: DialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
@@ -109,9 +111,11 @@ export function Dialog({
             <span className="dialog-eyebrow">{eyebrow}</span>
             <h2 id={`${id}-title`} ref={titleRef} tabIndex={-1}>{title}</h2>
           </div>
-          <button id={`${id}-close`} className="dialog-close" type="button" onClick={onClose} aria-label={`关闭${title}`}>
-            <X size={20} aria-hidden />
-          </button>
+          {dismissible ? (
+            <button id={`${id}-close`} className="dialog-close" type="button" onClick={onClose} aria-label={`关闭${title}`}>
+              <X size={20} aria-hidden />
+            </button>
+          ) : null}
         </header>
         <div className="dialog-body">{children}</div>
         {footer ? <footer className="dialog-footer">{footer}</footer> : null}

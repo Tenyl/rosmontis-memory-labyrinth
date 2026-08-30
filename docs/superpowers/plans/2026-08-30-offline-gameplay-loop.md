@@ -106,12 +106,12 @@
 - Consumes: current node, `completeCurrentNode`, `memoryInventory`, and `resolveFragmentChoice`.
 - Produces: deterministic node reward button and blocking discard/replace dialog.
 
-- [ ] **Step 1: Write failing tests** proving reward collection, core-fragment separation, blocking overflow dialog, protected core fragments, discard, and replace.
-- [ ] **Step 2: Verify RED**.
-- [ ] **Step 3: Implement preset reward data keyed by node type and floor**, with stable fragment IDs derived from Run ID and node ID.
-- [ ] **Step 4: Implement the non-dismissible choice flow**; Escape may not close an unresolved overflow, and every choice is keyboard accessible.
-- [ ] **Step 5: Verify GREEN and typecheck**.
-- [ ] **Step 6: Commit** with `feat: complete memory fragment choice flow`.
+- [x] **Step 1: Write failing tests** proving reward collection, core-fragment separation, blocking overflow dialog, protected core fragments, discard, and replace.
+- [x] **Step 2: Verify RED**.
+- [x] **Step 3: Implement preset reward data keyed by node type and floor**, with stable fragment IDs derived from Run ID and node ID.
+- [x] **Step 4: Implement the non-dismissible choice flow**; Escape may not close an unresolved overflow, and every choice is keyboard accessible.
+- [x] **Step 5: Verify GREEN and typecheck**.
+- [x] **Step 6: Commit** with `feat: complete memory fragment choice flow`.
 
 ### Task 6: Run start, defeat, victory, and mode unlock
 

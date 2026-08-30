@@ -65,6 +65,21 @@ describe('run reducer', () => {
     expect(before.memoryInventory.fragments).toEqual([]);
   });
 
+  test('settles each maze node only once even when no fragment is awarded', () => {
+    const before = createRun({ seed: 'single-settlement', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const first = reduceRunAction(before, { type: 'complete-node' });
+    const repeated = reduceRunAction(first.state, { type: 'complete-node' });
+
+    expect(first.accepted).toBe(true);
+    expect(first.state.maze.nodes.find((node) => node.id === before.run.currentNodeId)?.state).toBe('completed');
+    expect(repeated).toMatchObject({
+      accepted: false,
+      state: first.state,
+      reason: '当前节点已经完成结算。',
+      events: [],
+    });
+  });
+
   test('delegates greatsword settlement without bypassing its resource rules', () => {
     const before = createRun({ seed: 'sword-action', mode: 'preset', progression: freshProgression, llmEnabled: false });
     const resolution = reduceRunAction(before, {
@@ -87,6 +102,8 @@ describe('run reducer', () => {
     let state = createRun({ seed: 'overflow', mode: 'preset', progression: freshProgression, llmEnabled: false });
     state = { ...state, memoryInventory: { ...state.memoryInventory, capacity: 1 } };
     state = reduceRunAction(state, { type: 'complete-node', fragment: reward }).state;
+    const rewardNodeId = state.maze.edges.find((edge) => edge.sourceId === state.run.currentNodeId)!.targetId;
+    state = reduceRunAction(state, { type: 'move-to-node', nodeId: rewardNodeId }).state;
     const overflowFragment = { ...reward, id: 'fragment-overflow' };
     state = reduceRunAction(state, { type: 'complete-node', fragment: overflowFragment }).state;
     const target = state.maze.edges.find((edge) => edge.sourceId === state.run.currentNodeId)!.targetId;

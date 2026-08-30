@@ -1,7 +1,9 @@
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
 import { TavernGameView } from '../tavern/game/TavernGameView';
+import { FragmentOverflowDialog } from './FragmentOverflowDialog';
 import { GreatswordActions } from './GreatswordActions';
+import { NodeResolutionPanel } from './NodeResolutionPanel';
 import { RunStatusBar } from './RunStatusBar';
 import { TacticalOverview } from './TacticalOverview';
 import './operation.css';
@@ -15,6 +17,9 @@ export default function OperationPage() {
   const maze = useGameStore((state) => state.maze);
   const ruleLog = useGameStore((state) => state.ruleLog);
   const useGreatsword = useGameStore((state) => state.useGreatsword);
+  const memoryInventory = useGameStore((state) => state.memoryInventory);
+  const completeCurrentNode = useGameStore((state) => state.completeCurrentNode);
+  const resolveFragmentChoice = useGameStore((state) => state.resolveFragmentChoice);
   const currentNode = maze.nodes.find((node) => node.id === run.currentNodeId) ?? maze.nodes[0];
 
   return (
@@ -37,10 +42,18 @@ export default function OperationPage() {
             ruleLog={ruleLog}
             onUse={useGreatsword}
           />
+          <NodeResolutionPanel
+            run={run}
+            node={currentNode}
+            ruleLog={ruleLog}
+            onComplete={completeCurrentNode}
+          />
           <TavernGameView />
         </div>
         <TacticalOverview session={session} rosmontis={rosmontis} />
       </div>
+
+      <FragmentOverflowDialog inventory={memoryInventory} onResolve={resolveFragmentChoice} />
     </section>
   );
 }

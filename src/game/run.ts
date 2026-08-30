@@ -168,12 +168,25 @@ function moveToNode(state: RoguelikeState, nodeId: string): RunResolution {
 }
 
 function completeNode(state: RoguelikeState, fragment?: import('./types').MemoryFragment): RunResolution {
+  const currentNode = state.maze.nodes.find((node) => node.id === state.run.currentNodeId);
+  if (!currentNode) return rejected(state, '当前节点不存在。');
+  if (currentNode.state === 'completed') return rejected(state, '当前节点已经完成结算。');
+
   const nodeEvent: RuleEvent = { type: 'node.completed', nodeId: state.run.currentNodeId };
-  if (!fragment) return accepted(state, [nodeEvent]);
+  const settledState: RoguelikeState = {
+    ...state,
+    maze: {
+      ...state.maze,
+      nodes: state.maze.nodes.map((node) => (
+        node.id === state.run.currentNodeId ? { ...node, state: 'completed' } : node
+      )),
+    },
+  };
+  if (!fragment) return accepted(settledState, [nodeEvent]);
   const resolution = acquireFragment({ phase: state.run.phase, inventory: state.memoryInventory }, fragment);
   if (!resolution.accepted) return rejected(state, resolution.reason ?? '无法获得记忆碎片。');
   return accepted({
-    ...state,
+    ...settledState,
     run: { ...state.run, phase: resolution.state.phase },
     memoryInventory: resolution.state.inventory,
   }, [nodeEvent, ...resolution.events]);
