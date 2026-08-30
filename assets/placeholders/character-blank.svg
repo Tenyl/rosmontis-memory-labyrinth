@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 960" role="img" aria-labelledby="title description">
+  <title id="title">人物立绘占位图</title>
+  <desc id="description">等待替换为迷迭香人物立绘的空白图片</desc>
+  <rect width="640" height="960" fill="#111820"/>
+  <rect x="24" y="24" width="592" height="912" fill="none" stroke="#68d8d6" stroke-opacity=".42" stroke-width="2"/>
+  <path d="M320 310a100 100 0 1 0 0-200 100 100 0 0 0 0 200Zm-178 418c0-132 80-242 178-242s178 110 178 242" fill="none" stroke="#84929d" stroke-opacity=".42" stroke-width="18"/>
+  <path d="M64 864h512" stroke="#68d8d6" stroke-opacity=".3" stroke-width="2"/>
+  <text x="320" y="824" fill="#b8c4cc" font-family="monospace" font-size="22" text-anchor="middle">CHARACTER ASSET PLACEHOLDER</text>
+</svg>
+

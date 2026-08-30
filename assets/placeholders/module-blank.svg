@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" role="img" aria-labelledby="title description">
+  <title id="title">战术模块占位图</title>
+  <desc id="description">等待替换为战术模块插图的空白图片</desc>
+  <rect width="480" height="640" fill="#111820"/>
+  <path d="M30 30h420v580H30z" fill="none" stroke="#68d8d6" stroke-opacity=".42" stroke-width="2"/>
+  <path d="m240 148 100 58v116l-100 58-100-58V206Z" fill="#1e2a33" stroke="#84929d" stroke-opacity=".48" stroke-width="8"/>
+  <path d="M240 196v136M181 230l118 68m0-68-118 68" stroke="#68d8d6" stroke-opacity=".4" stroke-width="7"/>
+  <text x="240" y="486" fill="#b8c4cc" font-family="monospace" font-size="20" text-anchor="middle">MODULE ASSET</text>
+  <text x="240" y="520" fill="#b8c4cc" font-family="monospace" font-size="20" text-anchor="middle">PLACEHOLDER</text>
+</svg>
+
