@@ -167,14 +167,14 @@ expect(acceptForRun(state, 'old-run', event)).toBe(state);
 - Consumes: a locally generated novel-mode `MazeGraph`, API settings, novel prompt/client, and director blueprint state.
 - Produces: one blueprint request per novel Run, a local fallback blueprint, theme/premise display, and text-only node briefs keyed by existing local node IDs.
 
-- [ ] **Step 1: Write failing tests** proving novel requests only run in novel mode, local node IDs/types/edges remain unchanged, blueprint briefs attach by node ID, malformed node lists fall back, and other modes render no novel panel.
-- [ ] **Step 2: Verify RED** with focused operation and memory tests.
-- [ ] **Step 3: Implement the novel director** to send Seed, floor, local node IDs/types, fragments, and vitals; accept only a blueprint that validates against that exact local graph.
-- [ ] **Step 4: Implement a deterministic fallback blueprint** from Seed and node types so network failure does not end or regenerate the Run.
-- [ ] **Step 5: Render the novel brief and node labels** without changing `MazeGraph.edges`, `MazeNode.type`, movement legality, rewards, or victory checks.
-- [ ] **Step 6: Add Playwright coverage** that unlocks novel mode with test API settings and a mocked compatible endpoint, starts the mode, and asserts themed text while the local graph remains navigable.
-- [ ] **Step 7: Run GREEN, `pnpm typecheck`, and focused E2E**.
-- [ ] **Step 8: Commit** with `feat: add llm novel maze narrative`.
+- [x] **Step 1: Write failing tests** proving novel requests only run in novel mode, local node IDs/types/edges remain unchanged, blueprint briefs attach by node ID, malformed node lists fall back, and other modes render no novel panel.
+- [x] **Step 2: Verify RED** with focused operation and memory tests.
+- [x] **Step 3: Implement the novel director** to send Seed, floor, local node IDs/types, fragments, and vitals; accept only a blueprint that validates against that exact local graph.
+- [x] **Step 4: Implement a deterministic fallback blueprint** from Seed and node types so network failure does not end or regenerate the Run.
+- [x] **Step 5: Render the novel brief and node labels** without changing `MazeGraph.edges`, `MazeNode.type`, movement legality, rewards, or victory checks.
+- [x] **Step 6: Add Playwright coverage** that unlocks novel mode with test API settings and a mocked compatible endpoint, starts the mode, and asserts themed text while the local graph remains navigable.
+- [x] **Step 7: Run GREEN, `pnpm typecheck`, and focused E2E**.
+- [x] **Step 8: Commit** with `feat: add llm novel maze narrative`.
 
 ### Task 7: LLM dual-track quality gate
 

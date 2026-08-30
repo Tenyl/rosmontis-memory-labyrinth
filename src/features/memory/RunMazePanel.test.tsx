@@ -59,3 +59,25 @@ test('provides an equivalent tactical list with stable node IDs', () => {
   );
   expect(screen.getAllByRole('button')).toHaveLength(4);
 });
+
+test('attaches novel briefs by node ID without changing graph order or movement', () => {
+  const onMove = vi.fn();
+  render(
+    <RunMazePanel
+      maze={maze}
+      currentNodeId="node-current"
+      viewMode="list"
+      onMove={onMove}
+      nodeBriefs={[
+        { nodeId: 'node-reachable', nodeType: 'blank-event', title: '倒流雨幕', description: '车窗外的雨向天空回收倒影。' },
+        { nodeId: 'node-current', nodeType: 'echo-combat', title: '无名站台', description: '广播正在擦除站名。' },
+      ]}
+    />,
+  );
+
+  const buttons = screen.getAllByRole('button');
+  expect(buttons[0]).toHaveTextContent('无名站台');
+  expect(buttons[1]).toHaveTextContent('倒流雨幕');
+  expect(buttons[1]).toBeEnabled();
+  expect(buttons[2]).toHaveTextContent('思维温室');
+});

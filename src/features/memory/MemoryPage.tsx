@@ -4,6 +4,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
 import { useGameStore } from '../../store/gameStore';
 import { RunMazePanel } from './RunMazePanel';
+import { NovelMazeBrief } from './NovelMazeBrief';
 import './memory.css';
 
 const RUN_PHASE_LABELS = {
@@ -23,6 +24,7 @@ export default function MemoryPage() {
   const rosmontis = useGameStore((state) => state.rosmontis);
   const inventory = useGameStore((state) => state.memoryInventory);
   const moveToNode = useGameStore((state) => state.moveToNode);
+  const novel = useGameStore((state) => state.llmDirector.novel);
 
   useEffect(() => {
     if (window.matchMedia?.('(max-width: 767px)').matches && viewMode === 'graph') {
@@ -68,7 +70,10 @@ export default function MemoryPage() {
         currentNodeId={run.currentNodeId}
         viewMode={viewMode}
         onMove={moveToNode}
+        nodeBriefs={run.mode === 'novel' ? novel?.content.nodeBriefs : undefined}
       />
+
+      <NovelMazeBrief mode={run.mode} novel={novel} />
 
       <div className="memory-access-note">
         <ListDashes size={16} aria-hidden />

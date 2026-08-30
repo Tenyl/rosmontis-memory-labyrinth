@@ -1,11 +1,13 @@
 import type { CSSProperties } from 'react';
 import type { MazeGraph, MazeNode, MazeNodeState, MazeNodeType } from '../../game/types';
+import type { NovelNodeBrief } from '../../llm/gameContent';
 
 interface RunMazePanelProps {
   maze: MazeGraph;
   currentNodeId: string;
   viewMode: 'graph' | 'list';
   onMove: (nodeId: string) => void;
+  nodeBriefs?: readonly NovelNodeBrief[];
 }
 
 const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
@@ -56,6 +58,7 @@ function RunMazeNodeButton({
   variant,
   position,
   onMove,
+  brief,
 }: {
   node: MazeNode;
   index: number;
@@ -63,6 +66,7 @@ function RunMazeNodeButton({
   variant: 'graph' | 'list';
   position?: NodePosition;
   onMove: (nodeId: string) => void;
+  brief?: NovelNodeBrief;
 }) {
   const canMove = node.state === 'reachable';
   const typeLabel = NODE_TYPE_LABELS[node.type];
@@ -84,15 +88,17 @@ function RunMazeNodeButton({
       onClick={() => onMove(node.id)}
     >
       <span className="run-maze-node-code">N-{String(index + 1).padStart(2, '0')}</span>
-      <strong>{typeLabel}</strong>
+      <strong>{brief?.title ?? typeLabel}</strong>
+      {brief ? <span className="run-maze-node-brief">{typeLabel} · {brief.description}</span> : null}
       <span className="run-maze-node-state">{stateLabel}</span>
       <small>DEPTH {String(node.depth).padStart(2, '0')}</small>
     </button>
   );
 }
 
-export function RunMazePanel({ maze, currentNodeId, viewMode, onMove }: RunMazePanelProps) {
+export function RunMazePanel({ maze, currentNodeId, viewMode, onMove, nodeBriefs = [] }: RunMazePanelProps) {
   const positions = buildNodePositions(maze.nodes);
+  const briefsById = new Map(nodeBriefs.map((brief) => [brief.nodeId, brief]));
 
   if (viewMode === 'list') {
     return (
@@ -113,6 +119,7 @@ export function RunMazePanel({ maze, currentNodeId, viewMode, onMove }: RunMazeP
               isCurrent={node.id === currentNodeId}
               variant="list"
               onMove={onMove}
+              brief={briefsById.get(node.id)}
             />
           ))}
         </div>
@@ -161,6 +168,7 @@ export function RunMazePanel({ maze, currentNodeId, viewMode, onMove }: RunMazeP
             variant="graph"
             position={positions.get(node.id)}
             onMove={onMove}
+            brief={briefsById.get(node.id)}
           />
         ))}
       </div>

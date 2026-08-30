@@ -3,7 +3,7 @@ import { abortError, type TavernTransport, type TavernTransportRequest } from '.
 export class OpenAiTavernTransport implements TavernTransport {
   readonly mode = 'remote' as const;
 
-  constructor(private readonly fetchImpl: typeof fetch = globalThis.fetch) {}
+  constructor(private readonly fetchImpl?: typeof fetch) {}
 
   async *stream(request: TavernTransportRequest, signal: AbortSignal): AsyncIterable<string> {
     const api = request.api;
@@ -17,7 +17,8 @@ export class OpenAiTavernTransport implements TavernTransport {
     const timeoutId = globalThis.setTimeout(() => controller.abort('timeout'), Math.max(1000, api.timeout));
 
     try {
-      const response = await this.fetchImpl(`${api.baseUrl.trim().replace(/\/+$/, '')}/chat/completions`, {
+      const fetchRequest = this.fetchImpl ?? globalThis.fetch;
+      const response = await fetchRequest.call(globalThis, `${api.baseUrl.trim().replace(/\/+$/, '')}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

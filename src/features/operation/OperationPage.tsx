@@ -6,6 +6,7 @@ import { FragmentOverflowDialog } from './FragmentOverflowDialog';
 import { GreatswordActions } from './GreatswordActions';
 import { LlmEventDirector } from './LlmEventDirector';
 import { NodeResolutionPanel } from './NodeResolutionPanel';
+import { NovelRunDirector } from './NovelRunDirector';
 import { RunLifecycleDialog } from './RunLifecycleDialog';
 import { RunStatusBar } from './RunStatusBar';
 import { RosmontisQuotePanel } from './RosmontisQuotePanel';
@@ -51,6 +52,8 @@ export default function OperationPage() {
         onReset={resetRun}
         onStabilize={stabilizeMemoryCore}
       />
+
+      <NovelRunDirector />
 
       <RunStatusBar run={run} rosmontis={runRosmontis} progression={progression} />
       <RosmontisQuotePanel />

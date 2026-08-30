@@ -25,6 +25,8 @@ export interface QuotePromptContext {
 export interface NovelPromptContext {
   seed: string;
   floor: number;
+  sanity: number;
+  overload: number;
   fragmentNames: readonly string[];
   nodes: readonly AuthoritativeNovelNode[];
 }

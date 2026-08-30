@@ -38,6 +38,8 @@ describe('task-specific LLM game prompts', () => {
     const prompt = buildNovelPrompt({
       seed: 'NOVEL-01',
       floor: 3,
+      sanity: 72,
+      overload: 41,
       fragmentNames: ['潮湿病历'],
       nodes: [
         { id: 'maze-a', type: 'thought-rest' },
