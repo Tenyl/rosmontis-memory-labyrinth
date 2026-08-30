@@ -68,12 +68,12 @@
 - Consumes: `MazeGraph`, `run.currentNodeId`, and `moveToNode(nodeId)`.
 - Produces: SVG topology plus list view using the same node buttons and node-type labels.
 
-- [ ] **Step 1: Write failing tests** for the four localized node labels, current/reachable/hidden states, disabled hidden nodes, and dispatching a reachable node ID.
-- [ ] **Step 2: Verify RED** with the focused test.
-- [ ] **Step 3: Implement graph/list rendering**; node IDs follow `run-maze-node-${node.id}` and edges never receive pointer events.
-- [ ] **Step 4: Replace the legacy editable prototype topology** on `/memory` while retaining the accessible view switch.
-- [ ] **Step 5: Verify focused tests, typecheck, and four viewport overflow checks**.
-- [ ] **Step 6: Commit** with `feat: connect generated maze topology`.
+- [x] **Step 1: Write failing tests** for the four localized node labels, current/reachable/hidden states, disabled hidden nodes, and dispatching a reachable node ID.
+- [x] **Step 2: Verify RED** with the focused test.
+- [x] **Step 3: Implement graph/list rendering**; node IDs follow `run-maze-node-${node.id}` and edges never receive pointer events.
+- [x] **Step 4: Replace the legacy editable prototype topology** on `/memory` while retaining the accessible view switch.
+- [x] **Step 5: Verify focused tests, typecheck, and four viewport overflow checks**.
+- [x] **Step 6: Commit** with `feat: connect generated maze topology`.
 
 ### Task 4: Four tactical action cards
 
