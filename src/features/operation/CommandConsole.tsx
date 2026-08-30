@@ -24,7 +24,7 @@ interface CommandConsoleProps {
 const inputModes: Array<{ value: InputMode; label: string }> = [
   { value: '行动描述', label: '行动描述' },
   { value: '战术口令', label: '战术口令' },
-  { value: '询问队员', label: '询问队员' },
+  { value: '状态询问', label: '状态询问' },
 ];
 
 const statusLabel: Record<TavernRuntimeStatus, string> = {

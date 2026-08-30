@@ -9,7 +9,7 @@ export type GenerationStatus =
 export type MemoryDirection = 'left' | 'right' | 'down';
 export type MemoryLayer = '表层记忆' | '深层潜意识' | '未知战局';
 export type ArchiveKind = '线索' | '人物' | '地点' | '事件' | '证物';
-export type InputMode = '行动描述' | '战术口令' | '询问队员';
+export type InputMode = '行动描述' | '战术口令' | '状态询问';
 export type NarrativeKind = '叙事' | '对白' | '扫描' | '检定' | '警报';
 export type NotificationKind = 'success' | 'warning' | 'danger' | 'processing';
 

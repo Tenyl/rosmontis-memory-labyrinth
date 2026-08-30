@@ -71,4 +71,14 @@ describe('versioned game state migration', () => {
     expect(migrated.progression).toEqual({ firstClear: true, completedRuns: 3 });
     expect(migrated.maze).toEqual(persisted.maze);
   });
+
+  test('migrates the retired squad inquiry mode to a single-protagonist status inquiry', () => {
+    const current = buildDemoState();
+    const persisted = structuredClone(current) as any;
+    persisted.narrative.inputMode = '询问队员';
+
+    const migrated = migrateGameState(persisted, current);
+
+    expect(migrated.narrative.inputMode).toBe('状态询问');
+  });
 });

@@ -156,12 +156,12 @@
 **Files:**
 - Update this plan checkbox state and regressions proven by test failures.
 
-- [ ] **Step 1: Run `pnpm test`**; expect zero failures.
-- [ ] **Step 2: Run `pnpm typecheck` and `pnpm build`**; expect exit 0 and no large-chunk warning.
-- [ ] **Step 3: Run `pnpm test:e2e`**; expect all routes, four viewports, modal focus rules, and the new complete offline flow to pass.
-- [ ] **Step 4: Audit人物图片、旧多角色文案、占位文本、`Math.random()` and interactive IDs**; expect no violations.
-- [ ] **Step 5: Run `git diff --check` and inspect `git status --short`**.
-- [ ] **Step 6: Commit** with `feat: deliver playable offline memory maze`.
+- [x] **Step 1: Run `pnpm test`**; expect zero failures.
+- [x] **Step 2: Run `pnpm typecheck` and `pnpm build`**; expect exit 0 and no large-chunk warning.
+- [x] **Step 3: Run `pnpm test:e2e`**; expect all routes, four viewports, modal focus rules, and the new complete offline flow to pass.
+- [x] **Step 4: Audit人物图片、旧多角色文案、占位文本、`Math.random()` and interactive IDs**; expect no violations.
+- [x] **Step 5: Run `git diff --check` and inspect `git status --short`**.
+- [x] **Step 6: Commit** with `feat: deliver playable offline memory maze`.
 
 ## Phase completion definition
 

@@ -46,6 +46,9 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
     squadOrder: ['rosmontis'],
     formation: '单人认知潜入',
   };
+  if (isRecord(persisted.narrative) && persisted.narrative.inputMode === '询问队员') {
+    merged.narrative = { ...merged.narrative, inputMode: '状态询问' };
+  }
   return merged;
 }
 
