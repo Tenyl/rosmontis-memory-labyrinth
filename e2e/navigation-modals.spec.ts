@@ -19,6 +19,12 @@ test('快捷键说明弹层支持 Escape 并恢复焦点', async ({ page }) => {
 
 test('意识战场仅允许沿生成拓扑进入可抵达节点', async ({ page }) => {
   await page.goto('/memory');
+  await page.locator('[id^="run-maze-node-"][data-node-state="reachable"]').first().click();
+  await expect(page.getByRole('button', { name: '请先完成当前节点遭遇' })).toBeDisabled();
+
+  await page.locator('#nav-operation-open').click();
+  await page.locator('#btn-encounter-rest-stabilize').click();
+  await page.locator('#nav-memory-open').click();
   const currentNode = page.locator('[id^="run-maze-node-"][aria-current="step"]');
   const reachableNode = page.locator('[id^="run-maze-node-"][data-node-state="reachable"]').first();
   const hiddenNode = page.locator('[id^="run-maze-node-"][data-node-state="hidden"]').first();
@@ -33,6 +39,7 @@ test('意识战场仅允许沿生成拓扑进入可抵达节点', async ({ page 
   expect(targetNodeId).not.toBeNull();
 
   await page.locator(`#${targetNodeId}`).click();
+  await page.locator('button[id^="btn-enter-node-"]').click();
   await expect(page.locator(`#${targetNodeId}`)).toHaveAttribute('aria-current', 'step');
   await expect(page.locator(`#${previousNodeId}`)).not.toHaveAttribute('aria-current', 'step');
 });
@@ -40,7 +47,9 @@ test('意识战场仅允许沿生成拓扑进入可抵达节点', async ({ page 
 test('迷迭香状态页使用可替换空白立绘且没有随行档案入口', async ({ page }) => {
   await page.goto('/operators');
   await expect(page.getByRole('heading', { level: 1, name: '迷迭香状态' })).toBeVisible();
-  await expect(page.getByRole('img', { name: '迷迭香立绘占位' })).toHaveAttribute('src', '/assets/characters/blank-character.svg');
+  const portrait = page.getByRole('img', { name: '迷迭香立绘占位' });
+  await expect(portrait).toHaveJSProperty('complete', true);
+  expect(await portrait.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
   await expect(page.locator('[id^="operator-dossier-open-"]')).toHaveCount(0);
 });
 

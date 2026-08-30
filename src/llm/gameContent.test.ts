@@ -7,7 +7,10 @@ import {
 
 const expectedNodes = [
   { id: 'maze-1-start', type: 'rest' as const },
-  { id: 'maze-1-event', type: 'wonder' as const },
+  { id: 'maze-1-combat', type: 'combat' as const },
+  { id: 'maze-1-shop', type: 'shop' as const },
+  { id: 'maze-1-wonder', type: 'wonder' as const },
+  { id: 'maze-1-unknown', type: 'unknown' as const },
   { id: 'maze-1-core', type: 'boss' as const },
 ];
 
@@ -73,7 +76,7 @@ describe('LLM novel blueprint contract', () => {
     nodeBriefs: expectedNodes.map((node, index) => ({
       nodeId: node.id,
       nodeType: node.type,
-      title: ['安静温室', '倒影断层', '无名核心'][index],
+      title: ['安静温室', '碎裂走廊', '残响交换站', '倒影断层', '未解析信号', '无名核心'][index],
       description: '该节点只提供叙事，不改变本地规则。',
     })),
   };
@@ -96,5 +99,18 @@ describe('LLM novel blueprint contract', () => {
       ...valid,
       nodeBriefs: valid.nodeBriefs.map((brief, index) => index === 2 ? { ...brief, nodeType: 'combat' } : brief),
     }, expectedNodes)).toThrow(/节点类型/);
+  });
+
+  test.each([
+    { hiddenType: 'combat' },
+    { reward: { echoes: 999 } },
+    { overloadDelta: -100 },
+    { price: 0 },
+    { modifiers: ['free-victory'] },
+  ])('rejects hidden outcomes and numeric authority embedded in narrative briefs', (forbidden) => {
+    expect(() => parseNovelBlueprint({
+      ...valid,
+      nodeBriefs: valid.nodeBriefs.map((brief, index) => index === 4 ? { ...brief, ...forbidden } : brief),
+    }, expectedNodes)).toThrow(/本地规则|隐藏结果|数值/);
   });
 });

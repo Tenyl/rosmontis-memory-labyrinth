@@ -1,4 +1,5 @@
 import { CharacterArtwork } from '../../components/CharacterArtwork';
+import { hasAudioAsset } from '../../assets/assetRegistry';
 import type { GreatswordCombatState, ProgressionState, RunState } from '../../game/types';
 
 interface RunStatusBarProps {
@@ -63,6 +64,7 @@ export function RunStatusBar({
           <span>残响 {echoes}</span>
           <span>侦测 {scoutPoints}</span>
           <span>模块 {moduleCount}</span>
+          <span>{hasAudioAsset('mazeBgm') ? '迷宫音轨已就绪' : '声音资源待填充'}</span>
         </div>
       </div>
 

@@ -43,6 +43,22 @@ export interface NovelBlueprintContent {
 const nodeTypes = new Set<MazeNodeType>(['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss']);
 const directorIntents = new Set<string>(DIRECTOR_INTENTS);
 const forbiddenChoiceKeys = ['effect', 'effects', 'threshold', 'difficulty', 'reward', 'damage', 'sanityDelta', 'overloadDelta'];
+const forbiddenNovelBriefKeys = [
+  'hiddenType',
+  'revealed',
+  'risk',
+  'modifiers',
+  'reward',
+  'rewards',
+  'price',
+  'damage',
+  'effect',
+  'effects',
+  'sanityDelta',
+  'overloadDelta',
+  'edges',
+  'unlocks',
+];
 
 export function parseIndependentEvent(value: unknown): IndependentEventContent {
   const record = requireRecord(value, '独立事件必须是 JSON 对象。');
@@ -97,6 +113,9 @@ export function parseNovelBlueprint(
   const seen = new Set<string>();
   const nodeBriefs = record.nodeBriefs.map((brief, index) => {
     const item = requireRecord(brief, `第 ${index + 1} 个节点叙事必须是对象。`);
+    if (forbiddenNovelBriefKeys.some((key) => Object.hasOwn(item, key))) {
+      throw new TypeError('节点叙事不得包含隐藏结果、数值或其他本地规则字段。');
+    }
     const nodeId = requireString(item.nodeId, '节点叙事必须包含 nodeId。', 96);
     if (seen.has(nodeId)) throw new TypeError(`小说蓝图包含重复节点：${nodeId}。`);
     seen.add(nodeId);

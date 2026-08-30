@@ -68,7 +68,7 @@ export function buildNovelPrompt(context: NovelPromptContext): GamePromptMessage
   return [
     {
       role: 'system',
-      content: `${sharedAuthorityBoundary}\n为本地迷宫生成小说主题、前提、结尾钩子和逐节点叙事。必须原样使用给定 nodeId 与 nodeType，不得新增、删除、重排或重连节点。nodeBriefs 的数量和顺序必须与输入节点完全一致。`,
+      content: `${sharedAuthorityBoundary}\n为本地迷宫生成小说主题、前提、结尾钩子和逐节点叙事。必须原样使用给定 nodeId 与 nodeType，不得新增、删除、重排或重连节点。nodeBriefs 的数量和顺序必须与输入节点完全一致。hiddenType 与隐藏结果是只读本地数据，不得猜测或输出；节点奖励、价格、修饰词和所有数值同样是只读本地数据。`,
     },
     {
       role: 'user',

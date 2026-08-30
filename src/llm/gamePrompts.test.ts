@@ -51,6 +51,8 @@ describe('task-specific LLM game prompts', () => {
     expect(prompt).toContain('rest');
     expect(prompt).toContain('maze-b');
     expect(prompt).toMatch(/不得新增、删除、重排或重连节点/);
+    expect(prompt).toMatch(/hiddenType.*只读|隐藏结果.*只读/);
+    expect(prompt).toMatch(/奖励、价格.*只读|价格、奖励.*只读/);
     expect(prompt).toContain('nodeBriefs');
   });
 });

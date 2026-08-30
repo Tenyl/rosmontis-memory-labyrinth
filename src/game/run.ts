@@ -7,6 +7,7 @@ import { resolveGreatswordAction } from './greatswords';
 import { generateMaze } from './maze';
 import type {
   GreatswordCombatState,
+  MemoryFragment,
   ProgressionState,
   RoguelikeState,
   RuleEvent,
@@ -253,6 +254,23 @@ function resolveCurrentEncounter(state: RoguelikeState, choiceId: string): RunRe
   const events = [...resolution.events, ...nodeEvent];
   const defeat = applyDefeat(settled, events);
   if (defeat.state.run.phase === 'defeat') return defeat;
+  settled = defeat.state;
+
+  const fragment = createEncounterFragment(settled, encounter);
+  if (fragment) {
+    const acquired = acquireFragment(
+      { phase: settled.run.phase, inventory: settled.memoryInventory },
+      fragment,
+    );
+    if (acquired.accepted) {
+      settled = {
+        ...settled,
+        run: { ...settled.run, phase: acquired.state.phase },
+        memoryInventory: acquired.state.inventory,
+      };
+      events.push(...acquired.events);
+    }
+  }
 
   if (encounter.kind !== 'boss' || settled.run.floor !== settled.run.maxFloor) {
     return accepted(settled, events);
@@ -284,6 +302,25 @@ function resolveCurrentEncounter(state: RoguelikeState, choiceId: string): RunRe
       completedRuns: settled.progression.completedRuns + 1,
     },
   }, events);
+}
+
+function createEncounterFragment(
+  state: RoguelikeState,
+  encounter: NonNullable<RoguelikeState['pendingEncounter']>,
+): MemoryFragment | null {
+  const node = state.maze.nodes.find((item) => item.id === encounter.nodeId);
+  if (!node || !['combat', 'wonder', 'unknown'].includes(encounter.kind)) return null;
+  const copy = encounter.kind === 'combat'
+    ? { name: '破壁后的残响编号', tags: ['战斗', '破壁'] }
+    : encounter.kind === 'wonder'
+      ? { name: '因果断层中的雨声', tags: ['奇境', '感知'] }
+      : { name: '未辨识信号切片', tags: ['未知', '共鸣'] };
+  return {
+    id: `fragment-${state.run.id}-${node.id}`,
+    name: `第 ${state.run.floor} 层 · ${copy.name}`,
+    kind: 'standard',
+    tags: [...copy.tags, `第${state.run.floor}层`],
+  };
 }
 
 function advanceFloor(state: RoguelikeState): RunResolution {
@@ -361,7 +398,10 @@ function moveToNode(state: RoguelikeState, nodeId: string): RunResolution {
       nodes: state.maze.nodes.map((node) => {
         if (node.id === sourceNodeId) return { ...node, state: 'completed' };
         if (node.id === nodeId) return { ...node, state: 'current' };
-        if (frontier.has(node.id) && node.state === 'hidden') return { ...node, state: 'reachable' };
+        if (frontier.has(node.id) && (node.state === 'hidden' || node.state === 'reachable')) {
+          return { ...node, state: 'reachable' };
+        }
+        if (node.state === 'reachable') return { ...node, state: 'hidden' };
         return node;
       }),
     },

@@ -28,6 +28,7 @@ interface RunMazePanelProps {
   scoutPoints?: number;
   onUseExplorationPower?: (action: ExplorationPowerAction) => void;
   onSpendScoutPoint?: (nodeId: string) => void;
+  movementLocked?: boolean;
 }
 
 const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
@@ -149,6 +150,7 @@ export function RunMazePanel({
   scoutPoints = 0,
   onUseExplorationPower = () => undefined,
   onSpendScoutPoint = () => undefined,
+  movementLocked = false,
 }: RunMazePanelProps) {
   const positions = buildNodePositions(maze.nodes);
   const briefsById = new Map(nodeBriefs.map((brief) => [brief.nodeId, brief]));
@@ -252,6 +254,7 @@ export function RunMazePanel({
         lockedEdges={lockedEdges}
         explorationCharges={explorationCharges}
         scoutPoints={scoutPoints}
+        movementLocked={movementLocked}
         onMove={onMove}
         onUseExplorationPower={onUseExplorationPower}
         onSpendScoutPoint={onSpendScoutPoint}

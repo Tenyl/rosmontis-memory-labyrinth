@@ -16,7 +16,7 @@ const unknownNode: MazeNode = {
   modifiers: ['unstable-signal'],
 };
 
-function renderIntel(node = unknownNode) {
+function renderIntel(node = unknownNode, movementLocked = false) {
   const onMove = vi.fn();
   const onUseExplorationPower = vi.fn();
   const onSpendScoutPoint = vi.fn();
@@ -27,6 +27,7 @@ function renderIntel(node = unknownNode) {
       lockedEdges={[]}
       explorationCharges={{ breach: 1, watch: 1, perception: 1, resonance: 1 }}
       scoutPoints={1}
+      movementLocked={movementLocked}
       onMove={onMove}
       onUseExplorationPower={onUseExplorationPower}
       onSpendScoutPoint={onSpendScoutPoint}
@@ -58,6 +59,14 @@ test('reveals the generated type only after a local scan', () => {
 
   expect(screen.getByText('真实类型：战斗')).toBeVisible();
   expect(screen.queryByRole('button', { name: '感知侦测' })).not.toBeInTheDocument();
+});
+
+test('blocks movement with an explicit instruction while the current encounter is unresolved', () => {
+  const { onMove } = renderIntel(unknownNode, true);
+
+  expect(screen.getByRole('button', { name: '请先完成当前节点遭遇' })).toBeDisabled();
+  expect(screen.getByText('请先在作战主控台完成当前节点遭遇。')).toBeVisible();
+  expect(onMove).not.toHaveBeenCalled();
 });
 
 test('offers breach only for a locked route from the current node', async () => {

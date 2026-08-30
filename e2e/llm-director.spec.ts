@@ -1,28 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import { clearPresetRun } from './helpers/run';
 
-async function settleCurrentNode(page: Page) {
-  const settle = page.locator('#btn-complete-current-node');
-  await expect(settle).toBeVisible();
-  if (await settle.isEnabled()) await settle.click();
-  const overflow = page.getByRole('dialog', { name: '记忆槽位溢出：必须遗忘' });
-  if (await overflow.isVisible().catch(() => false)) {
-    await overflow.getByRole('button', { name: /放弃新碎片/ }).click();
-  }
-}
+test.setTimeout(120_000);
 
 async function unlockAfterFirstClear(page: Page) {
-  for (let step = 0; step < 12; step += 1) {
-    await settleCurrentNode(page);
-    const stabilize = page.locator('#btn-stabilize-memory-core');
-    if (await stabilize.count()) {
-      await page.locator('#btn-greatsword-resonance').click();
-      await stabilize.click();
-      break;
-    }
-    await page.locator('#nav-memory-open').click();
-    await page.locator('button[id^="run-maze-node-"]:not([disabled])').last().click();
-    await page.locator('#nav-operation-open').click();
-  }
+  await clearPresetRun(page);
   const victory = page.getByRole('dialog', { name: '潜入完成：记忆迷宫已逃离' });
   await expect(victory).toBeVisible();
   await victory.getByRole('button', { name: '重新开始预设迷宫' }).click();

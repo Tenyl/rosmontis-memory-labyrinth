@@ -53,6 +53,7 @@ test('renders the replaceable Rosmontis portrait and complete Run telemetry', ()
   expect(screen.getByText('残响 18')).toBeVisible();
   expect(screen.getByText('侦测 2')).toBeVisible();
   expect(screen.getByText('模块 3')).toBeVisible();
+  expect(screen.getByText('声音资源待填充')).toBeVisible();
   expect(screen.getByText('尚未完成首次逃离')).toBeVisible();
 
   expect(screen.getByRole('meter', { name: '思维稳定性' })).toHaveAttribute('aria-valuenow', '76');

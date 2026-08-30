@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { createRun, getAvailableModes, reduceRunAction } from './run';
-import type { MemoryFragment, ProgressionState } from './types';
+import type { MemoryFragment, ProgressionState, RoguelikeState } from './types';
 
 const freshProgression: ProgressionState = { firstClear: false, completedRuns: 0 };
 const reward: MemoryFragment = {
@@ -95,6 +95,12 @@ describe('run reducer', () => {
       .filter((item) => item.sourceId === edge.targetId)
       .map((item) => moved.state.maze.nodes.find((node) => node.id === item.targetId)?.state)
       .every((state) => state === 'reachable')).toBe(true);
+    expect(moved.state.maze.nodes.filter((node) => node.state === 'reachable').map((node) => node.id).sort()).toEqual(
+      moved.state.maze.edges
+        .filter((item) => item.sourceId === edge.targetId && !item.locked)
+        .map((item) => item.targetId)
+        .sort(),
+    );
   });
 
   test('refreshes action points and advances cooldowns when entering a new node', () => {
@@ -120,6 +126,34 @@ describe('run reducer', () => {
     expect(resolution.state.memoryInventory.fragments).toEqual([reward]);
     expect(resolution.events).toContainEqual({ type: 'fragment.acquired', fragmentId: reward.id, kind: 'standard' });
     expect(before.memoryInventory.fragments).toEqual([]);
+  });
+
+  test('encounter settlement recovers a deterministic fragment through the local rule engine', () => {
+    const before = createRun({ seed: 'encounter-fragment', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const combatNode = { ...before.maze.nodes[0], type: 'combat' as const, risk: 'C' as const };
+    let state: RoguelikeState = {
+      ...before,
+      maze: { ...before.maze, nodes: [combatNode, ...before.maze.nodes.slice(1)] },
+      pendingEncounter: null,
+    };
+    state = reduceRunAction(state, { type: 'begin-node' }).state;
+    state = reduceRunAction(state, { type: 'resolve-encounter', choiceId: 'combat-breach' }).state;
+    state = reduceRunAction(state, { type: 'resolve-encounter', choiceId: 'combat-breach' }).state;
+    const settled = reduceRunAction(state, { type: 'resolve-encounter', choiceId: 'combat-breach' });
+
+    expect(settled.accepted).toBe(true);
+    expect(settled.state.memoryInventory.fragments).toEqual([
+      expect.objectContaining({
+        id: `fragment-${before.run.id}-${combatNode.id}`,
+        kind: 'standard',
+        tags: expect.arrayContaining(['战斗', '破壁']),
+      }),
+    ]);
+    expect(settled.events).toContainEqual({
+      type: 'fragment.acquired',
+      fragmentId: `fragment-${before.run.id}-${combatNode.id}`,
+      kind: 'standard',
+    });
   });
 
   test('settles each maze node only once even when no fragment is awarded', () => {

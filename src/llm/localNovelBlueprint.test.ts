@@ -6,7 +6,9 @@ const nodes: Pick<MazeNode, 'id' | 'type'>[] = [
   { id: 'node-a', type: 'combat' },
   { id: 'node-b', type: 'wonder' },
   { id: 'node-c', type: 'rest' },
-  { id: 'node-d', type: 'boss' },
+  { id: 'node-d', type: 'shop' },
+  { id: 'node-e', type: 'unknown' },
+  { id: 'node-f', type: 'boss' },
 ];
 
 describe('local novel blueprint', () => {

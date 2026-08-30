@@ -26,6 +26,7 @@ export default function MemoryPage() {
   const economy = useGameStore((state) => state.economy);
   const modules = useGameStore((state) => state.modules);
   const explorationCharges = useGameStore((state) => state.explorationCharges);
+  const pendingEncounter = useGameStore((state) => state.pendingEncounter);
   const moveToNode = useGameStore((state) => state.moveToNode);
   const useExplorationPower = useGameStore((state) => state.useExplorationPower);
   const spendScoutPoint = useGameStore((state) => state.spendScoutPoint);
@@ -78,6 +79,7 @@ export default function MemoryPage() {
         onMove={moveToNode}
         explorationCharges={explorationCharges}
         scoutPoints={economy.scoutPoints}
+        movementLocked={Boolean(pendingEncounter && !pendingEncounter.resolved)}
         onUseExplorationPower={useExplorationPower}
         onSpendScoutPoint={spendScoutPoint}
         nodeBriefs={run.mode === 'novel' ? novel?.content.nodeBriefs : undefined}

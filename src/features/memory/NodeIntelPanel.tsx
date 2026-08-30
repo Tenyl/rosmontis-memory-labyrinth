@@ -21,6 +21,7 @@ interface NodeIntelPanelProps {
   lockedEdges: MazeEdge[];
   explorationCharges: ExplorationCharges;
   scoutPoints: number;
+  movementLocked?: boolean;
   onMove: (nodeId: string) => void;
   onUseExplorationPower: (action: ExplorationPowerAction) => void;
   onSpendScoutPoint: (nodeId: string) => void;
@@ -47,6 +48,7 @@ export function NodeIntelPanel({
   lockedEdges,
   explorationCharges,
   scoutPoints,
+  movementLocked = false,
   onMove,
   onUseExplorationPower,
   onSpendScoutPoint,
@@ -155,15 +157,20 @@ export function NodeIntelPanel({
         ) : null}
 
         {isReachable ? (
-          <button
-            id={`btn-enter-node-${node.id}`}
-            type="button"
-            className="terminal-button is-primary node-enter-action"
-            onClick={() => onMove(node.id)}
-          >
-            进入节点
-            <ArrowRight size={18} aria-hidden />
-          </button>
+          <>
+            {movementLocked ? <p className="node-movement-lock">请先在作战主控台完成当前节点遭遇。</p> : null}
+            <button
+              id={`btn-enter-node-${node.id}`}
+              type="button"
+              className="terminal-button is-primary node-enter-action"
+              disabled={movementLocked}
+              aria-label={movementLocked ? '请先完成当前节点遭遇' : '进入节点'}
+              onClick={() => onMove(node.id)}
+            >
+              {movementLocked ? '当前遭遇未完成' : '进入节点'}
+              <ArrowRight size={18} aria-hidden />
+            </button>
+          </>
         ) : null}
       </div>
     </aside>
