@@ -33,7 +33,7 @@
 - Consumes: `MazeNodeType`, `MemoryFragment`, `RunMode`, local node count and read-only Rosmontis vitals.
 - Produces: `parseIndependentEvent(value)`, `parseTemporaryQuote(value)`, `parseNovelBlueprint(value, expectedNodes)`, `buildEventPrompt(context)`, `buildQuotePrompt(context)`, and `buildNovelPrompt(context)`.
 
-- [ ] **Step 1: Write failing contract tests** that accept exactly 2–3 event choices, reject numeric effects and unknown intent values, enforce a 30-Han-character quote limit, and require novel node briefs to match the supplied local node IDs and types.
+- [x] **Step 1: Write failing contract tests** that accept exactly 2–3 event choices, reject numeric effects and unknown intent values, enforce a 30-Han-character quote limit, and require novel node briefs to match the supplied local node IDs and types.
 
 ```ts
 expect(() => parseIndependentEvent({
@@ -46,11 +46,11 @@ expect(parseTemporaryQuote({ text: '我记得这段雨声。' })).toEqual({ text
 expect(() => parseTemporaryQuote({ text: '这是一段超过三十个汉字并且不应该进入界面的模型输出内容用于验证边界。' })).toThrow(/30/);
 ```
 
-- [ ] **Step 2: Run RED contracts** with `pnpm vitest run src/llm/gameContent.test.ts src/llm/gamePrompts.test.ts`; expect missing-module failures.
-- [ ] **Step 3: Implement strict parsers** using record/array/string guards and allowlisted intents `guard | scan | press-on | recover | resonate`; return fresh objects and discard all unknown fields.
-- [ ] **Step 4: Implement prompt builders** that include sanitized state summaries and explicit JSON examples, omit API secrets, and state that numeric outcomes and topology are forbidden.
-- [ ] **Step 5: Run GREEN contracts and `pnpm typecheck`**; expect exit 0.
-- [ ] **Step 6: Commit** with `feat: define llm game content contracts`.
+- [x] **Step 2: Run RED contracts** with `pnpm vitest run src/llm/gameContent.test.ts src/llm/gamePrompts.test.ts`; expect missing-module failures.
+- [x] **Step 3: Implement strict parsers** using record/array/string guards and allowlisted intents `guard | scan | press-on | recover | resonate`; return fresh objects and discard all unknown fields.
+- [x] **Step 4: Implement prompt builders** that include sanitized state summaries and explicit JSON examples, omit API secrets, and state that numeric outcomes and topology are forbidden.
+- [x] **Step 5: Run GREEN contracts and `pnpm typecheck`**; expect exit 0.
+- [x] **Step 6: Commit** with `feat: define llm game content contracts`.
 
 ### Task 2: Streaming JSON task client
 
