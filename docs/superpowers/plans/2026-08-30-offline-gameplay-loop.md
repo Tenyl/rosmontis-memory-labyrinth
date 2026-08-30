@@ -125,12 +125,12 @@
 - Consumes: `getAvailableModes`, progression, LLM enabled state, `startRun`, `resetRun`, and `stabilizeMemoryCore`.
 - Produces: seed/mode start controls and terminal victory/defeat dialogs.
 
-- [ ] **Step 1: Write failing tests** for preset availability, locked endless, local endless after first clear, novel requiring LLM, victory summary, and restart.
-- [ ] **Step 2: Verify RED**.
-- [ ] **Step 3: Implement start controls and end dialogs**; seed input ID is `run-seed-input`, and mode controls explain lock reasons in text.
-- [ ] **Step 4: Add a deterministic developer-safe core completion route through normal UI actions**, without direct state mutation or hidden debug controls.
-- [ ] **Step 5: Verify GREEN, typecheck, and a Playwright preset-clear-to-endless flow**.
-- [ ] **Step 6: Commit** with `feat: close the offline roguelike loop`.
+- [x] **Step 1: Write failing tests** for preset availability, locked endless, local endless after first clear, novel requiring LLM, victory summary, and restart.
+- [x] **Step 2: Verify RED**.
+- [x] **Step 3: Implement start controls and end dialogs**; seed input ID is `run-seed-input`, and mode controls explain lock reasons in text.
+- [x] **Step 4: Add a deterministic developer-safe core completion route through normal UI actions**, without direct state mutation or hidden debug controls.
+- [x] **Step 5: Verify GREEN, typecheck, and a Playwright preset-clear-to-endless flow**.
+- [x] **Step 6: Commit** with `feat: close the offline roguelike loop`.
 
 ### Task 7: Offline event pool and command mapping
 

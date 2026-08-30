@@ -55,6 +55,20 @@ describe('run reducer', () => {
       .every((state) => state === 'reachable')).toBe(true);
   });
 
+  test('refreshes action points and advances cooldowns when entering a new node', () => {
+    const before = createRun({ seed: 'node-resources', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const afterWatch = reduceRunAction(before, {
+      type: 'use-greatsword',
+      action: { swordId: 'watch', target: 'self', nodeType: 'thought-rest' },
+    }).state;
+    const target = afterWatch.maze.edges.find((edge) => edge.sourceId === afterWatch.run.currentNodeId)!.targetId;
+
+    const moved = reduceRunAction(afterWatch, { type: 'move-to-node', nodeId: target });
+
+    expect(afterWatch.rosmontis).toMatchObject({ actionPoints: 3, greatswords: { watch: { cooldown: 1 } } });
+    expect(moved.state.rosmontis).toMatchObject({ actionPoints: 4, greatswords: { watch: { cooldown: 0 } } });
+  });
+
   test('completes a node and grants its fragment reward', () => {
     const before = createRun({ seed: 'reward', mode: 'preset', progression: freshProgression, llmEnabled: false });
     const resolution = reduceRunAction(before, { type: 'complete-node', fragment: reward });
@@ -148,5 +162,38 @@ describe('run reducer', () => {
     expect(resolution.state.run).toMatchObject({ phase: 'victory', result: 'victory' });
     expect(resolution.state.progression).toEqual({ firstClear: true, completedRuns: 1 });
     expect(getAvailableModes(resolution.state.progression, false)).toEqual(['preset', 'endless']);
+  });
+
+  test('completes the memory core through its protected fragment and one legal resonance action', () => {
+    const before = createRun({ seed: 'core-route', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const coreFragment: MemoryFragment = {
+      id: 'fragment-core-route',
+      name: '核心记忆：仍被呼唤的名字',
+      kind: 'core',
+      tags: ['核心'],
+    };
+    const atCore = {
+      ...before,
+      run: { ...before.run, currentNodeId: before.maze.coreNodeId },
+      maze: {
+        ...before.maze,
+        nodes: before.maze.nodes.map((node) => ({
+          ...node,
+          state: node.id === before.maze.coreNodeId ? 'current' as const : node.state === 'current' ? 'completed' as const : node.state,
+        })),
+      },
+    };
+
+    const settled = reduceRunAction(atCore, { type: 'complete-node', fragment: coreFragment });
+    const resonated = reduceRunAction(settled.state, {
+      type: 'use-greatsword',
+      action: { swordId: 'resonance', target: 'memory', nodeType: 'memory-core' },
+    });
+    const victory = reduceRunAction(resonated.state, { type: 'stabilize-core' });
+
+    expect(settled.state.rosmontis.coreStability).toBe(75);
+    expect(settled.state.memoryInventory.coreFragments).toEqual([coreFragment]);
+    expect(resonated.state.rosmontis.coreStability).toBe(100);
+    expect(victory.state.run.phase).toBe('victory');
   });
 });

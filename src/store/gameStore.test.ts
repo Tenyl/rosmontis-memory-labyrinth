@@ -184,6 +184,7 @@ test('persists the explicit roguelike schema version', () => {
 
 test('resets only the active Run while preserving permanent progression', () => {
   useGameStore.getState().startRun('TEMPORARY-RUN', 'preset', false);
+  useGameStore.getState().completeCurrentNode();
   useGameStore.setState({ progression: { firstClear: true, completedRuns: 2 } });
 
   useGameStore.getState().resetRun();
@@ -192,6 +193,7 @@ test('resets only the active Run while preserving permanent progression', () => 
   expect(state.run).toMatchObject({ seed: 'PRESET-RAIN-ECHO', mode: 'preset', phase: 'exploring', turn: 1 });
   expect(state.memoryInventory.fragments).toEqual([]);
   expect(state.progression).toEqual({ firstClear: true, completedRuns: 2 });
+  expect(state.ruleLog).toEqual([]);
 });
 
 test('applies each Tavern turn once and restores an independent projection per chat', () => {

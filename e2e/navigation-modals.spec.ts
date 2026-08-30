@@ -17,13 +17,24 @@ test('快捷键说明弹层支持 Escape 并恢复焦点', async ({ page }) => {
   await closesWithEscapeAndRestoresFocus(page, 'global-shortcuts-open', '终端快捷键');
 });
 
-test('意识战场支持拓建与高危节点确认弹层', async ({ page }) => {
+test('意识战场仅允许沿生成拓扑进入可抵达节点', async ({ page }) => {
   await page.goto('/memory');
-  await page.locator('#memory-node-memory-sanatorium').click();
-  await closesWithEscapeAndRestoresFocus(page, 'memory-expand-down', '确认意识路径拓建');
+  const currentNode = page.locator('[id^="run-maze-node-"][aria-current="step"]');
+  const reachableNode = page.locator('[id^="run-maze-node-"][data-node-state="reachable"]').first();
+  const hiddenNode = page.locator('[id^="run-maze-node-"][data-node-state="hidden"]').first();
 
-  await page.locator('#memory-node-memory-r09').click();
-  await closesWithEscapeAndRestoresFocus(page, 'memory-node-enter', '高危节点进入确认');
+  await expect(currentNode).toHaveCount(1);
+  await expect(reachableNode).toBeEnabled();
+  await expect(hiddenNode).toBeDisabled();
+
+  const previousNodeId = await currentNode.getAttribute('id');
+  const targetNodeId = await reachableNode.getAttribute('id');
+  expect(previousNodeId).not.toBeNull();
+  expect(targetNodeId).not.toBeNull();
+
+  await page.locator(`#${targetNodeId}`).click();
+  await expect(page.locator(`#${targetNodeId}`)).toHaveAttribute('aria-current', 'step');
+  await expect(page.locator(`#${previousNodeId}`)).not.toHaveAttribute('aria-current', 'step');
 });
 
 test('迷迭香状态页使用可替换空白立绘且没有随行档案入口', async ({ page }) => {

@@ -20,6 +20,9 @@ interface CreateRunInput {
   targetNodeCount?: number;
 }
 
+const MAX_ACTION_POINTS = 4;
+const CORE_FRAGMENT_STABILITY = 75;
+
 export interface RunResolution {
   accepted: boolean;
   reason?: string;
@@ -155,6 +158,7 @@ function moveToNode(state: RoguelikeState, nodeId: string): RunResolution {
   return accepted({
     ...state,
     run: { ...state.run, currentNodeId: nodeId, turn: state.run.turn + 1 },
+    rosmontis: refreshNodeResources(state.rosmontis),
     maze: {
       ...state.maze,
       nodes: state.maze.nodes.map((node) => {
@@ -188,8 +192,27 @@ function completeNode(state: RoguelikeState, fragment?: import('./types').Memory
   return accepted({
     ...settledState,
     run: { ...state.run, phase: resolution.state.phase },
+    rosmontis: fragment.kind === 'core'
+      ? {
+          ...settledState.rosmontis,
+          coreStability: clampVital(settledState.rosmontis.coreStability + CORE_FRAGMENT_STABILITY),
+        }
+      : settledState.rosmontis,
     memoryInventory: resolution.state.inventory,
   }, [nodeEvent, ...resolution.events]);
+}
+
+function refreshNodeResources(state: GreatswordCombatState): GreatswordCombatState {
+  return {
+    ...state,
+    actionPoints: MAX_ACTION_POINTS,
+    greatswords: {
+      breach: { cooldown: Math.max(0, state.greatswords.breach.cooldown - 1) },
+      watch: { cooldown: Math.max(0, state.greatswords.watch.cooldown - 1) },
+      perception: { cooldown: Math.max(0, state.greatswords.perception.cooldown - 1) },
+      resonance: { cooldown: Math.max(0, state.greatswords.resonance.cooldown - 1) },
+    },
+  };
 }
 
 function applyDefeat(state: RoguelikeState, events: RuleEvent[]): RunResolution {

@@ -1,14 +1,17 @@
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
 import { TavernGameView } from '../tavern/game/TavernGameView';
+import { useTavern } from '../tavern/runtime/useTavern';
 import { FragmentOverflowDialog } from './FragmentOverflowDialog';
 import { GreatswordActions } from './GreatswordActions';
 import { NodeResolutionPanel } from './NodeResolutionPanel';
+import { RunLifecycleDialog } from './RunLifecycleDialog';
 import { RunStatusBar } from './RunStatusBar';
 import { TacticalOverview } from './TacticalOverview';
 import './operation.css';
 
 export default function OperationPage() {
+  const runtime = useTavern();
   const session = useGameStore((state) => state.session);
   const rosmontis = useGameStore((state) => state.operators.byId.rosmontis);
   const run = useGameStore((state) => state.run);
@@ -20,7 +23,11 @@ export default function OperationPage() {
   const memoryInventory = useGameStore((state) => state.memoryInventory);
   const completeCurrentNode = useGameStore((state) => state.completeCurrentNode);
   const resolveFragmentChoice = useGameStore((state) => state.resolveFragmentChoice);
+  const startRun = useGameStore((state) => state.startRun);
+  const resetRun = useGameStore((state) => state.resetRun);
+  const stabilizeMemoryCore = useGameStore((state) => state.stabilizeMemoryCore);
   const currentNode = maze.nodes.find((node) => node.id === run.currentNodeId) ?? maze.nodes[0];
+  const llmEnabled = Boolean(runtime.settings?.api.apiKey.trim());
 
   return (
     <section className="route-page operation-route" aria-labelledby="operation-page-title">
@@ -30,6 +37,17 @@ export default function OperationPage() {
         title="作战主控台"
         description="解析剧情、执行战术指令并监控迷迭香状态。所有本地模拟与远程模型回合均经统一 Tavern 运行时解析并持久化。"
         meta="LIVE SESSION / 03:31"
+      />
+
+      <RunLifecycleDialog
+        run={run}
+        progression={progression}
+        llmEnabled={llmEnabled}
+        currentNodeIsCore={currentNode.type === 'memory-core'}
+        coreStability={runRosmontis.coreStability}
+        onStart={startRun}
+        onReset={resetRun}
+        onStabilize={stabilizeMemoryCore}
       />
 
       <RunStatusBar run={run} rosmontis={runRosmontis} progression={progression} />

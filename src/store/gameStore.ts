@@ -339,7 +339,7 @@ export const useGameStore = create<GameStore>()(
       startRun: (seed, mode, llmEnabled) =>
         set((state) => {
           const next = createRun({ seed, mode, progression: state.progression, llmEnabled });
-          return applyRoguelikeState(state, next, []);
+          return { ...applyRoguelikeState(state, next, []), ruleLog: [] };
         }),
       moveToNode: (nodeId) =>
         set((state) => {
@@ -383,7 +383,7 @@ export const useGameStore = create<GameStore>()(
             progression: state.progression,
             llmEnabled: false,
           });
-          return applyRoguelikeState(state, next, []);
+          return { ...applyRoguelikeState(state, next, []), ruleLog: [] };
         }),
       setNarrativeDraft: (draft) =>
         set((state) => ({ narrative: { ...state.narrative, draft, inputError: null } })),
