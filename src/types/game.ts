@@ -1,3 +1,5 @@
+import type { LlmDirectorState } from '../llm/directorState';
+
 export type RiskLevel = 'D' | 'C' | 'B' | 'A' | 'S';
 export type GenerationStatus =
   | 'idle'
@@ -271,6 +273,7 @@ export interface GameDataState {
   progression: ProgressionState;
   ruleLog: RuleEvent[];
   randomState: SeededRandomState;
+  llmDirector: LlmDirectorState;
   session: SessionState;
   narrative: NarrativeState;
   memoryMap: MemoryMapState;

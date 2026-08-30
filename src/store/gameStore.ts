@@ -10,6 +10,17 @@ import type {
   RuleEvent,
   RunMode,
 } from '../game/types';
+import {
+  acceptForRun,
+  beginDirectorRequest as beginDirectorRequestState,
+  createLlmDirectorState,
+  failDirectorRequest as failDirectorRequestState,
+  markDirectorTriggerHandled as markDirectorTriggerHandledState,
+  resolveIntentEffect,
+  type DirectorContentSource,
+} from '../llm/directorState';
+import type { IndependentEventContent, NovelBlueprintContent, TemporaryQuoteContent } from '../llm/gameContent';
+import type { GameContentRequestErrorCode, GameContentTask } from '../llm/gameContentClient';
 import type {
   ArchiveRecord,
   ArchiveKind,
@@ -34,6 +45,14 @@ interface GameActions {
   stabilizeMemoryCore: () => void;
   resolveFragmentChoice: (choice: FragmentOverflowChoice) => void;
   resetRun: () => void;
+  beginDirectorRequest: (kind: GameContentTask, triggerKey: string) => string;
+  acceptDirectorEvent: (token: string, triggerKey: string, content: IndependentEventContent, source: DirectorContentSource) => void;
+  acceptDirectorQuote: (token: string, triggerKey: string, content: TemporaryQuoteContent, source: DirectorContentSource) => void;
+  acceptNovelBlueprint: (token: string, triggerKey: string, content: NovelBlueprintContent, source: DirectorContentSource) => void;
+  failDirectorRequest: (kind: GameContentTask, token: string, errorCode: GameContentRequestErrorCode) => void;
+  markDirectorTriggerHandled: (triggerKey: string) => void;
+  resolveDirectorChoice: (choiceId: string) => void;
+  resetDirectorForRun: () => void;
   setNarrativeDraft: (draft: string) => void;
   setInputMode: (inputMode: InputMode) => void;
   setGenerationStatus: (generationStatus: GenerationStatus) => void;
@@ -140,6 +159,7 @@ function buildPersistedState(state: GameStore): GameDataState {
     progression: state.progression,
     ruleLog: state.ruleLog,
     randomState: state.randomState,
+    llmDirector: state.llmDirector,
     session: state.session,
     narrative: state.narrative,
     memoryMap: state.memoryMap,
@@ -334,12 +354,16 @@ function materializeSession(state: GameStore, sessionId: string | null, events: 
 
 export const useGameStore = create<GameStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...buildDemoState(),
       startRun: (seed, mode, llmEnabled) =>
         set((state) => {
           const next = createRun({ seed, mode, progression: state.progression, llmEnabled });
-          return { ...applyRoguelikeState(state, next, []), ruleLog: [] };
+          return {
+            ...applyRoguelikeState(state, next, []),
+            ruleLog: [],
+            llmDirector: createLlmDirectorState(next.run.id),
+          };
         }),
       moveToNode: (nodeId) =>
         set((state) => {
@@ -383,8 +407,63 @@ export const useGameStore = create<GameStore>()(
             progression: state.progression,
             llmEnabled: false,
           });
-          return { ...applyRoguelikeState(state, next, []), ruleLog: [] };
+          return {
+            ...applyRoguelikeState(state, next, []),
+            ruleLog: [],
+            llmDirector: createLlmDirectorState(next.run.id),
+          };
         }),
+      beginDirectorRequest: (kind, triggerKey) => {
+        const result = beginDirectorRequestState(get().llmDirector, kind, triggerKey);
+        set({ llmDirector: result.state });
+        return result.token;
+      },
+      acceptDirectorEvent: (token, triggerKey, content, source) =>
+        set((state) => ({
+          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'event', token, (director) => ({
+            ...director,
+            event: { triggerKey, content, source, resolvedChoiceId: null },
+          })),
+        })),
+      acceptDirectorQuote: (token, triggerKey, content, source) =>
+        set((state) => ({
+          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'quote', token, (director) => ({
+            ...director,
+            quote: { triggerKey, content, source },
+          })),
+        })),
+      acceptNovelBlueprint: (token, triggerKey, content, source) =>
+        set((state) => ({
+          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'novel', token, (director) => ({
+            ...director,
+            novel: { triggerKey, content, source },
+          })),
+        })),
+      failDirectorRequest: (kind, token, errorCode) =>
+        set((state) => ({
+          llmDirector: failDirectorRequestState(state.llmDirector, state.run.id, kind, token, errorCode),
+        })),
+      markDirectorTriggerHandled: (triggerKey) =>
+        set((state) => ({ llmDirector: markDirectorTriggerHandledState(state.llmDirector, triggerKey) })),
+      resolveDirectorChoice: (choiceId) =>
+        set((state) => {
+          const event = state.llmDirector.event;
+          if (!event || event.resolvedChoiceId) return state;
+          const choice = event.content.choices.find((item) => item.id === choiceId);
+          if (!choice) return state;
+          const effect = resolveIntentEffect(choice.intent, state.rosmontis);
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'apply-vitals', ...effect });
+          if (!resolution.accepted) return state;
+          return {
+            ...applyRoguelikeState(state, resolution.state, resolution.events),
+            llmDirector: {
+              ...state.llmDirector,
+              event: { ...event, resolvedChoiceId: choiceId },
+            },
+          };
+        }),
+      resetDirectorForRun: () =>
+        set((state) => ({ llmDirector: createLlmDirectorState(state.run.id) })),
       setNarrativeDraft: (draft) =>
         set((state) => ({ narrative: { ...state.narrative, draft, inputError: null } })),
       setInputMode: (inputMode) =>
@@ -859,7 +938,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
       migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),

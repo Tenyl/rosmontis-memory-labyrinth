@@ -94,19 +94,19 @@ await expect(requestStructuredGameContent({ transport, api, task: 'quote', messa
 - Consumes: validated LLM content and existing `applyRunVitals`/Run lifecycle.
 - Produces: `LlmDirectorState`, store actions `beginDirectorRequest`, `acceptDirectorEvent`, `acceptDirectorQuote`, `acceptNovelBlueprint`, `failDirectorRequest`, `markDirectorTriggerHandled`, `resolveDirectorChoice`, and `resetDirectorForRun`.
 
-- [ ] **Step 1: Write failing pure tests** for deterministic local intent settlement, handled trigger deduplication, stale Run response rejection, and reset behavior.
+- [x] **Step 1: Write failing pure tests** for deterministic local intent settlement, handled trigger deduplication, stale Run response rejection, and reset behavior.
 
 ```ts
 expect(resolveIntentEffect('scan', { sanity: 60, overload: 30 })).toEqual({ sanityDelta: -1, overloadDelta: 7 });
 expect(acceptForRun(state, 'old-run', event)).toBe(state);
 ```
 
-- [ ] **Step 2: Verify RED** with `pnpm vitest run src/llm/directorState.test.ts src/store/gameStore.test.ts src/store/gameStateMigration.test.ts`.
-- [ ] **Step 3: Implement the director slice** with request tokens `${runId}:${kind}:${triggerKey}`, source labels `remote | local-fallback`, and no API settings or secrets.
-- [ ] **Step 4: Implement local choice settlement** by mapping the allowlisted intent to fixed vitals deltas and calling the existing Run store action; the LLM-provided label never supplies a number.
-- [ ] **Step 5: Extend migration** so old saves receive an empty director slice and malformed/stale pending requests reset to idle without deleting Run progress.
-- [ ] **Step 6: Run GREEN tests and `pnpm typecheck`**.
-- [ ] **Step 7: Commit** with `feat: persist llm game director state`.
+- [x] **Step 2: Verify RED** with `pnpm vitest run src/llm/directorState.test.ts src/store/gameStore.test.ts src/store/gameStateMigration.test.ts`.
+- [x] **Step 3: Implement the director slice** with request tokens `${runId}:${kind}:${triggerKey}`, source labels `remote | local-fallback`, and no API settings or secrets.
+- [x] **Step 4: Implement local choice settlement** by mapping the allowlisted intent to fixed vitals deltas and calling the existing Run store action; the LLM-provided label never supplies a number.
+- [x] **Step 5: Extend migration** so old saves receive an empty director slice and malformed/stale pending requests reset to idle without deleting Run progress.
+- [x] **Step 6: Run GREEN tests and `pnpm typecheck`**.
+- [x] **Step 7: Commit** with `feat: persist llm game director state`.
 
 ### Task 4: Automatic independent event flow
 

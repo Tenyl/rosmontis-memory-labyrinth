@@ -76,6 +76,43 @@ test('starts and advances a deterministic Run through store adapters', () => {
   expect(state.ruleLog.at(-1)).toMatchObject({ type: 'run.moved', targetNodeId: target });
 });
 
+test('binds director requests to the active Run and settles event intent through local rules', () => {
+  useGameStore.getState().startRun('DIRECTOR-RUN', 'preset', true);
+  const token = useGameStore.getState().beginDirectorRequest('event', 'node-trigger');
+  useGameStore.getState().markDirectorTriggerHandled('event:node-trigger');
+  useGameStore.getState().acceptDirectorEvent(token, 'node-trigger', {
+    title: '逆流雨幕',
+    situation: '雨滴带走倒影。',
+    choices: [
+      { id: 'scan-rain', label: '读取雨声', description: '确认记忆残留。', intent: 'scan' },
+      { id: 'hold-line', label: '守住边界', description: '拒绝异常靠近。', intent: 'guard' },
+    ],
+  }, 'remote');
+
+  expect(useGameStore.getState().llmDirector).toMatchObject({
+    runId: useGameStore.getState().run.id,
+    handledTriggers: ['event:node-trigger'],
+    event: { triggerKey: 'node-trigger', source: 'remote', resolvedChoiceId: null },
+  });
+
+  useGameStore.getState().resolveDirectorChoice('scan-rain');
+  expect(useGameStore.getState().rosmontis).toMatchObject({ sanity: 99, overload: 7 });
+  expect(useGameStore.getState().llmDirector.event?.resolvedChoiceId).toBe('scan-rain');
+});
+
+test('rejects stale director responses and resets director content for a new Run', () => {
+  useGameStore.getState().startRun('DIRECTOR-OLD', 'preset', true);
+  const staleToken = useGameStore.getState().beginDirectorRequest('quote', 'rule-1');
+  useGameStore.getState().startRun('DIRECTOR-NEW', 'preset', true);
+
+  useGameStore.getState().acceptDirectorQuote(staleToken, 'rule-1', { text: '我还在旧的记忆里。' }, 'remote');
+
+  const state = useGameStore.getState();
+  expect(state.llmDirector.runId).toBe(state.run.id);
+  expect(state.llmDirector.quote).toBeNull();
+  expect(state.llmDirector.handledTriggers).toEqual([]);
+});
+
 test('settles greatswords through pure rules and synchronizes the status-page adapter', () => {
   useGameStore.getState().startRun('STORE-SWORD', 'preset', false);
   useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'thought-rest' });
@@ -177,7 +214,7 @@ test('persists the explicit roguelike schema version', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 44);
   const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
 
-  expect(persisted.version).toBe(2);
+  expect(persisted.version).toBe(3);
   expect(persisted.state.run.seed).toBeTruthy();
   expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(4);
 });

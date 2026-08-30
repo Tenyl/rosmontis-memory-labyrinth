@@ -1,5 +1,6 @@
 import { validateMaze } from '../game/maze';
 import type { MazeGraph } from '../game/types';
+import { restoreLlmDirectorState } from '../llm/directorState';
 import type { GameDataState } from '../types/game';
 
 const roguelikeKeys = [
@@ -49,6 +50,7 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
   if (isRecord(persisted.narrative) && persisted.narrative.inputMode === '询问队员') {
     merged.narrative = { ...merged.narrative, inputMode: '状态询问' };
   }
+  merged.llmDirector = restoreLlmDirectorState(persisted.llmDirector, merged.run.id);
   return merged;
 }
 

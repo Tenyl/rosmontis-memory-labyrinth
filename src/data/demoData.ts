@@ -5,6 +5,7 @@ import type {
   Operator,
 } from '../types/game';
 import { createRun } from '../game/run';
+import { createLlmDirectorState } from '../llm/directorState';
 
 const surfaceNodes: MemoryNode[] = [
   {
@@ -208,6 +209,7 @@ export function buildDemoState(): GameDataState {
     progression: roguelike.progression,
     ruleLog: [],
     randomState: roguelike.randomState,
+    llmDirector: createLlmDirectorState(roguelike.run.id),
     session: {
       operationCode: '雨幕回声',
       chapter: '第一章 / 失温病历',

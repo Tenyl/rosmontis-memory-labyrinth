@@ -81,4 +81,25 @@ describe('versioned game state migration', () => {
 
     expect(migrated.narrative.inputMode).toBe('状态询问');
   });
+
+  test('adds director state to old saves and clears stale loading requests', () => {
+    const current = buildDemoState();
+    const missing = structuredClone(current) as any;
+    delete missing.llmDirector;
+    const stale = structuredClone(current) as any;
+    stale.llmDirector.runId = 'old-run';
+    stale.llmDirector.requests.event = {
+      status: 'loading',
+      token: 'old-run:event:node-a',
+      errorCode: null,
+    };
+
+    const migratedMissing = migrateGameState(missing, current);
+    const migratedStale = migrateGameState(stale, current);
+
+    expect(migratedMissing.llmDirector.runId).toBe(migratedMissing.run.id);
+    expect(migratedMissing.llmDirector.requests.event.status).toBe('idle');
+    expect(migratedStale.llmDirector.runId).toBe(migratedStale.run.id);
+    expect(migratedStale.llmDirector.requests.event).toEqual({ status: 'idle', token: null, errorCode: null });
+  });
 });
