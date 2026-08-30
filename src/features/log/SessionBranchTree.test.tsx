@@ -6,7 +6,8 @@ test('会话分支按父子层级显示精确分歧回合，载入父会话后�
   const user = userEvent.setup();
   renderApp('/operation');
 
-  await user.click(await screen.findByRole('button', { name: /打开历史记录/ }));
+  await screen.findByRole('heading', { name: '作战主控台' }, { timeout: 5_000 });
+  await user.click(await screen.findByRole('button', { name: /打开历史记录/ }, { timeout: 5_000 }));
   const history = await screen.findByRole('dialog', { name: '历史记录' });
   await user.click(within(history).getByRole('button', { name: '从第 1 条消息创建分支' }));
 

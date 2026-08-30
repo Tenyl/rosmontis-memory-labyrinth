@@ -1,4 +1,4 @@
-import { expect, test, type Download } from '@playwright/test';
+import { expect, test, type Download, type Locator } from '@playwright/test';
 
 async function downloadJson(download: Download) {
   const stream = await download.createReadStream();
@@ -6,6 +6,19 @@ async function downloadJson(download: Download) {
   let text = '';
   for await (const chunk of stream) text += chunk;
   return JSON.parse(text) as Record<string, unknown>;
+}
+
+async function expectFieldsOnSeparateRows(
+  container: Locator,
+  selector = ':scope > label',
+) {
+  const fields = container.locator(selector);
+  const count = await fields.count();
+  expect(count).toBeGreaterThan(1);
+  const tops = await fields.evaluateAll((elements) => elements.map((element) => (
+    Math.round(element.getBoundingClientRect().top)
+  )));
+  expect(new Set(tops).size).toBe(count);
 }
 
 test('单主角编排隐藏角色管理且世界书与预设支持 SillyTavern JSON 导入导出', async ({ page }) => {
@@ -52,4 +65,40 @@ test('设置页在浏览器内同时报告全部必填字段错误', async ({ pa
   await page.locator('#settings-api-save').click();
   await expect(page.getByText('请输入 API 基础 URL')).toBeVisible();
   await expect(page.getByText('请输入模型名称')).toBeVisible();
+});
+
+test('所有设置编辑窗口均将字段逐项分行并保持在弹窗宽度内', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/operation');
+  await page.locator('#global-tavern-open').click();
+
+  await page.locator('#tavern-tab-presets').click();
+  await page.locator('button[id^="preset-edit-"]').first().click();
+  const presetDialog = page.getByRole('dialog', { name: '预设编辑器' });
+  await expect(presetDialog).toBeVisible();
+  await expectFieldsOnSeparateRows(presetDialog.locator('.tavern-sampling-grid'));
+  await expect.poll(async () => presetDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expectFieldsOnSeparateRows(presetDialog.locator('.tavern-sampling-grid'));
+  await expect.poll(async () => presetDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await presetDialog.getByRole('button', { name: '关闭', exact: true }).click();
+
+  await page.locator('#tavern-tab-lorebooks').click();
+  await page.locator('button[id^="lorebook-edit-"]').first().click();
+  const lorebookDialog = page.getByRole('dialog', { name: '世界书编辑器' });
+  await expect(lorebookDialog).toBeVisible();
+  await expectFieldsOnSeparateRows(lorebookDialog.locator('.tavern-entry-form .tavern-editor-grid').first());
+  await expect.poll(async () => lorebookDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect.poll(async () => lorebookDialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto('/settings');
+  await expect(page.getByRole('heading', { name: '接口连接' })).toBeVisible();
+  await expectFieldsOnSeparateRows(page.locator('.settings-connection-grid'), ':scope > fieldset');
+  await page.getByRole('tab', { name: '解析协议' }).click();
+  await expect(page.getByRole('heading', { name: '解析协议' })).toBeVisible();
+  await expectFieldsOnSeparateRows(page.locator('.settings-parsing-layout'), ':scope > section');
 });

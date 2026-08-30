@@ -21,11 +21,11 @@
 .settings-mode-indicator.is-local { border-color: var(--color-line-strong); color: var(--color-memory-blue); }
 .settings-mode-indicator.is-remote { border-color: var(--color-arts-green); color: var(--color-arts-green); }
 .settings-panel-loading { min-height: 220px; display: grid; place-items: center; color: var(--color-text-tertiary); font: 500 .66rem/1.5 var(--font-data); }
-.settings-connection-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
-.settings-fieldset { display: grid; align-content: start; gap: var(--space-3); min-width: 0; margin: 0; padding: var(--space-6); border: 0; border-right: 1px solid var(--color-line-subtle); }
-.settings-fieldset:last-child { border-right: 0; }
+.settings-connection-grid { display: grid; grid-template-columns: minmax(0,1fr); }
+.settings-fieldset { display: grid; align-content: start; gap: var(--space-3); min-width: 0; margin: 0; padding: var(--space-6); border: 0; border-bottom: 1px solid var(--color-line-subtle); }
+.settings-fieldset:last-child { border-bottom: 0; }
 .settings-fieldset legend { width: 100%; margin-bottom: var(--space-2); padding: 0 0 var(--space-4); border-bottom: 1px solid var(--color-line-subtle); color: var(--color-memory-blue); font: 600 .66rem/1 var(--font-data); letter-spacing: .08em; }
-.settings-fieldset > label:not(.settings-toggle-row),.settings-labeled-field,.settings-select-field,.settings-format-field { display: grid; gap: var(--space-2); color: var(--color-text-secondary); font-size: .66rem; }
+.settings-fieldset > label:not(.settings-toggle-row),.settings-labeled-field,.settings-select-field,.settings-format-field { display: grid; min-width: 0; align-items: stretch; gap: var(--space-2); color: var(--color-text-secondary); font-size: .66rem; }
 .settings-fieldset input,.settings-select-field select,.settings-format-field textarea { width: 100%; min-height: 44px; border: 1px solid var(--color-line-strong); background: var(--color-background-deep); padding: 0 var(--space-3); color: var(--color-text-primary); font: 500 .7rem/1.5 var(--font-data); }
 .settings-fieldset input:disabled { opacity: .45; cursor: not-allowed; }
 .settings-fieldset input[aria-invalid="true"] { border-color: var(--color-danger-red); }
@@ -51,11 +51,11 @@
 .settings-security-note svg,.settings-security-banner svg { flex: 0 0 auto; color: var(--color-memory-blue); }
 .settings-security-note strong,.settings-security-banner strong { font-size: .68rem; }
 .settings-security-note p,.settings-security-banner p { margin: var(--space-2) 0 0; color: var(--color-text-secondary); font-size: .62rem; line-height: 1.6; }
-.settings-workspace-actions { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-line-subtle); background: var(--color-background-elevated); }
+.settings-workspace-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-line-subtle); background: var(--color-background-elevated); }
 .settings-workspace-actions > span { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-tertiary); font-size: .6rem; }
-.settings-parsing-layout { display: grid; grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); }
-.settings-protocol-card { min-width: 0; padding: var(--space-6); border-right: 1px solid var(--color-line-subtle); }
-.settings-protocol-card:last-child { border-right: 0; }
+.settings-parsing-layout { display: grid; grid-template-columns: minmax(0,1fr); }
+.settings-protocol-card { min-width: 0; padding: var(--space-6); border-bottom: 1px solid var(--color-line-subtle); }
+.settings-protocol-card:last-child { border-bottom: 0; }
 .settings-protocol-card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-5); }
 .settings-protocol-card h3 { margin: var(--space-2) 0 0; font-size: .9rem; }
 .settings-tag-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
