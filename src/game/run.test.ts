@@ -35,19 +35,61 @@ describe('run creation and mode availability', () => {
 });
 
 describe('run reducer', () => {
+  test('blocks movement until the current encounter is resolved', () => {
+    const before = createRun({ seed: 'encounter-gate', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const target = before.maze.edges.find((edge) => !edge.locked && edge.sourceId === before.run.currentNodeId)!.targetId;
+
+    const blocked = reduceRunAction(before, { type: 'move-to-node', nodeId: target });
+    const resolved = reduceRunAction(before, { type: 'resolve-encounter', choiceId: 'rest-rehearse' });
+    const moved = reduceRunAction(resolved.state, { type: 'move-to-node', nodeId: target });
+
+    expect(blocked).toMatchObject({ accepted: false, state: before, reason: '必须先完成当前节点遭遇。' });
+    expect(resolved.state.pendingEncounter).toMatchObject({ kind: 'rest', resolved: true });
+    expect(moved.accepted).toBe(true);
+  });
+
+  test('finishing a non-final exit builds the next floor and restores exploration charges', () => {
+    const before = createRun({ seed: 'floor-transition', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const atExit = {
+      ...before,
+      run: { ...before.run, currentNodeId: before.maze.coreNodeId },
+      maze: {
+        ...before.maze,
+        nodes: before.maze.nodes.map((node) => ({
+          ...node,
+          state: node.id === before.maze.coreNodeId ? 'completed' as const : node.state,
+        })),
+      },
+      pendingEncounter: before.pendingEncounter
+        ? { ...before.pendingEncounter, nodeId: before.maze.coreNodeId, resolved: true }
+        : null,
+      explorationCharges: { breach: 0 as const, watch: 0 as const, perception: 0 as const, resonance: 0 as const },
+    };
+
+    const result = reduceRunAction(atExit, { type: 'advance-floor' });
+
+    expect(result.accepted).toBe(true);
+    expect(result.state.run.floor).toBe(2);
+    expect(result.state.maze.floor).toBe(2);
+    expect(result.state.run.currentNodeId).toBe(result.state.maze.startNodeId);
+    expect(Object.values(result.state.explorationCharges)).toEqual([1, 1, 1, 1]);
+    expect(result.state.pendingEncounter).toMatchObject({ kind: 'rest', resolved: false });
+  });
+
   test('moves only along an outgoing path and reveals the next frontier', () => {
     const before = createRun({ seed: 'movement', mode: 'preset', progression: freshProgression, llmEnabled: false });
-    const edge = before.maze.edges.find((item) => item.sourceId === before.run.currentNodeId)!;
-    const invalidTarget = before.maze.nodes.find((node) => !before.maze.edges.some((item) => item.sourceId === before.run.currentNodeId && item.targetId === node.id))!;
+    const ready = reduceRunAction(before, { type: 'resolve-encounter', choiceId: 'rest-rehearse' }).state;
+    const edge = ready.maze.edges.find((item) => item.sourceId === ready.run.currentNodeId && !item.locked)!;
+    const invalidTarget = ready.maze.nodes.find((node) => !ready.maze.edges.some((item) => item.sourceId === ready.run.currentNodeId && item.targetId === node.id))!;
 
-    const invalid = reduceRunAction(before, { type: 'move-to-node', nodeId: invalidTarget.id });
-    const moved = reduceRunAction(before, { type: 'move-to-node', nodeId: edge.targetId });
+    const invalid = reduceRunAction(ready, { type: 'move-to-node', nodeId: invalidTarget.id });
+    const moved = reduceRunAction(ready, { type: 'move-to-node', nodeId: edge.targetId });
 
-    expect(invalid).toMatchObject({ accepted: false, state: before, reason: '目标节点当前不可到达。' });
+    expect(invalid).toMatchObject({ accepted: false, state: ready, reason: '目标节点当前不可到达。' });
     expect(moved.accepted).toBe(true);
     expect(moved.state.run.currentNodeId).toBe(edge.targetId);
     expect(moved.state.run.turn).toBe(2);
-    expect(moved.state.maze.nodes.find((node) => node.id === before.run.currentNodeId)?.state).toBe('completed');
+    expect(moved.state.maze.nodes.find((node) => node.id === ready.run.currentNodeId)?.state).toBe('completed');
     expect(moved.state.maze.nodes.find((node) => node.id === edge.targetId)?.state).toBe('current');
     expect(moved.state.maze.edges
       .filter((item) => item.sourceId === edge.targetId)
@@ -61,9 +103,10 @@ describe('run reducer', () => {
       type: 'use-greatsword',
       action: { swordId: 'watch', target: 'self', nodeType: 'rest' },
     }).state;
-    const target = afterWatch.maze.edges.find((edge) => edge.sourceId === afterWatch.run.currentNodeId)!.targetId;
+    const ready = reduceRunAction(afterWatch, { type: 'resolve-encounter', choiceId: 'rest-rehearse' }).state;
+    const target = ready.maze.edges.find((edge) => edge.sourceId === ready.run.currentNodeId && !edge.locked)!.targetId;
 
-    const moved = reduceRunAction(afterWatch, { type: 'move-to-node', nodeId: target });
+    const moved = reduceRunAction(ready, { type: 'move-to-node', nodeId: target });
 
     expect(afterWatch.rosmontis).toMatchObject({ actionPoints: 3, greatswords: { watch: { cooldown: 1 } } });
     expect(moved.state.rosmontis).toMatchObject({ actionPoints: 4, greatswords: { watch: { cooldown: 0 } } });
@@ -142,7 +185,7 @@ describe('run reducer', () => {
   });
 
   test('stabilizing the current memory core wins and records the first clear', () => {
-    const before = createRun({ seed: 'victory', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const before = createRun({ seed: 'victory', mode: 'preset', progression: freshProgression, llmEnabled: false, floor: 3 });
     const atCore = {
       ...before,
       run: { ...before.run, currentNodeId: before.maze.coreNodeId },
@@ -165,7 +208,7 @@ describe('run reducer', () => {
   });
 
   test('completes the memory core through its protected fragment and one legal resonance action', () => {
-    const before = createRun({ seed: 'core-route', mode: 'preset', progression: freshProgression, llmEnabled: false });
+    const before = createRun({ seed: 'core-route', mode: 'preset', progression: freshProgression, llmEnabled: false, floor: 3 });
     const coreFragment: MemoryFragment = {
       id: 'fragment-core-route',
       name: '核心记忆：仍被呼唤的名字',

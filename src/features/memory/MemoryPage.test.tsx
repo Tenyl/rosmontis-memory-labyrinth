@@ -18,6 +18,7 @@ test('renders the active seeded Run instead of the editable prototype memory map
 test('moves the active Run by selecting a reachable generated node', async () => {
   const user = userEvent.setup();
   renderApp('/memory');
+  useGameStore.getState().resolveEncounterChoice('rest-rehearse');
   const before = useGameStore.getState();
   const reachable = before.maze.nodes.find((node) => node.state === 'reachable')!;
 

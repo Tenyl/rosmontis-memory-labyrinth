@@ -42,6 +42,7 @@ export interface RunState {
   phase: RunPhase;
   turn: number;
   floor: number;
+  maxFloor: number;
   currentNodeId: string;
   result: 'victory' | 'defeat' | null;
 }
@@ -197,6 +198,12 @@ export interface ExplorationRuleState {
   currentNodeId: string;
 }
 
+export interface ExplorationPowerAction {
+  swordId: GreatswordId;
+  nodeId?: string;
+  edgeId?: string;
+}
+
 export interface FragmentRuleState {
   phase: RunPhase;
   inventory: MemoryInventory;
@@ -218,10 +225,21 @@ export interface RoguelikeState {
   memoryInventory: MemoryInventory;
   progression: ProgressionState;
   randomState: SeededRandomState;
+  economy: EconomyState;
+  modules: ModuleId[];
+  explorationCharges: ExplorationCharges;
+  routeEffects: RouteEffects;
+  pendingEncounter: PendingEncounter | null;
 }
 
 export type RunAction =
   | { type: 'move-to-node'; nodeId: string }
+  | { type: 'begin-node' }
+  | { type: 'resolve-encounter'; choiceId: string }
+  | { type: 'purchase-offer'; offerId: string }
+  | { type: 'sell-fragment'; fragmentId: string }
+  | { type: 'use-exploration-power'; action: ExplorationPowerAction }
+  | { type: 'advance-floor' }
   | { type: 'complete-node'; fragment?: MemoryFragment }
   | { type: 'use-greatsword'; action: GreatswordAction }
   | { type: 'resolve-fragment-overflow'; choice: FragmentOverflowChoice }

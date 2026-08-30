@@ -10,6 +10,7 @@ const run: RunState = {
   phase: 'exploring',
   turn: 4,
   floor: 2,
+  maxFloor: 3,
   currentNodeId: 'node-2',
   result: null,
 };

@@ -114,4 +114,33 @@ describe('versioned game state migration', () => {
     expect(migrated.memoryCompendium).toEqual([]);
     expect(migrated.runHistory).toEqual([]);
   });
+
+  test('adds integrated-run defaults to a legacy save while preserving progression and compendium', () => {
+    const current = buildDemoState();
+    const previous = structuredClone(current) as any;
+    delete previous.economy;
+    delete previous.modules;
+    delete previous.explorationCharges;
+    delete previous.routeEffects;
+    delete previous.pendingEncounter;
+    previous.progression = { firstClear: true, completedRuns: 4 };
+    previous.memoryCompendium = [{
+      id: 'legacy-memory',
+      name: '旧记忆',
+      kind: 'standard',
+      tags: [],
+      discoveredRunId: 'legacy-run',
+      discoveries: 1,
+    }];
+
+    const migrated = migrateGameState(previous, current);
+
+    expect(migrated.economy).toEqual({ echoes: 0, scoutPoints: 1, shopPurchases: [] });
+    expect(migrated.modules).toEqual([]);
+    expect(migrated.explorationCharges).toEqual({ breach: 1, watch: 1, perception: 1, resonance: 1 });
+    expect(migrated.routeEffects).toMatchObject({ nextNodeGuarded: false, resonanceActive: false });
+    expect(migrated.pendingEncounter).toBeNull();
+    expect(migrated.progression).toEqual({ firstClear: true, completedRuns: 4 });
+    expect(migrated.memoryCompendium[0]?.id).toBe('legacy-memory');
+  });
 });

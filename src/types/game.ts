@@ -297,6 +297,11 @@ export interface GameDataState {
   progression: ProgressionState;
   ruleLog: RuleEvent[];
   randomState: SeededRandomState;
+  economy: EconomyState;
+  modules: ModuleId[];
+  explorationCharges: ExplorationCharges;
+  routeEffects: RouteEffects;
+  pendingEncounter: PendingEncounter | null;
   llmDirector: LlmDirectorState;
   memoryCompendium: MemoryCompendiumEntry[];
   runHistory: RunHistoryRecord[];
@@ -310,12 +315,17 @@ export interface GameDataState {
   ui: UiState;
 }
 import type {
+  EconomyState,
+  ExplorationCharges,
   GreatswordCombatState,
   MazeGraph,
   MemoryInventory,
+  ModuleId,
+  PendingEncounter,
   ProgressionState,
   RuleEvent,
   RunMode,
   RunState,
+  RouteEffects,
   SeededRandomState,
 } from '../game/types';

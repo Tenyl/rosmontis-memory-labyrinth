@@ -11,6 +11,7 @@ const run: RunState = {
   phase: 'exploring',
   turn: 1,
   floor: 3,
+  maxFloor: 3,
   currentNodeId: 'node-echo',
   result: null,
 };

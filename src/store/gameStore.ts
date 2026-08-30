@@ -5,6 +5,7 @@ import { createRun, reduceRunAction } from '../game/run';
 import type {
   FragmentOverflowChoice,
   GreatswordAction,
+  ExplorationPowerAction,
   MemoryFragment,
   RoguelikeState,
   RuleEvent,
@@ -41,6 +42,12 @@ import { migrateGameState } from './gameStateMigration';
 interface GameActions {
   startRun: (seed: string, mode: RunMode, llmEnabled: boolean) => void;
   moveToNode: (nodeId: string) => void;
+  beginCurrentEncounter: () => void;
+  resolveEncounterChoice: (choiceId: string) => void;
+  purchaseShopOffer: (offerId: string) => void;
+  sellRunFragment: (fragmentId: string) => void;
+  useExplorationPower: (action: ExplorationPowerAction) => void;
+  advanceRunFloor: () => void;
   useGreatsword: (action: GreatswordAction) => void;
   completeCurrentNode: (fragment?: MemoryFragment) => void;
   applyRunVitals: (sanityDelta: number, overloadDelta: number) => void;
@@ -95,6 +102,11 @@ function selectRoguelikeState(state: GameStore): RoguelikeState {
     memoryInventory: state.memoryInventory,
     progression: state.progression,
     randomState: state.randomState,
+    economy: state.economy,
+    modules: state.modules,
+    explorationCharges: state.explorationCharges,
+    routeEffects: state.routeEffects,
+    pendingEncounter: state.pendingEncounter,
   };
 }
 
@@ -113,6 +125,11 @@ function applyRoguelikeState(
     memoryInventory: next.memoryInventory,
     progression: next.progression,
     randomState: next.randomState,
+    economy: next.economy,
+    modules: next.modules,
+    explorationCharges: next.explorationCharges,
+    routeEffects: next.routeEffects,
+    pendingEncounter: next.pendingEncounter,
     ruleLog: [...state.ruleLog, ...events],
     memoryCompendium,
     runHistory,
@@ -220,6 +237,11 @@ function buildPersistedState(state: GameStore): GameDataState {
     progression: state.progression,
     ruleLog: state.ruleLog,
     randomState: state.randomState,
+    economy: state.economy,
+    modules: state.modules,
+    explorationCharges: state.explorationCharges,
+    routeEffects: state.routeEffects,
+    pendingEncounter: state.pendingEncounter,
     llmDirector: state.llmDirector,
     memoryCompendium: state.memoryCompendium,
     runHistory: state.runHistory,
@@ -431,6 +453,36 @@ export const useGameStore = create<GameStore>()(
       moveToNode: (nodeId) =>
         set((state) => {
           const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'move-to-node', nodeId });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      beginCurrentEncounter: () =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'begin-node' });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      resolveEncounterChoice: (choiceId) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'resolve-encounter', choiceId });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      purchaseShopOffer: (offerId) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'purchase-offer', offerId });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      sellRunFragment: (fragmentId) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'sell-fragment', fragmentId });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      useExplorationPower: (action) =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'use-exploration-power', action });
+          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
+        }),
+      advanceRunFloor: () =>
+        set((state) => {
+          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'advance-floor' });
           return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
         }),
       useGreatsword: (action) =>
@@ -1001,7 +1053,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
       migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),

@@ -1,4 +1,7 @@
 import { clampVital } from './checks';
+import { createEncounter, resolveEncounterChoice } from './encounters';
+import { sellFragment } from './economy';
+import { useExplorationPower } from './exploration';
 import { acquireFragment, resolveFragmentOverflow } from './fragments';
 import { resolveGreatswordAction } from './greatswords';
 import { generateMaze } from './maze';
@@ -70,7 +73,7 @@ export function createRun(input: CreateRunInput): RoguelikeState {
     },
   };
 
-  return {
+  const state: RoguelikeState = {
     run: {
       id: `run-${maze.randomState.cursor.toString(36)}`,
       seed: input.seed,
@@ -78,6 +81,7 @@ export function createRun(input: CreateRunInput): RoguelikeState {
       phase: 'exploring',
       turn: 1,
       floor,
+      maxFloor: maze.maxFloor,
       currentNodeId: maze.startNodeId,
       result: null,
     },
@@ -91,7 +95,19 @@ export function createRun(input: CreateRunInput): RoguelikeState {
     },
     progression: { ...input.progression },
     randomState: maze.randomState,
+    economy: { echoes: 0, scoutPoints: 1, shopPurchases: [] },
+    modules: [],
+    explorationCharges: { breach: 1, watch: 1, perception: 1, resonance: 1 },
+    routeEffects: {
+      nextNodeGuarded: false,
+      shopDiscount: 0,
+      bossGlitchSuppressed: false,
+      resonanceActive: false,
+      freeScoutUsed: false,
+    },
+    pendingEncounter: null,
   };
+  return createEncounter(state, maze.nodes[0]);
 }
 
 export function reduceRunAction(state: RoguelikeState, action: RunAction): RunResolution {
@@ -103,6 +119,45 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
   }
 
   if (action.type === 'move-to-node') return moveToNode(state, action.nodeId);
+  if (action.type === 'begin-node') {
+    const node = state.maze.nodes.find((item) => item.id === state.run.currentNodeId);
+    if (!node) return rejected(state, '当前节点不存在。');
+    return accepted(createEncounter(state, node), []);
+  }
+  if (action.type === 'resolve-encounter') return resolveCurrentEncounter(state, action.choiceId);
+  if (action.type === 'purchase-offer') {
+    return resolveCurrentEncounter(state, `buy:${action.offerId}`);
+  }
+  if (action.type === 'sell-fragment') {
+    const resolution = sellFragment(state, action.fragmentId);
+    if (!resolution.accepted) return rejected(state, resolution.reason ?? '记忆碎片无法出售。');
+    return accepted({
+      ...state,
+      economy: resolution.state.economy,
+      modules: resolution.state.modules,
+      memoryInventory: resolution.state.memoryInventory,
+    }, resolution.events);
+  }
+  if (action.type === 'use-exploration-power') {
+    const resolution = useExplorationPower({
+      maze: state.maze,
+      economy: state.economy,
+      modules: state.modules,
+      explorationCharges: state.explorationCharges,
+      routeEffects: state.routeEffects,
+      currentNodeId: state.run.currentNodeId,
+    }, action.action);
+    if (!resolution.accepted) return rejected(state, resolution.reason ?? '探索能力无法执行。');
+    return accepted({
+      ...state,
+      maze: resolution.state.maze,
+      economy: resolution.state.economy,
+      modules: resolution.state.modules,
+      explorationCharges: resolution.state.explorationCharges,
+      routeEffects: resolution.state.routeEffects,
+    }, []);
+  }
+  if (action.type === 'advance-floor') return advanceFloor(state);
   if (action.type === 'complete-node') return completeNode(state, action.fragment);
   if (action.type === 'use-greatsword') {
     const resolution = resolveGreatswordAction(state.rosmontis, action.action, state.randomState);
@@ -136,7 +191,12 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
     return applyDefeat(next, []);
   }
 
-  if (state.run.currentNodeId !== state.maze.coreNodeId) return rejected(state, '迷迭香尚未抵达记忆核心。');
+  const currentNode = state.maze.nodes.find((node) => node.id === state.run.currentNodeId);
+  if (
+    state.run.floor !== state.run.maxFloor
+    || state.run.currentNodeId !== state.maze.coreNodeId
+    || currentNode?.type !== 'boss'
+  ) return rejected(state, '迷迭香尚未抵达最终记忆核心。');
   if (state.rosmontis.coreStability < 100) return rejected(state, '记忆核心尚未稳定。');
   return accepted({
     ...state,
@@ -148,16 +208,134 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
   }, [{ type: 'run.ended', result: 'victory' }]);
 }
 
+function resolveCurrentEncounter(state: RoguelikeState, choiceId: string): RunResolution {
+  const resolution = resolveEncounterChoice(state, choiceId);
+  if (!resolution.accepted) {
+    return rejected(state, resolution.reason ?? '节点遭遇无法结算。');
+  }
+  const encounter = resolution.state.pendingEncounter;
+  if (!encounter?.resolved) return applyDefeat(resolution.state, resolution.events);
+
+  const nodeAlreadyCompleted = resolution.state.maze.nodes.some((node) => (
+    node.id === resolution.state.run.currentNodeId && node.state === 'completed'
+  ));
+  const nodeEvent: RuleEvent[] = nodeAlreadyCompleted
+    ? []
+    : [{ type: 'node.completed', nodeId: resolution.state.run.currentNodeId }];
+  let settled: RoguelikeState = {
+    ...resolution.state,
+    maze: {
+      ...resolution.state.maze,
+      nodes: resolution.state.maze.nodes.map((node) => (
+        node.id === resolution.state.run.currentNodeId
+          ? { ...node, state: 'completed' }
+          : node
+      )),
+    },
+  };
+  const events = [...resolution.events, ...nodeEvent];
+  const defeat = applyDefeat(settled, events);
+  if (defeat.state.run.phase === 'defeat') return defeat;
+
+  if (encounter.kind !== 'boss' || settled.run.floor !== settled.run.maxFloor) {
+    return accepted(settled, events);
+  }
+
+  const coreFragment = {
+    id: `fragment-core-${settled.run.id}`,
+    name: '核心记忆：仍被呼唤的名字',
+    kind: 'core' as const,
+    tags: ['核心', `第${settled.run.floor}层`],
+  };
+  const hasCore = settled.memoryInventory.coreFragments.some((fragment) => fragment.id === coreFragment.id);
+  if (!hasCore) {
+    settled = {
+      ...settled,
+      memoryInventory: {
+        ...settled.memoryInventory,
+        coreFragments: [...settled.memoryInventory.coreFragments, coreFragment],
+      },
+    };
+    events.push({ type: 'fragment.acquired', fragmentId: coreFragment.id, kind: 'core' });
+  }
+  events.push({ type: 'run.ended', result: 'victory' });
+  return accepted({
+    ...settled,
+    run: { ...settled.run, phase: 'victory', result: 'victory' },
+    progression: {
+      firstClear: true,
+      completedRuns: settled.progression.completedRuns + 1,
+    },
+  }, events);
+}
+
+function advanceFloor(state: RoguelikeState): RunResolution {
+  if (state.run.floor >= state.run.maxFloor) {
+    return rejected(state, '最终层不能继续推进。');
+  }
+  if (state.run.currentNodeId !== state.maze.coreNodeId) {
+    return rejected(state, '必须先抵达本层出口。');
+  }
+  if (state.pendingEncounter && !state.pendingEncounter.resolved) {
+    return rejected(state, '必须先完成本层出口遭遇。');
+  }
+  const exit = state.maze.nodes.find((node) => node.id === state.maze.coreNodeId);
+  if (!exit || exit.state !== 'completed') return rejected(state, '本层出口尚未完成结算。');
+
+  const floor = state.run.floor + 1;
+  const maze = generateMaze({
+    seed: state.run.seed,
+    mode: state.run.mode,
+    floor,
+    maxFloor: state.run.maxFloor,
+    targetNodeCount: state.maze.nodes.length,
+  });
+  const next: RoguelikeState = {
+    ...state,
+    run: {
+      ...state.run,
+      floor,
+      currentNodeId: maze.startNodeId,
+      turn: state.run.turn + 1,
+    },
+    maze,
+    rosmontis: {
+      ...refreshNodeResources(state.rosmontis),
+      guard: 0,
+      enemyIntegrity: 100,
+      coreStability: 0,
+    },
+    explorationCharges: { breach: 1, watch: 1, perception: 1, resonance: 1 },
+    routeEffects: {
+      nextNodeGuarded: false,
+      shopDiscount: 0,
+      bossGlitchSuppressed: false,
+      resonanceActive: false,
+      freeScoutUsed: false,
+    },
+    pendingEncounter: null,
+    randomState: maze.randomState,
+  };
+  return accepted(createEncounter(next, maze.nodes[0]), []);
+}
+
 function moveToNode(state: RoguelikeState, nodeId: string): RunResolution {
+  if (state.pendingEncounter && !state.pendingEncounter.resolved) {
+    return rejected(state, '必须先完成当前节点遭遇。');
+  }
+  const current = state.maze.nodes.find((node) => node.id === state.run.currentNodeId);
+  if (!current || current.state !== 'completed') return rejected(state, '必须先完成当前节点遭遇。');
   const target = state.maze.nodes.find((node) => node.id === nodeId);
   const connected = state.maze.edges.some((edge) => (
-    edge.sourceId === state.run.currentNodeId && edge.targetId === nodeId
+    edge.sourceId === state.run.currentNodeId && edge.targetId === nodeId && !edge.locked
   ));
   if (!target || !connected || target.state !== 'reachable') return rejected(state, '目标节点当前不可到达。');
 
-  const frontier = new Set(state.maze.edges.filter((edge) => edge.sourceId === nodeId).map((edge) => edge.targetId));
+  const frontier = new Set(state.maze.edges
+    .filter((edge) => edge.sourceId === nodeId && !edge.locked)
+    .map((edge) => edge.targetId));
   const sourceNodeId = state.run.currentNodeId;
-  return accepted({
+  const moved: RoguelikeState = {
     ...state,
     run: { ...state.run, currentNodeId: nodeId, turn: state.run.turn + 1 },
     rosmontis: refreshNodeResources(state.rosmontis),
@@ -170,7 +348,8 @@ function moveToNode(state: RoguelikeState, nodeId: string): RunResolution {
         return node;
       }),
     },
-  }, [{ type: 'run.moved', sourceNodeId, targetNodeId: nodeId }]);
+  };
+  return accepted(createEncounter(moved, target), [{ type: 'run.moved', sourceNodeId, targetNodeId: nodeId }]);
 }
 
 function completeNode(state: RoguelikeState, fragment?: import('./types').MemoryFragment): RunResolution {
@@ -187,6 +366,9 @@ function completeNode(state: RoguelikeState, fragment?: import('./types').Memory
         node.id === state.run.currentNodeId ? { ...node, state: 'completed' } : node
       )),
     },
+    pendingEncounter: state.pendingEncounter
+      ? { ...state.pendingEncounter, resolved: true }
+      : state.pendingEncounter,
   };
   if (!fragment) return accepted(settledState, [nodeEvent]);
   const resolution = acquireFragment({ phase: state.run.phase, inventory: state.memoryInventory }, fragment);

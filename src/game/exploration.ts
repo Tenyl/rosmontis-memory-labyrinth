@@ -1,14 +1,11 @@
 import { applyModuleEffect } from './modules';
 import type {
+  ExplorationPowerAction,
   ExplorationRuleState,
   GreatswordId,
 } from './types';
 
-export interface ExplorationAction {
-  swordId: GreatswordId;
-  nodeId?: string;
-  edgeId?: string;
-}
+export type ExplorationAction = ExplorationPowerAction;
 
 export interface ExplorationResolution {
   accepted: boolean;

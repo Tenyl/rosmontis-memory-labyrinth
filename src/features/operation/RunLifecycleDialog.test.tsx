@@ -10,6 +10,7 @@ const exploringRun: RunState = {
   phase: 'exploring',
   turn: 7,
   floor: 1,
+  maxFloor: 3,
   currentNodeId: 'node-current',
   result: null,
 };

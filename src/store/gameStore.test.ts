@@ -69,11 +69,42 @@ test('starts and advances a deterministic Run through store adapters', () => {
   ))!.targetId;
 
   expect(state.run).toMatchObject({ seed: 'STORE-RUN', mode: 'preset', phase: 'exploring' });
+  useGameStore.getState().resolveEncounterChoice('rest-rehearse');
   useGameStore.getState().moveToNode(target);
   state = useGameStore.getState();
 
   expect(state.run.currentNodeId).toBe(target);
   expect(state.ruleLog.at(-1)).toMatchObject({ type: 'run.moved', targetNodeId: target });
+});
+
+test('persists encounter, economy, modules, and exploration actions through store adapters', () => {
+  useGameStore.getState().startRun('STORE-INTEGRATED', 'preset', false);
+  let state = useGameStore.getState();
+
+  expect(state.pendingEncounter).toMatchObject({ kind: 'rest', resolved: false });
+  useGameStore.getState().resolveEncounterChoice('rest-rehearse');
+  state = useGameStore.getState();
+  expect(state.economy.scoutPoints).toBe(2);
+
+  useGameStore.getState().useExplorationPower({ swordId: 'watch' });
+  state = useGameStore.getState();
+  expect(state.explorationCharges.watch).toBe(0);
+  expect(state.routeEffects.nextNodeGuarded).toBe(true);
+
+  useGameStore.setState((current) => ({
+    economy: { ...current.economy, echoes: 30 },
+    pendingEncounter: {
+      kind: 'shop',
+      nodeId: current.run.currentNodeId,
+      resolved: false,
+      offers: [{ id: 'store-offer', kind: 'module', moduleId: 'overload-filter', price: 10 }],
+      choices: [{ id: 'leave-shop', label: '离开', description: '结束交易。' }],
+    },
+  }));
+  useGameStore.getState().purchaseShopOffer('store-offer');
+
+  expect(useGameStore.getState().modules).toContain('overload-filter');
+  expect(useGameStore.getState().economy.echoes).toBe(20);
 });
 
 test('binds director requests to the active Run and settles event intent through local rules', () => {
@@ -189,12 +220,15 @@ test('applies vital changes through rules and synchronizes a defeated Rosmontis'
 test('stabilizes the current memory core and persists first-clear progression', () => {
   useGameStore.getState().startRun('STORE-FIRST-CLEAR', 'preset', false);
   useGameStore.setState((state) => ({
-    run: { ...state.run, currentNodeId: state.maze.coreNodeId },
+    run: { ...state.run, floor: 3, maxFloor: 3, currentNodeId: state.maze.coreNodeId },
     rosmontis: { ...state.rosmontis, coreStability: 100 },
     maze: {
       ...state.maze,
+      floor: 3,
+      maxFloor: 3,
       nodes: state.maze.nodes.map((node) => ({
         ...node,
+        type: node.id === state.maze.coreNodeId ? 'boss' as const : node.type,
         state: node.id === state.maze.coreNodeId
           ? 'current'
           : node.state === 'current' ? 'completed' : node.state,
@@ -243,9 +277,9 @@ test('persists the explicit roguelike schema version', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 44);
   const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
 
-  expect(persisted.version).toBe(4);
+  expect(persisted.version).toBe(5);
   expect(persisted.state.run.seed).toBeTruthy();
-  expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(4);
+  expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(8);
   expect(persisted.state.runHistory).toEqual(expect.any(Array));
   expect(persisted.state.memoryCompendium).toEqual(expect.any(Array));
 });

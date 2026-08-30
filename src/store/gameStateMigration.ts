@@ -11,6 +11,11 @@ const roguelikeKeys = [
   'progression',
   'ruleLog',
   'randomState',
+  'economy',
+  'modules',
+  'explorationCharges',
+  'routeEffects',
+  'pendingEncounter',
 ] as const;
 
 export function migrateGameState(persisted: unknown, current: GameDataState): GameDataState {
@@ -33,11 +38,41 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
   merged.runHistory = Array.isArray(persisted.runHistory)
     ? persisted.runHistory
     : current.runHistory;
+  merged.economy = isRecord(persisted.economy)
+    && typeof persisted.economy.echoes === 'number'
+    && typeof persisted.economy.scoutPoints === 'number'
+    && Array.isArray(persisted.economy.shopPurchases)
+    ? {
+        echoes: persisted.economy.echoes,
+        scoutPoints: persisted.economy.scoutPoints,
+        shopPurchases: persisted.economy.shopPurchases,
+      }
+    : current.economy;
+  merged.modules = Array.isArray(persisted.modules) ? persisted.modules : current.modules;
+  merged.explorationCharges = isRecord(persisted.explorationCharges)
+    ? { ...current.explorationCharges, ...persisted.explorationCharges }
+    : current.explorationCharges;
+  merged.routeEffects = isRecord(persisted.routeEffects)
+    ? { ...current.routeEffects, ...persisted.routeEffects }
+    : current.routeEffects;
+  merged.pendingEncounter = Object.hasOwn(persisted, 'pendingEncounter')
+    && (persisted.pendingEncounter === null || isRecord(persisted.pendingEncounter))
+    ? persisted.pendingEncounter
+    : null;
 
   if (!hasValidRoguelikeState(persisted)) {
+    const savedProgression = isRecord(persisted.progression)
+      && typeof persisted.progression.firstClear === 'boolean'
+      && typeof persisted.progression.completedRuns === 'number'
+      ? {
+          firstClear: persisted.progression.firstClear,
+          completedRuns: persisted.progression.completedRuns,
+        }
+      : current.progression;
     for (const key of roguelikeKeys) {
       (merged as unknown as Record<string, unknown>)[key] = current[key];
     }
+    merged.progression = savedProgression;
   }
 
   const persistedOperators = isRecord(persisted.operators) && isRecord(persisted.operators.byId)
@@ -67,6 +102,7 @@ function hasValidRoguelikeState(value: Record<string, unknown>) {
   const run = value.run;
   const maze = value.maze;
   if (typeof run.currentNodeId !== 'string' || typeof run.mode !== 'string') return false;
+  if (typeof run.maxFloor !== 'number') return false;
   if (!Array.isArray(maze.nodes) || !Array.isArray(maze.edges)) return false;
   if (!maze.nodes.some((node) => isRecord(node) && node.id === run.currentNodeId)) return false;
   if (!Array.isArray(value.memoryInventory.fragments) || !Array.isArray(value.memoryInventory.coreFragments)) return false;
