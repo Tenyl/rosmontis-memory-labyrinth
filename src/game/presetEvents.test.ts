@@ -23,7 +23,7 @@ describe('deterministic offline preset events', () => {
     expect(select('event-replay').randomState.draws).toBe(1);
   });
 
-  test.each<MazeNodeType>(['combat', 'wonder', 'rest', 'boss'])(
+  test.each<MazeNodeType>(['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss'])(
     'selects a %s event with two or three choices',
     (nodeType) => {
       const { event } = select(`event-${nodeType}`, nodeType);

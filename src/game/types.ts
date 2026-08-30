@@ -132,6 +132,71 @@ export interface ModuleShopOffer {
   price: number;
 }
 
+export type ExplorationCharges = Record<GreatswordId, 0 | 1>;
+
+export interface RouteEffects {
+  nextNodeGuarded: boolean;
+  shopDiscount: number;
+  bossGlitchSuppressed: boolean;
+  resonanceActive: boolean;
+  freeScoutUsed: boolean;
+}
+
+export interface EncounterChoice {
+  id: string;
+  label: string;
+  description: string;
+  requiredTag?: string;
+  requiresResonance?: boolean;
+}
+
+interface EncounterBase {
+  nodeId: string;
+  resolved: boolean;
+  choices: EncounterChoice[];
+}
+
+export type PendingEncounter =
+  | (EncounterBase & {
+      kind: 'combat';
+      round: number;
+      maxRounds: number;
+      enemyIntegrity: number;
+      rewardEchoes: number;
+    })
+  | (EncounterBase & { kind: 'rest' })
+  | (EncounterBase & { kind: 'shop'; offers: ModuleShopOffer[] })
+  | (EncounterBase & { kind: 'wonder' })
+  | (EncounterBase & {
+      kind: 'unknown';
+      hiddenType: HiddenMazeNodeType;
+      glitch: boolean;
+      directEntryBonus: number;
+    })
+  | (EncounterBase & {
+      kind: 'boss';
+      phase: 'shield' | 'stability';
+      enemyIntegrity: number;
+      coreStability: number;
+      glitch: boolean;
+    });
+
+export interface EncounterRuleState extends RoguelikeState {
+  economy: EconomyState;
+  modules: ModuleId[];
+  routeEffects: RouteEffects;
+  pendingEncounter: PendingEncounter | null;
+}
+
+export interface ExplorationRuleState {
+  maze: MazeGraph;
+  economy: EconomyState;
+  modules: ModuleId[];
+  explorationCharges: ExplorationCharges;
+  routeEffects: RouteEffects;
+  currentNodeId: string;
+}
+
 export interface FragmentRuleState {
   phase: RunPhase;
   inventory: MemoryInventory;
