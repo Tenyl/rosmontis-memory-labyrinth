@@ -121,13 +121,13 @@ expect(acceptForRun(state, 'old-run', event)).toBe(state);
 - Consumes: current blank-event node, current Run ID/Seed, director state/actions, current Tavern API settings, `OpenAiTavernTransport`, `buildEventPrompt`, and `requestStructuredGameContent`.
 - Produces: automatic once-per-node event requests, event panel `llm-independent-event`, choice buttons `llm-event-choice-${choice.id}`, deterministic preset fallback, and an accessible status/error announcement.
 
-- [ ] **Step 1: Write failing component tests** for no-API suppression, one request per eligible node, no duplicate request on rerender, remote event display, choice settlement, and malformed-response fallback.
-- [ ] **Step 2: Run RED component test**; expect missing component failures.
-- [ ] **Step 3: Implement deterministic eligibility** using a seeded local trigger derived from `${run.seed}:${node.id}:llm-event`; always trigger in novel mode and trigger half of blank-event nodes in other modes.
-- [ ] **Step 4: Implement request and fallback**; mark the trigger handled before awaiting, ignore stale Run completions, and use `selectPresetEvent` on failure with a warning notification.
-- [ ] **Step 5: Render the event panel** with title, situation, source label, 2–3 choices, disabled state during settlement, and no portrait other than the shared blank asset already in the HUD.
-- [ ] **Step 6: Run GREEN, `pnpm typecheck`, and a focused 375/1440 Playwright route check**.
-- [ ] **Step 7: Commit** with `feat: add optional ai independent events`.
+- [x] **Step 1: Write failing component tests** for no-API suppression, one request per eligible node, no duplicate request on rerender, remote event display, choice settlement, and malformed-response fallback.
+- [x] **Step 2: Run RED component test**; expect missing component failures.
+- [x] **Step 3: Implement deterministic eligibility** using a seeded local trigger derived from `${run.seed}:${node.id}:llm-event`; always trigger in novel mode and trigger half of blank-event nodes in other modes.
+- [x] **Step 4: Implement request and fallback**; deduplicate active requests across React Strict Mode mounts, mark completed triggers, ignore stale Run completions, and use `selectPresetEvent` on failure with a warning notification.
+- [x] **Step 5: Render the event panel** with title, situation, source label, 2–3 choices, disabled state during settlement, and no portrait other than the shared blank asset already in the HUD.
+- [x] **Step 6: Run GREEN, `pnpm typecheck`, and a focused 375/1440 Playwright route check**.
+- [x] **Step 7: Commit** with `feat: add optional ai independent events`.
 
 ### Task 5: Temporary Rosmontis quote generation
 

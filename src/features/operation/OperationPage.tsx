@@ -4,6 +4,7 @@ import { TavernGameView } from '../tavern/game/TavernGameView';
 import { useTavern } from '../tavern/runtime/useTavern';
 import { FragmentOverflowDialog } from './FragmentOverflowDialog';
 import { GreatswordActions } from './GreatswordActions';
+import { LlmEventDirector } from './LlmEventDirector';
 import { NodeResolutionPanel } from './NodeResolutionPanel';
 import { RunLifecycleDialog } from './RunLifecycleDialog';
 import { RunStatusBar } from './RunStatusBar';
@@ -66,6 +67,7 @@ export default function OperationPage() {
             ruleLog={ruleLog}
             onComplete={completeCurrentNode}
           />
+          <LlmEventDirector />
           <TavernGameView />
         </div>
         <TacticalOverview session={session} rosmontis={rosmontis} />
