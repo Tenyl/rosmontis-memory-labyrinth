@@ -349,6 +349,17 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
         temperature: numberSetting(activePreset.settings.temp_openai),
         maxTokens: numberSetting(activePreset.settings.openai_max_tokens),
         stream: true,
+        offlineContext: (() => {
+          const game = useGameStore.getState();
+          const currentNode = game.maze.nodes.find((node) => node.id === game.run.currentNodeId) ?? game.maze.nodes[0];
+          return {
+            randomState: game.randomState,
+            nodeType: currentNode.type,
+            sanity: game.rosmontis.sanity,
+            overload: game.rosmontis.overload,
+            fragments: [...game.memoryInventory.fragments, ...game.memoryInventory.coreFragments],
+          };
+        })(),
       }, controller.signal)) {
         const chunkEvents = parser.feed(chunk);
         events.push(...chunkEvents);

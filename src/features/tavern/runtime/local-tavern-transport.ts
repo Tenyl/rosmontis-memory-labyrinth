@@ -1,4 +1,5 @@
 import { abortError, type TavernTransport, type TavernTransportRequest } from './tavern-transport';
+import { selectPresetEvent, type PresetEventDraft } from '../../../game/presetEvents';
 
 interface LocalTavernTransportOptions {
   delayMs?: number;
@@ -21,13 +22,41 @@ export class LocalTavernTransport implements TavernTransport {
     this.delayMs = options.delayMs ?? 65;
   }
 
-  async *stream(_request: TavernTransportRequest, signal: AbortSignal): AsyncIterable<string> {
-    for (const chunk of LOCAL_RESPONSE_CHUNKS) {
+  async *stream(request: TavernTransportRequest, signal: AbortSignal): AsyncIterable<string> {
+    const chunks = request.offlineContext
+      ? buildPresetEventChunks(selectPresetEvent(request.offlineContext).event, request.offlineContext)
+      : LOCAL_RESPONSE_CHUNKS;
+    for (const chunk of chunks) {
       await waitForDelay(this.delayMs, signal);
       if (signal.aborted) throw abortError();
       yield chunk;
     }
   }
+}
+
+function buildPresetEventChunks(event: PresetEventDraft, context: NonNullable<TavernTransportRequest['offlineContext']>) {
+  const isOpeningEvent = event.id === 'thought-rest-r09-breathing';
+  const summary = isOpeningEvent
+    ? 'R-09 门后出现三个同步意识回声，迷迭香建立临时安全线。'
+    : `${event.title}已完成本地事件建模，等待玩家选择处理方式。`;
+  const objective = isOpeningEvent
+    ? '确认 R-09 门后的同步意识回声'
+    : `处理记忆事件：${event.title}`;
+  const variables = {
+    rosmontis_stress: isOpeningEvent ? 43 : context.overload,
+    sanity: isOpeningEvent ? 59 : context.sanity,
+    risk: context.overload >= 70 ? 'S' : context.overload >= 45 ? 'A' : 'B',
+    objective,
+    clue_title: event.title,
+  };
+
+  return [
+    `<thinking>本地预设事件已按 Run 种子与当前认知状态选定：${event.title}。</thinking>`,
+    `<maintext>${event.title}\n${event.body}\n${event.context}</maintext>`,
+    `<option>${event.choices.map((choice) => choice.label).join('\n')}</option>`,
+    `<sum>${summary}</sum>`,
+    `<vars>${JSON.stringify(variables)}</vars>`,
+  ];
 }
 
 function waitForDelay(delayMs: number, signal: AbortSignal): Promise<void> {

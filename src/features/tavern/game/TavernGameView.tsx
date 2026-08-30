@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGameStore } from '../../../store/gameStore';
 import { CommandConsole } from '../../operation/CommandConsole';
+import { classifyOfflineCommand } from '../../operation/narrativeEngine';
 import { useTavern } from '../runtime/useTavern';
 import { HistoryDrawer } from './HistoryDrawer';
 import { MainTextPane } from './MainTextPane';
@@ -16,6 +17,13 @@ export function TavernGameView() {
   const location = useLocation();
   const narrative = useGameStore((state) => state.narrative);
   const setInputMode = useGameStore((state) => state.setInputMode);
+  const maze = useGameStore((state) => state.maze);
+  const run = useGameStore((state) => state.run);
+  const useGreatsword = useGameStore((state) => state.useGreatsword);
+  const completeCurrentNode = useGameStore((state) => state.completeCurrentNode);
+  const applyRunVitals = useGameStore((state) => state.applyRunVitals);
+  const stabilizeMemoryCore = useGameStore((state) => state.stabilizeMemoryCore);
+  const addNotification = useGameStore((state) => state.addNotification);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -72,6 +80,40 @@ export function TavernGameView() {
     const content = draft.trim();
     if (!content) { setError('请输入行动描述，或从上方选择一项建议'); return; }
     setError(null);
+    if (runtime.transportMode === 'local') {
+      const currentNode = maze.nodes.find((node) => node.id === run.currentNodeId) ?? maze.nodes[0];
+      const classified = classifyOfflineCommand(content, currentNode.type);
+      if (classified.kind === 'recovery') {
+        const guidance = `${classified.message} 可尝试：${classified.suggestions.join('、')}。`;
+        setError(guidance);
+        addNotification({
+          id: 'offline-command-recovery',
+          kind: 'warning',
+          title: '离线指令未识别',
+          message: guidance,
+        });
+        return;
+      }
+      if (classified.kind === 'action') {
+        switch (classified.action.type) {
+          case 'use-greatsword':
+            useGreatsword(classified.action.action);
+            break;
+          case 'complete-node':
+            completeCurrentNode(classified.action.fragment);
+            break;
+          case 'apply-vitals':
+            applyRunVitals(classified.action.sanityDelta, classified.action.overloadDelta);
+            break;
+          case 'stabilize-core':
+            stabilizeMemoryCore();
+            break;
+          case 'move-to-node':
+          case 'resolve-fragment-overflow':
+            break;
+        }
+      }
+    }
     try {
       await runtime.sendMessage(content);
       setDraft('');

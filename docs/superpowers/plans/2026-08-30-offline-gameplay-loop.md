@@ -144,12 +144,12 @@
 - Consumes: Seeded random state, node type, vitals, fragments, and defined Run actions.
 - Produces: preset event drafts with 2–3 choices and a command classifier that returns a defined action or recoverable suggestion.
 
-- [ ] **Step 1: Write failing tests** for deterministic event selection, valid option counts, separation of text from numeric effects, recognized commands, and unknown-command recovery.
-- [ ] **Step 2: Verify RED**.
-- [ ] **Step 3: Implement the typed preset pool and command classifier** with no LLM calls and no `Math.random()`.
-- [ ] **Step 4: Connect results to the terminal narrative flow** and use existing notifications for recovery guidance.
-- [ ] **Step 5: Verify GREEN and typecheck**.
-- [ ] **Step 6: Commit** with `feat: add deterministic offline events`.
+- [x] **Step 1: Write failing tests** for deterministic event selection, valid option counts, separation of text from numeric effects, recognized commands, and unknown-command recovery.
+- [x] **Step 2: Verify RED**.
+- [x] **Step 3: Implement the typed preset pool and command classifier** with no LLM calls and no `Math.random()`.
+- [x] **Step 4: Connect results to the terminal narrative flow** and use existing notifications for recovery guidance.
+- [x] **Step 5: Verify GREEN and typecheck**.
+- [x] **Step 6: Commit** with `feat: add deterministic offline events`.
 
 ### Task 8: Offline-loop quality gate
 

@@ -59,3 +59,21 @@ test('validates an empty command inline and completes a Tavern runtime turn', as
   expect(history).toHaveTextContent('门后传来三个频率完全相同的呼吸声');
   await waitFor(() => expect(history.querySelector('.is-source-focus')).toHaveFocus());
 });
+
+test('executes a recognized local command and recovers from an unknown command without guessing', async () => {
+  renderApp('/operation');
+  await screen.findByRole('heading', { name: '作战主控台' });
+  const user = userEvent.setup();
+  const input = await screen.findByRole('textbox', { name: '战术指令' });
+
+  await user.type(input, '命令巨剑进入守望阵位');
+  await user.click(screen.getByRole('button', { name: '发送战术指令' }));
+  await waitFor(() => expect(useGameStore.getState().rosmontis).toMatchObject({ actionPoints: 3, guard: 24 }));
+
+  await waitFor(() => expect(input).not.toBeDisabled(), { timeout: 2_500 });
+  await user.type(input, '向不存在的月亮唱歌');
+  await user.click(screen.getByRole('button', { name: '发送战术指令' }));
+
+  expect(await screen.findByRole('article', { name: '警告：离线指令未识别' })).toHaveTextContent('让迷迭香短暂休整');
+  expect(useGameStore.getState().rosmontis).toMatchObject({ actionPoints: 3, guard: 24 });
+});
