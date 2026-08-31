@@ -14,7 +14,7 @@ function createEconomyFixture(input: { echoes?: number; modules?: ModuleId[] } =
     memoryInventory: {
       capacity: 3,
       fragments: [
-        { id: 'fragment-rain', name: '倒流雨声', kind: 'standard', tags: ['感知'] },
+        { id: 'fragment-rain', name: '倒流雨声', kind: 'skill', tags: ['感知'] },
       ],
       coreFragments: [
         { id: 'fragment-core', name: '核心记忆', kind: 'core', tags: ['核心'] },

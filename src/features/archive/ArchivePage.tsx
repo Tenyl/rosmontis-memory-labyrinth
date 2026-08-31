@@ -86,7 +86,7 @@ function MemoryCompendium({ entries }: { entries: import('../../types/game').Mem
             <article id={`memory-compendium-entry-${entry.id}`} key={entry.id}>
               <span>MEM-{String(index + 1).padStart(3, '0')}</span>
               <strong>{entry.name}</strong>
-              <p>{entry.kind === 'core' ? '核心记忆' : '普通记忆'} · 已回收 {entry.discoveries} 次</p>
+              <p>{entry.kind === 'core' ? '核心记忆' : entry.kind === 'emotion' ? '情感碎片' : entry.kind === 'pain' ? '痛苦碎片' : '技能碎片'} · 已回收 {entry.discoveries} 次</p>
               <div>{entry.tags.length ? entry.tags.map((tag) => <small key={tag}>{tag}</small>) : <small>未分类</small>}</div>
               <footer>首次发现于 {entry.discoveredRunId}</footer>
             </article>

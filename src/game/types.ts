@@ -99,10 +99,11 @@ export type RuleEvent =
       overloadDelta: number;
       cooldown: number;
     }
-  | { type: 'fragment.acquired'; fragmentId: string; kind: 'standard' | 'core' }
+  | { type: 'fragment.acquired'; fragmentId: string; kind: MemoryFragmentKind }
   | { type: 'fragment.overflow'; fragmentId: string }
   | { type: 'fragment.discarded'; fragmentId: string }
   | { type: 'fragment.replaced'; forgottenFragmentId: string; acquiredFragmentId: string }
+  | { type: 'fragment.transcribed'; fragmentId: string; diaryDraftId: string }
   | { type: 'run.moved'; sourceNodeId: string; targetNodeId: string }
   | { type: 'node.completed'; nodeId: string }
   | { type: 'encounter.action-resolved'; nodeId: string; actionType: EncounterAction['type'] }
@@ -132,8 +133,17 @@ export interface GreatswordAction {
 export interface MemoryFragment {
   id: string;
   name: string;
-  kind: 'standard' | 'core';
+  kind: MemoryFragmentKind;
   tags: string[];
+}
+
+export interface DiaryDraft {
+  id: string;
+  triggerKey: string;
+  title: string;
+  body: string;
+  source: 'local' | 'remote';
+  createdAt: string;
 }
 
 export interface MemoryInventory {
@@ -242,7 +252,8 @@ export interface FragmentRuleState {
 
 export type FragmentOverflowChoice =
   | { type: 'discard-pending' }
-  | { type: 'replace'; fragmentId: string };
+  | { type: 'replace'; fragmentId: string }
+  | { type: 'transcribe-and-replace'; fragmentId: string };
 
 export interface ProgressionState {
   firstClear: boolean;
@@ -261,6 +272,7 @@ export interface RoguelikeState {
   explorationCharges: ExplorationCharges;
   routeEffects: RouteEffects;
   pendingEncounter: PendingEncounter | null;
+  pendingDiaryDrafts: DiaryDraft[];
 }
 
 export type RunAction =

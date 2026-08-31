@@ -211,7 +211,7 @@ export function buildDemoState(): GameDataState {
     ...createMazeSlice(roguelike),
     ...createRosmontisSlice(roguelike),
     ...createInventorySlice(roguelike),
-    ...createDiarySlice(),
+    ...createDiarySlice(roguelike.pendingDiaryDrafts),
     ...createLlmDirectorSlice(roguelike.run.id),
     session: {
       operationCode: '雨幕回声',

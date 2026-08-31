@@ -34,6 +34,7 @@ describe('versioned game state migration', () => {
     expect(migrated.ui).toMatchObject({ migrationNotice: 'three-to-five-floors' });
     expect(migrated.progression).toEqual({ firstClear: true, completedRuns: 4 });
     expect(migrated.memoryCompendium[0]?.id).toBe('legacy-memory');
+    expect(migrated.memoryCompendium[0]?.kind).toBe('emotion');
     expect(migrated.runHistory[0]?.id).toBe('legacy-history');
     expect(migrated.ui.preferences.density).toBe('compact');
   });
@@ -169,5 +170,6 @@ describe('versioned game state migration', () => {
     expect(migrated.pendingEncounter).toBeNull();
     expect(migrated.progression).toEqual({ firstClear: true, completedRuns: 4 });
     expect(migrated.memoryCompendium[0]?.id).toBe('legacy-memory');
+    expect(migrated.memoryCompendium[0]?.kind).toBe('emotion');
   });
 });

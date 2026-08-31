@@ -4,7 +4,7 @@ import { selectPresetEvent } from './presetEvents';
 import type { MemoryFragment, MazeNodeType } from './types';
 
 const fragments: MemoryFragment[] = [
-  { id: 'fragment-rain', name: '逆流的雨声', kind: 'standard', tags: ['雨幕', '听觉'] },
+  { id: 'fragment-rain', name: '逆流的雨声', kind: 'emotion', tags: ['雨幕', '听觉'] },
 ];
 
 function select(seed: string, nodeType: MazeNodeType = 'encounter') {

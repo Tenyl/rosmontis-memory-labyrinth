@@ -184,24 +184,28 @@ test('resolves a persisted fragment overflow choice through the store adapter', 
     memoryInventory: {
       ...state.memoryInventory,
       capacity: 1,
-      fragments: [{ id: 'kept', name: '保留记忆', kind: 'standard', tags: [] }],
-      pendingFragment: { id: 'pending', name: '待选记忆', kind: 'standard', tags: [] },
+      fragments: [{ id: 'kept', name: '保留记忆', kind: 'emotion', tags: [] }],
+      pendingFragment: { id: 'pending', name: '待选记忆', kind: 'pain', tags: [] },
     },
   }));
 
-  useGameStore.getState().resolveFragmentChoice({ type: 'replace', fragmentId: 'kept' });
+  useGameStore.getState().resolveFragmentChoice({ type: 'transcribe-and-replace', fragmentId: 'kept' });
   const state = useGameStore.getState();
 
   expect(state.run.phase).toBe('exploring');
   expect(state.memoryInventory.fragments.map((fragment) => fragment.id)).toEqual(['pending']);
   expect(state.memoryInventory.pendingFragment).toBeNull();
+  expect(state.pendingDiaryDrafts).toContainEqual(expect.objectContaining({
+    id: 'diary-transcription-kept',
+    triggerKey: 'fragment-transcribed:kept',
+  }));
 });
 
 test('completes the current node through rules and blocks the Run on fragment overflow', () => {
   const reward: MemoryFragment = {
     id: 'fragment-store-overflow',
     name: '走廊尽头的雨声',
-    kind: 'standard',
+    kind: 'skill',
     tags: ['雨声'],
   };
   useGameStore.getState().startRun('STORE-NODE-REWARD', 'preset', false);
@@ -209,7 +213,7 @@ test('completes the current node through rules and blocks the Run on fragment ov
     memoryInventory: {
       ...state.memoryInventory,
       capacity: 1,
-      fragments: [{ id: 'fragment-kept', name: '仍被记住的名字', kind: 'standard', tags: ['名字'] }],
+      fragments: [{ id: 'fragment-kept', name: '仍被记住的名字', kind: 'emotion', tags: ['名字'] }],
     },
   }));
 
@@ -278,7 +282,7 @@ test('adds recovered fragments to the permanent memory compendium', () => {
   const reward: MemoryFragment = {
     id: 'fragment-compendium',
     name: '雨幕中的病历页',
-    kind: 'standard',
+    kind: 'emotion',
     tags: ['病区', '雨声'],
   };
   useGameStore.getState().startRun('STORE-COMPENDIUM', 'preset', false);

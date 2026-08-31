@@ -3,6 +3,7 @@ import { createEncounter } from './encounters';
 import { resolveEncounterAction } from './encounterProtocol';
 import { spendScoutPoint, useExplorationPower } from './exploration';
 import { acquireFragment, resolveFragmentOverflow } from './fragments';
+import { applyFragmentEffects } from './fragmentCatalog';
 import { resolveGreatswordAction } from './greatswords';
 import { generateMaze } from './maze';
 import type {
@@ -108,6 +109,7 @@ export function createRun(input: CreateRunInput): RoguelikeState {
       freeScoutUsed: false,
     },
     pendingEncounter: null,
+    pendingDiaryDrafts: [],
   };
   return createEncounter(state, maze.nodes[0]);
 }
@@ -190,6 +192,9 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
       ...state,
       run: { ...state.run, phase: resolution.state.phase },
       memoryInventory: resolution.state.inventory,
+      pendingDiaryDrafts: resolution.diaryDraft
+        ? [...state.pendingDiaryDrafts, resolution.diaryDraft]
+        : state.pendingDiaryDrafts,
     }, resolution.events);
   }
   if (action.type === 'apply-vitals') {
@@ -242,7 +247,7 @@ function resolveCurrentEncounterAction(
   const nodeEvent: RuleEvent[] = nodeAlreadyCompleted
     ? []
     : [{ type: 'node.completed', nodeId: resolution.state.run.currentNodeId }];
-  let settled: RoguelikeState = {
+  let settled: RoguelikeState = applyNodeFragmentPassives({
     ...resolution.state,
     maze: {
       ...resolution.state.maze,
@@ -252,7 +257,7 @@ function resolveCurrentEncounterAction(
           : node
       )),
     },
-  };
+  });
   const events = [...resolution.events, ...nodeEvent];
   const defeat = applyDefeat(settled, events);
   if (defeat.state.run.phase === 'defeat') return defeat;
@@ -317,10 +322,15 @@ function createEncounterFragment(
     : encounter.kind === 'encounter'
       ? { name: '因果断层中的雨声', tags: ['奇境', '感知'] }
       : { name: '未辨识信号切片', tags: ['未知', '共鸣'] };
+  const kind = encounter.kind === 'combat'
+    ? (node.type === 'emergency-combat' ? 'pain' : 'skill')
+    : encounter.kind === 'encounter'
+      ? 'emotion'
+      : 'skill';
   return {
     id: `fragment-${state.run.id}-${node.id}`,
     name: `第 ${state.run.floor} 层 · ${copy.name}`,
-    kind: 'standard',
+    kind,
     tags: [...copy.tags, `第${state.run.floor}层`],
   };
 }
@@ -356,7 +366,7 @@ function advanceFloor(state: RoguelikeState): RunResolution {
     },
     maze,
     rosmontis: {
-      ...refreshNodeResources(state.rosmontis),
+      ...refreshNodeResources(state.rosmontis, state.memoryInventory.fragments),
       guard: 0,
       enemyIntegrity: 100,
       coreStability: 0,
@@ -394,7 +404,7 @@ function moveToNode(state: RoguelikeState, nodeId: string): RunResolution {
   const moved: RoguelikeState = {
     ...state,
     run: { ...state.run, currentNodeId: nodeId, turn: state.run.turn + 1 },
-    rosmontis: refreshNodeResources(state.rosmontis),
+    rosmontis: refreshNodeResources(state.rosmontis, state.memoryInventory.fragments),
     maze: {
       ...state.maze,
       nodes: state.maze.nodes.map((node) => {
@@ -445,15 +455,37 @@ function completeNode(state: RoguelikeState, fragment?: import('./types').Memory
   }, [nodeEvent, ...resolution.events]);
 }
 
-function refreshNodeResources(state: GreatswordCombatState): GreatswordCombatState {
+function applyNodeFragmentPassives(state: RoguelikeState): RoguelikeState {
+  const effects = applyFragmentEffects({
+    sanity: state.rosmontis.sanity,
+    overload: state.rosmontis.overload,
+    baseDamage: 0,
+    scoutPoints: state.economy.scoutPoints,
+    cooldown: 0,
+  }, state.memoryInventory.fragments);
+  return {
+    ...state,
+    rosmontis: { ...state.rosmontis, sanity: effects.sanity, overload: effects.overload },
+    economy: { ...state.economy, scoutPoints: effects.scoutPoints },
+  };
+}
+
+function refreshNodeResources(state: GreatswordCombatState, fragments: readonly MemoryFragment[]): GreatswordCombatState {
+  const cooldown = (value: number) => applyFragmentEffects({
+    sanity: state.sanity,
+    overload: state.overload,
+    baseDamage: 0,
+    scoutPoints: 0,
+    cooldown: Math.max(0, value - 1),
+  }, fragments).cooldown;
   return {
     ...state,
     actionPoints: MAX_ACTION_POINTS,
     greatswords: {
-      breach: { cooldown: Math.max(0, state.greatswords.breach.cooldown - 1) },
-      watch: { cooldown: Math.max(0, state.greatswords.watch.cooldown - 1) },
-      perception: { cooldown: Math.max(0, state.greatswords.perception.cooldown - 1) },
-      resonance: { cooldown: Math.max(0, state.greatswords.resonance.cooldown - 1) },
+      breach: { cooldown: cooldown(state.greatswords.breach.cooldown) },
+      watch: { cooldown: cooldown(state.greatswords.watch.cooldown) },
+      perception: { cooldown: cooldown(state.greatswords.perception.cooldown) },
+      resonance: { cooldown: cooldown(state.greatswords.resonance.cooldown) },
     },
   };
 }

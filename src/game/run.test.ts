@@ -6,7 +6,7 @@ const freshProgression: ProgressionState = { firstClear: false, completedRuns: 0
 const reward: MemoryFragment = {
   id: 'fragment-test-reward',
   name: '测试记忆碎片',
-  kind: 'standard',
+  kind: 'skill',
   tags: ['测试'],
 };
 
@@ -126,7 +126,7 @@ describe('run reducer', () => {
 
     expect(resolution.accepted).toBe(true);
     expect(resolution.state.memoryInventory.fragments).toEqual([reward]);
-    expect(resolution.events).toContainEqual({ type: 'fragment.acquired', fragmentId: reward.id, kind: 'standard' });
+    expect(resolution.events).toContainEqual({ type: 'fragment.acquired', fragmentId: reward.id, kind: 'skill' });
     expect(before.memoryInventory.fragments).toEqual([]);
   });
 
@@ -147,14 +147,14 @@ describe('run reducer', () => {
     expect(settled.state.memoryInventory.fragments).toEqual([
       expect.objectContaining({
         id: `fragment-${before.run.id}-${combatNode.id}`,
-        kind: 'standard',
+        kind: 'skill',
         tags: expect.arrayContaining(['战斗', '破壁']),
       }),
     ]);
     expect(settled.events).toContainEqual({
       type: 'fragment.acquired',
       fragmentId: `fragment-${before.run.id}-${combatNode.id}`,
-      kind: 'standard',
+      kind: 'skill',
     });
   });
 

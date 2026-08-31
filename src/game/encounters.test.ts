@@ -100,7 +100,7 @@ describe('node encounters', () => {
       ...active,
       memoryInventory: {
         ...active.memoryInventory,
-        fragments: [{ id: 'rain', name: '雨声', kind: 'standard' as const, tags: ['感知'] }],
+        fragments: [{ id: 'rain', name: '雨声', kind: 'skill' as const, tags: ['感知'] }],
       },
     };
 

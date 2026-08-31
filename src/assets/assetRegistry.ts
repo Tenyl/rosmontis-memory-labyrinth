@@ -12,6 +12,8 @@ export const gameAssets = {
     unknownNode: nodeBlank,
     bossNode: nodeBlank,
     moduleCard: moduleBlank,
+    memoryFragment: nodeBlank,
+    diaryIllustration: nodeBlank,
   },
   audio: {
     mazeBgm: null,

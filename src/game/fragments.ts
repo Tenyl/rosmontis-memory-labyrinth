@@ -1,6 +1,7 @@
 import type {
   FragmentOverflowChoice,
   FragmentRuleState,
+  DiaryDraft,
   MemoryFragment,
   RuleEvent,
 } from './types';
@@ -10,6 +11,7 @@ export interface FragmentResolution {
   reason?: string;
   state: FragmentRuleState;
   events: RuleEvent[];
+  diaryDraft: DiaryDraft | null;
 }
 
 export function acquireFragment(
@@ -72,6 +74,19 @@ export function resolveFragmentOverflow(
     return rejected(state, '要遗忘的记忆碎片不存在。');
   }
 
+  const forgotten = state.inventory.fragments.find((fragment) => fragment.id === choice.fragmentId)!;
+  const diaryDraft = choice.type === 'transcribe-and-replace'
+    ? createTranscriptionDraft(forgotten)
+    : null;
+  const events: RuleEvent[] = [{
+    type: 'fragment.replaced',
+    forgottenFragmentId: choice.fragmentId,
+    acquiredFragmentId: pending.id,
+  }];
+  if (diaryDraft) {
+    events.push({ type: 'fragment.transcribed', fragmentId: forgotten.id, diaryDraftId: diaryDraft.id });
+  }
+
   return accepted({
     ...state,
     phase: 'exploring',
@@ -82,17 +97,24 @@ export function resolveFragmentOverflow(
       )),
       pendingFragment: null,
     },
-  }, [{
-    type: 'fragment.replaced',
-    forgottenFragmentId: choice.fragmentId,
-    acquiredFragmentId: pending.id,
-  }]);
+  }, events, diaryDraft);
 }
 
-function accepted(state: FragmentRuleState, events: RuleEvent[]): FragmentResolution {
-  return { accepted: true, state, events };
+function createTranscriptionDraft(fragment: MemoryFragment): DiaryDraft {
+  return {
+    id: `diary-transcription-${fragment.id}`,
+    triggerKey: `fragment-transcribed:${fragment.id}`,
+    title: `我请博士替我记住：${fragment.name}`,
+    body: `我把“${fragment.name}”从现在的记忆槽里放下了。博士会替我把它写在手记里，所以这不是彻底忘记。`,
+    source: 'local',
+    createdAt: 'pending-write',
+  };
+}
+
+function accepted(state: FragmentRuleState, events: RuleEvent[], diaryDraft: DiaryDraft | null = null): FragmentResolution {
+  return { accepted: true, state, events, diaryDraft };
 }
 
 function rejected(state: FragmentRuleState, reason: string): FragmentResolution {
-  return { accepted: false, reason, state, events: [] };
+  return { accepted: false, reason, state, events: [], diaryDraft: null };
 }

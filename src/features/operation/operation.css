@@ -131,12 +131,16 @@
 .fragment-overflow-warning p { margin: 0; color: var(--color-text-secondary); font-size: .72rem; line-height: 1.65; }
 .fragment-overflow-content section>span { color: var(--color-memory-blue); font: 500 .62rem/1.3 var(--font-data); letter-spacing: .06em; }
 .fragment-overflow-content section>h3 { margin: var(--space-2) 0 0; font-size: .86rem; }
+.fragment-overflow-content section>img { display: block; width: 100%; height: 96px; margin-top: var(--space-3); border: 1px solid var(--color-line-subtle); object-fit: cover; opacity: .75; }
 .fragment-replacement-list { display: grid; gap: var(--space-2); margin-top: var(--space-3); }
-.fragment-replacement-list button { display: flex; min-height: 52px; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); border: 1px solid var(--color-line-subtle); background: rgba(255,255,255,.018); color: var(--color-text-primary); cursor: pointer; text-align: left; }
+.fragment-replacement-choice { display: grid; min-width: 0; align-items: stretch; gap: var(--space-2); grid-template-columns: minmax(0,1fr) auto auto; padding: var(--space-3); border: 1px solid var(--color-line-subtle); background: rgba(255,255,255,.018); }
+.fragment-replacement-choice>div { display: grid; min-width: 0; align-content: center; gap: var(--space-1); }
+.fragment-replacement-choice button { min-height: 40px; padding: var(--space-2) var(--space-3); border: 1px solid var(--color-line-subtle); background: rgba(255,255,255,.025); color: var(--color-text-primary); cursor: pointer; white-space: nowrap; }
 .fragment-replacement-list button:hover { border-color: var(--color-memory-blue); background: var(--color-memory-blue-soft); }
 .fragment-replacement-list button:focus-visible { outline: 2px solid var(--color-memory-blue); outline-offset: 2px; }
-.fragment-replacement-list strong { font-size: .72rem; }
-.fragment-replacement-list small { color: var(--color-text-tertiary); font-size: .6rem; }
+.fragment-replacement-list strong { overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.fragment-replacement-list small { overflow: hidden; color: var(--color-text-tertiary); font-size: .6rem; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 680px) { .fragment-replacement-choice { grid-template-columns: 1fr 1fr; } .fragment-replacement-choice>div { grid-column: 1/-1; } }
 .fragment-core-protection { padding: var(--space-4); border: 1px solid rgba(126,240,189,.25); background: var(--color-arts-green-soft); }
 .fragment-core-protection ul { margin: var(--space-3) 0 0; padding-left: var(--space-5); color: var(--color-text-secondary); font-size: .7rem; }
 .run-lifecycle-panel { position: relative; margin-bottom: var(--space-4); overflow: hidden; border: 1px solid var(--color-line-subtle); background: linear-gradient(145deg,rgba(20,26,32,.86),rgba(9,13,17,.96)); box-shadow: var(--shadow-base); }

@@ -1,5 +1,6 @@
 import { validateMaze } from '../game/maze';
 import { createRun } from '../game/run';
+import { inferLegacyFragmentKind } from '../game/fragmentCatalog';
 import type { MazeGraph } from '../game/types';
 import { restoreLlmDirectorState } from '../llm/directorState';
 import type { GameDataState } from '../types/game';
@@ -109,7 +110,30 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
     merged.narrative = { ...merged.narrative, inputMode: '状态询问' };
   }
   merged.llmDirector = restoreLlmDirectorState(persisted.llmDirector, merged.run.id);
+  merged.memoryInventory = {
+    ...merged.memoryInventory,
+    fragments: merged.memoryInventory.fragments.map(normalizeFragment),
+    coreFragments: merged.memoryInventory.coreFragments.map(normalizeFragment),
+    pendingFragment: merged.memoryInventory.pendingFragment
+      ? normalizeFragment(merged.memoryInventory.pendingFragment)
+      : null,
+  };
+  merged.memoryCompendium = merged.memoryCompendium.map((entry) => ({
+    ...entry,
+    kind: entry.kind === 'core' || entry.kind === 'emotion' || entry.kind === 'pain' || entry.kind === 'skill'
+      ? entry.kind
+      : inferLegacyFragmentKind(entry),
+  }));
   return merged;
+}
+
+function normalizeFragment<T extends { kind: unknown; tags: string[] }>(fragment: T) {
+  return {
+    ...fragment,
+    kind: fragment.kind === 'core' || fragment.kind === 'emotion' || fragment.kind === 'pain' || fragment.kind === 'skill'
+      ? fragment.kind
+      : inferLegacyFragmentKind(fragment),
+  } as T & { kind: 'emotion' | 'pain' | 'skill' | 'core' };
 }
 
 function readProgression(persisted: Record<string, unknown>, current: GameDataState) {

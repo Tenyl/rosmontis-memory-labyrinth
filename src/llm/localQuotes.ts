@@ -15,13 +15,15 @@ export function describeRuleEvent(event: RuleEvent): string {
     case 'greatsword.used':
       return `使用${swordLabels[event.swordId]}执行战术动作`;
     case 'fragment.acquired':
-      return `取得${event.kind === 'core' ? '核心' : '普通'}记忆碎片`;
+      return `取得${event.kind === 'core' ? '核心' : event.kind === 'emotion' ? '情感' : event.kind === 'pain' ? '痛苦' : '技能'}记忆碎片`;
     case 'fragment.overflow':
       return '记忆碎片槽位溢出';
     case 'fragment.discarded':
       return '放弃新发现的记忆碎片';
     case 'fragment.replaced':
       return '遗忘旧碎片并装载新记忆';
+    case 'fragment.transcribed':
+      return '把即将遗忘的碎片抄录进手记';
     case 'run.moved':
       return '向新的迷宫节点移动';
     case 'node.completed':
@@ -61,6 +63,8 @@ export function selectLocalQuote(
     case 'fragment.discarded':
     case 'fragment.replaced':
       return { text: '我会选择该留下的那一段。' };
+    case 'fragment.transcribed':
+      return { text: '谢谢你替我写下来……这样就不算真的忘记。' };
     case 'run.moved':
       return { text: '我会沿着这条路继续。' };
     case 'node.completed':

@@ -3,6 +3,7 @@ import { purchaseOffer } from './economy';
 import { applyModuleEffect, MODULE_CATALOG } from './modules';
 import { getNodeDefinition } from './nodeCatalog';
 import { applyBerserkDamage, getOverloadBand } from './overload';
+import { applyFragmentEffects } from './fragmentCatalog';
 import type {
   EncounterChoice,
   EncounterRuleState,
@@ -191,14 +192,22 @@ export function resolveEncounterChoice(
       };
     }
     if (choiceId !== 'combat-breach') return rejected(state, '战斗行动无效。');
+    const fragmentEffects = applyFragmentEffects({
+      sanity: state.rosmontis.sanity,
+      overload: state.rosmontis.overload,
+      baseDamage: applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 }),
+      scoutPoints: state.economy.scoutPoints,
+      cooldown: 0,
+    }, state.memoryInventory.fragments);
     const damage = applyBerserkDamage(
-      applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 }),
+      fragmentEffects.baseDamage,
       state.rosmontis.overload,
     );
     const enemyIntegrity = Math.max(0, encounter.enemyIntegrity - damage);
     const guarded = state.routeEffects.nextNodeGuarded || state.rosmontis.guard > 0;
     const backlash = getOverloadBand(state.rosmontis.overload) === 'berserk' ? 8 : 0;
-    const afterCounter = updateVitals(state, (guarded ? 0 : -4) - backlash, 6);
+    const hallucination = fragmentEffects.hallucinating ? 3 : 0;
+    const afterCounter = updateVitals(state, (guarded ? 0 : -4) - backlash - hallucination, 6);
     const nextEncounter = { ...encounter, enemyIntegrity, round: encounter.round + 1 };
     if (enemyIntegrity > 0) {
       return {
@@ -306,13 +315,21 @@ export function resolveEncounterChoice(
 
   if (choiceId === 'boss-breach') {
     if (encounter.phase !== 'shield') return rejected(state, '核心防护已经解除。');
+    const fragmentEffects = applyFragmentEffects({
+      sanity: state.rosmontis.sanity,
+      overload: state.rosmontis.overload,
+      baseDamage: applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 }),
+      scoutPoints: state.economy.scoutPoints,
+      cooldown: 0,
+    }, state.memoryInventory.fragments);
     const damage = applyBerserkDamage(
-      applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 }),
+      fragmentEffects.baseDamage,
       state.rosmontis.overload,
     );
     const enemyIntegrity = Math.max(0, encounter.enemyIntegrity - damage);
     const backlash = getOverloadBand(state.rosmontis.overload) === 'berserk' ? 8 : 0;
-    const next = updateVitals(state, (encounter.glitch ? -3 : 0) - backlash, encounter.glitch ? 5 : 2);
+    const hallucination = fragmentEffects.hallucinating ? 3 : 0;
+    const next = updateVitals(state, (encounter.glitch ? -3 : 0) - backlash - hallucination, encounter.glitch ? 5 : 2);
     return {
       accepted: true,
       state: {

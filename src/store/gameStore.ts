@@ -110,6 +110,7 @@ function selectRoguelikeState(state: GameStore): RoguelikeState {
     explorationCharges: state.explorationCharges,
     routeEffects: state.routeEffects,
     pendingEncounter: state.pendingEncounter,
+    pendingDiaryDrafts: state.pendingDiaryDrafts,
   };
 }
 
@@ -133,6 +134,7 @@ function applyRoguelikeState(
     explorationCharges: next.explorationCharges,
     routeEffects: next.routeEffects,
     pendingEncounter: next.pendingEncounter,
+    pendingDiaryDrafts: next.pendingDiaryDrafts,
     ruleLog: [...state.ruleLog, ...events],
     memoryCompendium,
     runHistory,

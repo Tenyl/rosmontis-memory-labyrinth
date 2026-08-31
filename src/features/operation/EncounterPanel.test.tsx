@@ -5,7 +5,7 @@ import { EncounterPanel } from './EncounterPanel';
 
 const inventory: MemoryInventory = {
   capacity: 3,
-  fragments: [{ id: 'fragment-rain', name: '雨幕回声', kind: 'standard', tags: ['感知'] }],
+  fragments: [{ id: 'fragment-rain', name: '雨幕回声', kind: 'skill', tags: ['感知'] }],
   coreFragments: [],
   pendingFragment: null,
 };

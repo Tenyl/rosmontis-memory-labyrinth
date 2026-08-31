@@ -269,7 +269,7 @@ export interface UiState {
 export interface MemoryCompendiumEntry {
   id: string;
   name: string;
-  kind: 'standard' | 'core';
+  kind: MemoryFragmentKind;
   tags: string[];
   discoveredRunId: string;
   discoveries: number;
@@ -290,14 +290,7 @@ export interface RunHistoryRecord {
   recordedAt: string;
 }
 
-export interface PendingDiaryDraft {
-  id: string;
-  triggerKey: string;
-  title: string;
-  body: string;
-  source: 'local' | 'remote';
-  createdAt: string;
-}
+export type PendingDiaryDraft = DiaryDraft;
 
 export interface GameDataState {
   run: RunState;
@@ -327,10 +320,12 @@ export interface GameDataState {
 }
 import type {
   EconomyState,
+  DiaryDraft,
   ExplorationCharges,
   GreatswordCombatState,
   MazeGraph,
   MemoryInventory,
+  MemoryFragmentKind,
   ModuleId,
   PendingEncounter,
   ProgressionState,

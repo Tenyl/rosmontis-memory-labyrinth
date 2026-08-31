@@ -1,5 +1,6 @@
 import { WarningDiamond } from '@phosphor-icons/react';
 import { Dialog } from '../../components/Dialog';
+import { resolveImageAsset } from '../../assets/assetRegistry';
 import type { FragmentOverflowChoice, MemoryInventory } from '../../game/types';
 
 interface FragmentOverflowDialogProps {
@@ -36,11 +37,12 @@ export function FragmentOverflowDialog({ inventory, onResolve }: FragmentOverflo
         <div className="fragment-overflow-content">
           <div className="fragment-overflow-warning">
             <WarningDiamond size={22} aria-hidden />
-            <p>常规记忆槽位已满。继续潜入前，必须放弃新碎片或明确遗忘一段普通记忆。</p>
+            <p>博士……我的脑子好胀，我快记不住全部了……我可以忘记这个吗？你会帮我记住的，对不对？</p>
           </div>
 
           <section aria-labelledby="pending-fragment-title">
             <span>等待装载</span>
+            <img src={resolveImageAsset('memoryFragment')} alt="记忆碎片资源占位图" />
             <h3 id="pending-fragment-title">{pending.name}</h3>
           </section>
 
@@ -49,16 +51,21 @@ export function FragmentOverflowDialog({ inventory, onResolve }: FragmentOverflo
             <h3 id="replace-fragment-title">常规记忆槽</h3>
             <div className="fragment-replacement-list">
               {inventory.fragments.map((fragment) => (
-                <button
-                  id={`btn-fragment-replace-${fragment.id}`}
-                  key={fragment.id}
-                  type="button"
-                  onClick={() => onResolve({ type: 'replace', fragmentId: fragment.id })}
-                  aria-label={`遗忘“${fragment.name}”并装载“${pending.name}”`}
-                >
-                  <strong>{fragment.name}</strong>
-                  <small>{fragment.tags.join(' / ')}</small>
-                </button>
+                <div className="fragment-replacement-choice" key={fragment.id}>
+                  <div><strong>{fragment.name}</strong><small>{fragment.tags.join(' / ')}</small></div>
+                  <button
+                    id={`btn-fragment-replace-${fragment.id}`}
+                    type="button"
+                    onClick={() => onResolve({ type: 'replace', fragmentId: fragment.id })}
+                    aria-label={`直接遗忘“${fragment.name}”并装载“${pending.name}”`}
+                  >直接遗忘</button>
+                  <button
+                    id={`btn-fragment-transcribe-${fragment.id}`}
+                    type="button"
+                    onClick={() => onResolve({ type: 'transcribe-and-replace', fragmentId: fragment.id })}
+                    aria-label={`抄录“${fragment.name}”至手记簿并装载“${pending.name}”`}
+                  >抄录至手记簿</button>
+                </div>
               ))}
             </div>
           </section>

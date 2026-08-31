@@ -54,7 +54,7 @@ test('shows permanently recovered fragments in the memory compendium', async () 
   renderApp('/archive');
   act(() => useGameStore.setState({
     memoryCompendium: [{
-      id: 'fragment-compendium-1', name: '雨幕中的病历页', kind: 'standard', tags: ['病区', '雨声'],
+      id: 'fragment-compendium-1', name: '雨幕中的病历页', kind: 'emotion', tags: ['病区', '雨声'],
       discoveredRunId: 'run-compendium', discoveries: 2,
     }],
   }));

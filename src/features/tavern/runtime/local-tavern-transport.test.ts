@@ -39,7 +39,7 @@ describe('LocalTavernTransport', () => {
         nodeType: 'encounter' as const,
         sanity: 64,
         overload: 38,
-        fragments: [{ id: 'fragment-rain', name: '逆流的雨声', kind: 'standard' as const, tags: ['雨幕'] }],
+        fragments: [{ id: 'fragment-rain', name: '逆流的雨声', kind: 'emotion' as const, tags: ['雨幕'] }],
       },
     };
     const collect = async () => {

@@ -184,6 +184,7 @@ function ruleEventLabel(event: RuleEvent) {
     'fragment.overflow': '记忆槽位溢出',
     'fragment.discarded': '新碎片已放弃',
     'fragment.replaced': '记忆碎片已替换',
+    'fragment.transcribed': '记忆碎片已抄录',
     'run.moved': '迷宫节点已移动',
     'node.completed': '迷宫节点已完成',
     'encounter.action-resolved': '遭遇行动已结算',

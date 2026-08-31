@@ -3,9 +3,9 @@ import { acquireFragment, resolveFragmentOverflow } from './fragments';
 import type { FragmentRuleState, MemoryFragment } from './types';
 
 const fragments: Record<string, MemoryFragment> = {
-  rain: { id: 'fragment-rain', name: '倒流的雨声', kind: 'standard', tags: ['感知'] },
-  ward: { id: 'fragment-ward', name: '空白病房', kind: 'standard', tags: ['守望'] },
-  bell: { id: 'fragment-bell', name: '凌晨铃声', kind: 'standard', tags: ['共鸣'] },
+  rain: { id: 'fragment-rain', name: '倒流的雨声', kind: 'emotion', tags: ['感知'] },
+  ward: { id: 'fragment-ward', name: '空白病房', kind: 'pain', tags: ['守望'] },
+  bell: { id: 'fragment-bell', name: '凌晨铃声', kind: 'skill', tags: ['共鸣'] },
   core: { id: 'fragment-core-01', name: '核心记忆：名字', kind: 'core', tags: ['核心'] },
 };
 
@@ -101,6 +101,27 @@ describe('forced forgetting choice', () => {
       forgottenFragmentId: fragments.rain.id,
       acquiredFragmentId: fragments.bell.id,
     }]);
+  });
+
+  test('can transcribe a forgotten fragment into a diary draft before replacement', () => {
+    const resolution = resolveFragmentOverflow(buildOverflowState(), {
+      type: 'transcribe-and-replace',
+      fragmentId: fragments.rain.id,
+    });
+
+    expect(resolution.accepted).toBe(true);
+    expect(resolution.state.inventory.fragments).toEqual([fragments.bell, fragments.ward]);
+    expect(resolution.diaryDraft).toMatchObject({
+      id: `diary-transcription-${fragments.rain.id}`,
+      triggerKey: `fragment-transcribed:${fragments.rain.id}`,
+      source: 'local',
+    });
+    expect(resolution.diaryDraft?.body).toContain(fragments.rain.name);
+    expect(resolution.events).toContainEqual({
+      type: 'fragment.transcribed',
+      fragmentId: fragments.rain.id,
+      diaryDraftId: `diary-transcription-${fragments.rain.id}`,
+    });
   });
 
   test.each([
