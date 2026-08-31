@@ -14,6 +14,7 @@ import { GameDirectorBoundary } from './GameDirectorBoundary';
 import { RosmontisPresence } from './RosmontisPresence';
 import { gameSceneReducer, restoreGameSceneState } from './sceneState';
 import { createSaveSlot, getActiveSaveSlotId } from '../../game/saveSlots';
+import { ensureBoundGameRunSession } from '../../llm/tavernRunSession';
 import '../operation/operation.css';
 import './game.css';
 
@@ -121,6 +122,21 @@ export default function GamePage() {
   const reducedMotion = motionPreference === 'reduced'
     || (motionPreference === 'system' && systemReducedMotion);
 
+  const continueWithAi = async () => {
+    try {
+      const binding = await ensureBoundGameRunSession(runtime, run, `无垠心海 · ${run.id}`);
+      continueToMindsea(true, binding);
+    } catch (error) {
+      useGameStore.getState().addNotification({
+        id: 'notification-mindsea-binding-failed',
+        kind: 'danger',
+        title: '无垠心海链路建立失败',
+        message: error instanceof Error ? error.message : '无法建立 AI 导演会话。',
+        dismissible: true,
+      });
+    }
+  };
+
   const showMap = scene.phase === 'map' || scene.phase === 'entering-node' || scene.phase === 'returning-map';
 
   return (
@@ -137,7 +153,7 @@ export default function GamePage() {
         run={run}
         llmEnabled={llmEnabled}
         onReset={resetRun}
-        onContinueMindsea={() => continueToMindsea(llmEnabled)}
+        onContinueMindsea={() => void continueWithAi()}
       />
       <NovelRunDirector />
       <div className="game-play-layout">

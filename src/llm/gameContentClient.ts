@@ -1,6 +1,10 @@
 import type { TavernTransport } from '../features/tavern/runtime/tavern-transport';
 import type { ApiSettings } from '../sillytavern';
-import type { GamePromptMessage } from './gamePrompts';
+
+export interface GamePromptMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
 
 export type GameContentTask = 'event' | 'quote' | 'novel' | 'diary' | 'mindsea' | 'tactical-command';
 export type GameContentRequestErrorCode = 'configuration' | 'transport' | 'invalid-response' | 'timeout' | 'aborted';

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import { buildDemoState } from '../data/demoData';
-import { createRun } from '../game/run';
+import { createRun, reduceRunAction } from '../game/run';
+import { acceptNodePresentation, createLlmDirectorState } from '../llm/directorState';
 import { migrateGameState } from './gameStateMigration';
 
 function withoutRoguelikeSlices() {
@@ -12,6 +13,40 @@ function withoutRoguelikeSlices() {
 }
 
 describe('versioned game state migration', () => {
+  test('restores a manually started AI Run after entering its first selected node', () => {
+    const current = buildDemoState();
+    const created = createRun({
+      seed: 'AI-RESTORE',
+      runId: 'run-ai-restore',
+      mode: 'preset',
+      progression: current.progression,
+      llmEnabled: true,
+      manualStart: true,
+      contentMode: 'ai-director',
+      aiBinding: { chatId: 'chat-ai-restore' },
+    });
+    const targetId = created.maze.edges.find((edge) => edge.sourceId === created.maze.startNodeId && !edge.locked)!.targetId;
+    const moved = reduceRunAction(created, { type: 'move-to-node', nodeId: targetId }).state;
+    const node = moved.maze.nodes.find((item) => item.id === targetId)!;
+    const director = acceptNodePresentation(createLlmDirectorState(moved.run.id), {
+      version: 1,
+      runId: moved.run.id,
+      nodeId: node.id,
+      nodeType: node.type,
+      source: 'ai-director',
+      title: '被雨声留下的门',
+      description: '已接受的 AI 节点描述。',
+      choiceIds: node.type === 'safehouse' ? ['rest-stabilize'] : ['combat-breach'],
+      modifierIds: [],
+    });
+    const persisted = { ...structuredClone(current), ...moved, llmDirector: director };
+
+    const migrated = migrateGameState(persisted, current);
+
+    expect(migrated.run).toMatchObject({ id: moved.run.id, contentMode: 'ai-director', currentNodeId: targetId });
+    expect(migrated.llmDirector.presentations[`${moved.run.id}:${targetId}`]?.title).toBe('被雨声留下的门');
+  });
+
   test('adds local content defaults to legacy runs without changing gameplay state', () => {
     const current = buildDemoState();
     const persisted = structuredClone(current) as any;

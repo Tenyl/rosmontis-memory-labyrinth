@@ -305,7 +305,7 @@ export interface RoguelikeState {
 }
 
 export type RunAction =
-  | { type: 'continue-to-mindsea'; llmEnabled: boolean }
+  | { type: 'continue-to-mindsea'; llmEnabled: boolean; aiBinding?: RunAiBinding }
   | { type: 'move-to-node'; nodeId: string }
   | { type: 'begin-node' }
   | { type: 'resolve-encounter'; choiceId: string }

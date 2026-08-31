@@ -5,7 +5,6 @@ import demoDataSource from '../data/demoData.ts?raw';
 import gamePageSource from '../features/game/GamePage.tsx?raw';
 import mazeStageSource from '../features/game/MazeStage.tsx?raw';
 import nodeSceneSource from '../features/game/NodeScene.tsx?raw';
-import offlineCommandSource from '../features/tavern/game/offlineCommand.ts?raw';
 import resetDialogSource from '../features/settings/ResetDemoDialog.tsx?raw';
 import gameStoreSource from '../store/gameStore.ts?raw';
 import gameTypesSource from '../types/game.ts?raw';
@@ -17,7 +16,6 @@ const runtimeFiles = [
   ['src/features/game/GamePage.tsx', gamePageSource],
   ['src/features/game/MazeStage.tsx', mazeStageSource],
   ['src/features/game/NodeScene.tsx', nodeSceneSource],
-  ['src/features/tavern/game/offlineCommand.ts', offlineCommandSource],
   ['src/features/settings/ResetDemoDialog.tsx', resetDialogSource],
   ['src/store/gameStore.ts', gameStoreSource],
   ['src/types/game.ts', gameTypesSource],

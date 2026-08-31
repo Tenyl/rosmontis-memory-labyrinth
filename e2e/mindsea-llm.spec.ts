@@ -21,7 +21,7 @@ test('接入 LLM 后从第五层进入无垠心海并生成第六层主题', asy
   await expect(victory).toBeHidden();
   await expect(page.locator('.run-status-mission')).toContainText('小说剧情');
   await expect(page.locator('.run-status-mission')).toContainText('第 6 / 6 层');
-  await expect.poll(() => requests.filter((request) => request.task === 'novel' && Number(request.context.floor) === 6).length).toBe(1);
+  await expect.poll(() => requests.filter((request) => request.task === 'mindsea' && Number(request.context.floor) === 6).length).toBe(1);
 
   await settleVisibleEncounter(page);
   await page.locator('#game-return-to-maze').click();
@@ -31,7 +31,7 @@ test('接入 LLM 后从第五层进入无垠心海并生成第六层主题', asy
   await expect(brief).toContainText('远程生成');
   await expect(page.locator('button[id^="game-maze-node-"]:not([disabled])').first()).toBeVisible();
 
-  const mindseaRequest = requests.find((request) => request.task === 'novel' && Number(request.context.floor) === 6);
-  expect(mindseaRequest?.system).toContain('第六层以后为无垠心海');
+  const mindseaRequest = requests.find((request) => request.task === 'mindsea' && Number(request.context.floor) === 6);
+  expect(mindseaRequest?.system).toContain('任务类型：mindsea');
   expect(mindseaRequest?.context).toHaveProperty('nodes');
 });

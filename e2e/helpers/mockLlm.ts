@@ -1,6 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
-export type MockLlmTask = 'event' | 'quote' | 'diary' | 'novel';
+export type MockLlmTask = 'event' | 'quote' | 'diary' | 'novel' | 'mindsea' | 'tactical-command' | 'character-chat';
 
 export interface MockLlmRequest {
   task: MockLlmTask;
@@ -26,34 +26,55 @@ export function installStructuredLlmMock(
 ) {
   return page.route('**/chat/completions', async (route) => {
     const body = route.request().postDataJSON() as { messages: Array<{ role: string; content: string }> };
-    const system = body.messages.find((message) => message.role === 'system')?.content ?? '';
+    const system = body.messages.filter((message) => message.role === 'system').map((message) => message.content).join('\n');
     const user = [...body.messages].reverse().find((message) => message.role === 'user')?.content ?? '';
-    const contextText = user.match(/<game_context_json>([\s\S]*?)<\/game_context_json>/)?.[1] ?? '{}';
+    const contextText = user.match(/<game_snapshot_json>(\{[\s\S]*\})<\/game_snapshot_json>/)?.[1] ?? '{}';
     const context = JSON.parse(contextText) as Record<string, unknown>;
-    const task: MockLlmTask = system.includes('独立突发事件')
-      ? 'event'
-      : system.includes('即时独白')
-        ? 'quote'
-        : system.includes('简短手记')
-          ? 'diary'
-          : 'novel';
+    const schemaText = system.match(/JSON Schema：(\{[\s\S]*\})\s*$/)?.[1];
+    const schema = schemaText ? JSON.parse(schemaText) as Record<string, unknown> : {};
+    if (Array.isArray(schema.nodeBriefs)) {
+      context.nodes = schema.nodeBriefs.map((node) => {
+        const item = node as { nodeId: string; nodeType: string };
+        return { id: item.nodeId, type: item.nodeType };
+      });
+    }
+    const taskMatch = system.match(/任务类型：(event|quote|diary|novel|mindsea|tactical-command)/);
+    const task = (taskMatch?.[1] ?? 'character-chat') as MockLlmTask;
     const request = { task, system, user, context };
     requests.push(request);
 
     let content: Record<string, unknown>;
     if (task === 'event') {
+      const nodeType = String(context.nodeType ?? 'safehouse');
+      const choiceIds: Record<string, string[]> = {
+        combat: ['combat-breach', 'combat-guard'],
+        'emergency-combat': ['combat-breach', 'combat-guard'],
+        safehouse: ['rest-stabilize', 'rest-vent'],
+        shop: ['leave-shop'],
+        encounter: ['wonder-observe', 'wonder-anchor'],
+        dilemma: ['dilemma-release-pain', 'dilemma-keep-instinct'],
+        unknown: ['unknown-enter'],
+        boss: ['boss-breach', 'boss-resonate'],
+      };
       content = {
+        version: 1,
+        nodeId: context.nodeId,
+        nodeType,
         title: '被雨声留下的门',
-        situation: '潮湿的金属门后传来一段已经遗忘的呼吸声。',
-        choices: [
-          { id: 'scan-the-door', label: '检查门缝', description: '先确认残响的来源。', intent: 'scan', check: { attribute: 'perception', threshold: 12 } },
-          { id: 'guard-and-wait', label: '守在原地', description: '让神经负荷先恢复稳定。', intent: 'guard', check: { attribute: 'stability', threshold: 10 } },
-        ],
+        description: '潮湿的金属门后传来一段已经遗忘的呼吸声。',
+        choiceIds: choiceIds[nodeType] ?? ['unknown-enter'],
+        modifierIds: [],
+        ...(['combat', 'emergency-combat', 'boss'].includes(nodeType) ? { enemyPlan: { intentIds: ['assault', 'charge', 'erosion'] } } : {}),
+        quote: '博士，我听见那段雨声了。',
       };
     } else if (task === 'quote') {
       content = { text: '我会和博士继续走。' };
     } else if (task === 'diary') {
       content = { title: '雨声变轻以后', body: '我记得博士一直在这里，所以这条路没有那么冷。' };
+    } else if (task === 'tactical-command') {
+      content = { version: 1, actionIds: ['sword:watch'], explanation: '先展开门扉，稳住这一轮。' };
+    } else if (task === 'character-chat') {
+      content = { text: '<maintext>博士，我在听。现在没有战斗，我们可以慢慢说。</maintext><sum>迷迭香回应了博士</sum>' };
     } else {
       const nodes = context.nodes as Array<{ id: string; type: string }>;
       const floor = Number(context.floor ?? 0);
@@ -72,10 +93,13 @@ export function installStructuredLlmMock(
     }
 
     const output = mutate?.(request, content) ?? content;
+    const serialized = task === 'character-chat' && typeof output !== 'string'
+      ? String((output as { text?: string }).text ?? '')
+      : typeof output === 'string' ? output : JSON.stringify(output);
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ choices: [{ message: { content: typeof output === 'string' ? output : JSON.stringify(output) } }] }),
+      body: JSON.stringify({ choices: [{ message: { content: serialized } }] }),
     });
   });
 }

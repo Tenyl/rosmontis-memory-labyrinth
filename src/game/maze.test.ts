@@ -63,6 +63,23 @@ describe('memory maze generation', () => {
         graph.edges.some((edge) => edge.sourceId === node.id && !edge.locked)
       ))).toBe(true);
       expect(validateMaze(graph)).toEqual({ valid: true, issues: [] });
+
+      const nextNode = graph.nodes.find((node) => node.state === 'reachable');
+      if (nextNode) {
+        const progressedGraph = {
+          ...graph,
+          nodes: graph.nodes.map((node) => ({
+            ...node,
+            state: node.id === graph.startNodeId
+              ? 'completed' as const
+              : node.id === nextNode.id
+                ? 'current' as const
+                : node.state,
+          })),
+        };
+        expect(validateMaze(progressedGraph, nextNode.id)).toEqual({ valid: true, issues: [] });
+        expect(validateMaze(progressedGraph).valid).toBe(false);
+      }
     }
   });
 

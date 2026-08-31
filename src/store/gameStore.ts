@@ -64,7 +64,7 @@ interface GameActions {
   useExplorationPower: (action: ExplorationPowerAction) => void;
   spendScoutPoint: (nodeId: string) => void;
   advanceRunFloor: () => void;
-  continueToMindsea: (llmEnabled: boolean) => void;
+  continueToMindsea: (llmEnabled: boolean, aiBinding?: import('../game/types').RunAiBinding) => void;
   useGreatsword: (action: GreatswordAction) => void;
   completeCurrentNode: (fragment?: MemoryFragment) => void;
   applyRunVitals: (sanityDelta: number, overloadDelta: number) => void;
@@ -404,7 +404,7 @@ export const useGameStore = create<GameStore>()(
       useExplorationPower: (action) => { get().dispatchRunAction({ type: 'use-exploration-power', action }); },
       spendScoutPoint: (nodeId) => { get().dispatchRunAction({ type: 'spend-scout-point', nodeId }); },
       advanceRunFloor: () => { get().dispatchRunAction({ type: 'advance-floor' }); },
-      continueToMindsea: (llmEnabled) => { get().dispatchRunAction({ type: 'continue-to-mindsea', llmEnabled }); },
+      continueToMindsea: (llmEnabled, aiBinding) => { get().dispatchRunAction({ type: 'continue-to-mindsea', llmEnabled, aiBinding }); },
       useGreatsword: (action) => { get().dispatchRunAction({ type: 'use-greatsword', action }); },
       completeCurrentNode: (fragment) => { get().dispatchRunAction({ type: 'complete-node', fragment }); },
       applyRunVitals: (sanityDelta, overloadDelta) => {

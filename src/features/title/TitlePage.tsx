@@ -5,6 +5,7 @@ import { createSaveSlot, listSaveSlots, loadSaveSlot, setActiveSaveSlotId, type 
 import { useGameStore } from '../../store/gameStore';
 import { getAvailableModes } from '../../game/run';
 import type { ContentMode, RunMode } from '../../game/types';
+import { createBoundGameRunSession } from '../../llm/tavernRunSession';
 import { useTavern } from '../tavern/runtime/useTavern';
 import './title.css';
 
@@ -33,31 +34,9 @@ export default function TitlePage() {
     setStarting(true);
     setStartError(null);
     try {
-      const character = runtime.characters.find((item) => item.id === runtime.settings?.activeCharacterId) ?? runtime.activeCharacter;
-      const persona = runtime.personas.find((item) => item.id === runtime.settings?.activePersonaId) ?? runtime.activePersona;
-      const preset = runtime.presets.find((item) => item.id === runtime.settings?.activePresetId) ?? runtime.activePreset;
       let aiBinding = undefined;
       if (selectedContentMode === 'ai-director') {
-        if (!llmEnabled || !character || !persona || !preset || !runtime.settings) {
-          throw new Error('AI 导演所需的接口、角色卡、身份或预设尚未准备完成。');
-        }
-        const lorebookIds = [...runtime.settings.activeLorebookIds];
-        const chatId = await runtime.createChat(`记忆潜入 · ${runId}`, {
-          purpose: 'game-run',
-          runId,
-          activate: false,
-          characterId: character.id,
-          personaId: persona.id,
-          presetId: preset.id,
-          lorebookIds,
-        });
-        aiBinding = {
-          chatId,
-          characterId: character.id,
-          personaId: persona.id,
-          presetId: preset.id,
-          lorebookIds,
-        };
+        aiBinding = await createBoundGameRunSession(runtime, runId, `记忆潜入 · ${runId}`);
       }
       startRun(runId, mode, llmEnabled, true, {
         runId,

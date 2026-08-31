@@ -1,7 +1,6 @@
 import type { MazeNodeType } from '../game/types';
 import { assemblePrompt, type CharacterCard, type ChatPreset, type ChatSession, type Lorebook, type Persona } from '../sillytavern';
-import type { GameContentTask } from './gameContentClient';
-import type { GamePromptMessage } from './gamePrompts';
+import type { GameContentTask, GamePromptMessage } from './gameContentClient';
 
 export interface GameDirectorSnapshot {
   runId: string;

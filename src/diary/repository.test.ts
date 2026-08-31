@@ -30,8 +30,8 @@ describe('Rosmontis diary repository', () => {
     expect(database.tables.map((table) => table.name)).toContain('diaryEntries');
   });
 
-  it('uses database V5 and persists entries with doctor notes', async () => {
-    expect(DB_VERSION).toBe(5);
+  it('uses database V6 and persists entries with doctor notes', async () => {
+    expect(DB_VERSION).toBe(6);
     expect(getDatabase().tables.map((table) => table.name)).toContain('diaryEntries');
 
     await saveDiaryEntry({

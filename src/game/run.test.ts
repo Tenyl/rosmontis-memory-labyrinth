@@ -110,8 +110,14 @@ describe('run reducer', () => {
     const before = createRun({ seed: 'MINDSEA-CONTINUE', mode: 'preset', progression: { firstClear: true, completedRuns: 1 }, llmEnabled: true, floor: 5 });
     before.run = { ...before.run, phase: 'victory', result: 'victory' };
     expect(reduceRunAction(before, { type: 'continue-to-mindsea', llmEnabled: false }).accepted).toBe(false);
-    const result = reduceRunAction(before, { type: 'continue-to-mindsea', llmEnabled: true });
+    expect(reduceRunAction(before, { type: 'continue-to-mindsea', llmEnabled: true }).accepted).toBe(false);
+    const result = reduceRunAction(before, {
+      type: 'continue-to-mindsea',
+      llmEnabled: true,
+      aiBinding: { chatId: 'chat-mindsea', characterId: 'rosmontis', personaId: 'doctor', presetId: 'novel', lorebookIds: ['mindsea'] },
+    });
     expect(result.state.run).toMatchObject({ floor: 6, maxFloor: 6, mode: 'novel', phase: 'exploring', result: null });
+    expect(result.state.run.aiBinding.chatId).toBe('chat-mindsea');
     expect(result.state.maze.nodes.at(-1)?.type).toBe('boss');
     expect(result.state.memoryInventory).toEqual(before.memoryInventory);
   });

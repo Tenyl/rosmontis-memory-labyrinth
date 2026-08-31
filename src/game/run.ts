@@ -151,7 +151,7 @@ export function createRun(input: CreateRunInput): RoguelikeState {
 }
 
 export function reduceRunAction(state: RoguelikeState, action: RunAction): RunResolution {
-  if (action.type === 'continue-to-mindsea') return continueToMindsea(state, action.llmEnabled);
+  if (action.type === 'continue-to-mindsea') return continueToMindsea(state, action.llmEnabled, action.aiBinding);
   if (state.run.phase === 'fragment-overflow' && action.type !== 'resolve-fragment-overflow') {
     return rejected(state, '必须先处理记忆碎片溢出。');
   }
@@ -264,8 +264,9 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
   }, [{ type: 'run.ended', result: 'victory' }]);
 }
 
-function continueToMindsea(state: RoguelikeState, llmEnabled: boolean): RunResolution {
+function continueToMindsea(state: RoguelikeState, llmEnabled: boolean, aiBinding?: RunAiBinding): RunResolution {
   if (!llmEnabled) return rejected(state, '需要先接入 LLM，才能进入无垠心海。');
+  if (!aiBinding?.chatId) return rejected(state, '需要先为当前存档建立 AI 导演会话。');
   if (state.run.phase !== 'victory' || state.run.floor < 5 || !state.progression.firstClear) return rejected(state, '必须先完成第五层的心智和解。');
   const floor = state.run.floor + 1;
   const maze = generateMaze({ seed: state.run.seed, mode: 'novel', floor, maxFloor: floor, targetNodeCount: state.maze.nodes.length });
@@ -276,6 +277,7 @@ function continueToMindsea(state: RoguelikeState, llmEnabled: boolean): RunResol
       mode: 'novel',
       contentMode: 'ai-director',
       narrativeStyle: 'novel',
+      aiBinding: { ...aiBinding, lorebookIds: [...aiBinding.lorebookIds] },
       phase: 'exploring',
       result: null,
       floor,

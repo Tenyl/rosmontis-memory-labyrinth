@@ -240,7 +240,7 @@ function hasValidRoguelikeState(value: Record<string, unknown>) {
   if (typeof value.progression.firstClear !== 'boolean' || typeof value.progression.completedRuns !== 'number') return false;
   if (typeof value.randomState.cursor !== 'number' || typeof value.randomState.draws !== 'number') return false;
   try {
-    return validateMaze(maze as unknown as MazeGraph).valid;
+    return validateMaze(maze as unknown as MazeGraph, run.currentNodeId).valid;
   } catch {
     return false;
   }

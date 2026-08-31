@@ -204,7 +204,10 @@ export function getReachableNodeIds(graph: MazeGraph, sourceId: string) {
   return visited;
 }
 
-export function validateMaze(graph: MazeGraph): { valid: boolean; issues: string[] } {
+export function validateMaze(
+  graph: MazeGraph,
+  expectedCurrentNodeId = graph.startNodeId,
+): { valid: boolean; issues: string[] } {
   const issues: string[] = [];
   const nodeIds = graph.nodes.map((node) => node.id);
   const nodeIdSet = new Set(nodeIds);
@@ -234,8 +237,8 @@ export function validateMaze(graph: MazeGraph): { valid: boolean; issues: string
   }
 
   const currentNodes = graph.nodes.filter((node) => node.state === 'current');
-  if (currentNodes.length !== 1 || currentNodes[0]?.id !== graph.startNodeId) {
-    issues.push('迷宫必须包含唯一当前起点。');
+  if (currentNodes.length !== 1 || currentNodes[0]?.id !== expectedCurrentNodeId) {
+    issues.push('迷宫必须包含与对局进度一致的唯一当前节点。');
   }
   const edgeIds = new Set<string>();
   for (const edge of graph.edges) {
