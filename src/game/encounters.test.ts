@@ -38,14 +38,19 @@ function runAtNode(type: MazeNodeType, seed = 'ENCOUNTER-SEED'): EncounterRuleSt
 }
 
 describe('node encounters', () => {
-  test.each(['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss'] as const)(
+  test.each(['combat', 'emergency-combat', 'safehouse', 'shop', 'encounter', 'dilemma', 'unknown', 'boss'] as const)(
     'creates a deterministic %s encounter',
     (type) => {
       const before = runAtNode(type);
       const node = before.maze.nodes[0];
+      const expectedKind = type === 'emergency-combat'
+        ? 'combat'
+        : type === 'dilemma'
+          ? 'encounter'
+          : type;
 
       expect(createEncounter(before, node)).toEqual(createEncounter(before, node));
-      expect(createEncounter(before, node).pendingEncounter).toMatchObject({ kind: type, nodeId: node.id });
+      expect(createEncounter(before, node).pendingEncounter).toMatchObject({ kind: expectedKind, nodeId: node.id });
     },
   );
 
@@ -63,7 +68,7 @@ describe('node encounters', () => {
   });
 
   test('rest allows exactly one recovery choice', () => {
-    const before = runAtNode('rest');
+    const before = runAtNode('safehouse');
     const active = createEncounter({ ...before, rosmontis: { ...before.rosmontis, sanity: 60 } }, before.maze.nodes[0]);
     const rested = resolveEncounterChoice(active, 'rest-stabilize');
     const repeated = resolveEncounterChoice(rested.state, 'rest-vent');
@@ -88,7 +93,7 @@ describe('node encounters', () => {
   });
 
   test('wonder fragment keys and resonance choices stay locally locked', () => {
-    const before = runAtNode('wonder');
+    const before = runAtNode('encounter');
     const active = createEncounter(before, before.maze.nodes[0]);
     const locked = resolveEncounterChoice(active, 'wonder-anchor');
     const withKey = {

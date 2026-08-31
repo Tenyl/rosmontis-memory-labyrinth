@@ -7,7 +7,7 @@ const fragments: MemoryFragment[] = [
   { id: 'fragment-rain', name: '逆流的雨声', kind: 'standard', tags: ['雨幕', '听觉'] },
 ];
 
-function select(seed: string, nodeType: MazeNodeType = 'wonder') {
+function select(seed: string, nodeType: MazeNodeType = 'encounter') {
   return selectPresetEvent({
     randomState: createSeededRandom(seed),
     nodeType,
@@ -23,7 +23,7 @@ describe('deterministic offline preset events', () => {
     expect(select('event-replay').randomState.draws).toBe(1);
   });
 
-  test.each<MazeNodeType>(['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss'])(
+  test.each<MazeNodeType>(['combat', 'emergency-combat', 'safehouse', 'shop', 'encounter', 'dilemma', 'unknown', 'boss'])(
     'selects a %s event with two or three choices',
     (nodeType) => {
       const { event } = select(`event-${nodeType}`, nodeType);
@@ -60,7 +60,7 @@ describe('deterministic offline preset events', () => {
 
     selectPresetEvent({
       randomState,
-      nodeType: 'rest',
+      nodeType: 'safehouse',
       sanity: 42,
       overload: 76,
       fragments: inputFragments,

@@ -56,10 +56,22 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
   ],
-  'wonder': [
+  'emergency-combat': [
+    {
+      id: 'emergency-combat-neural-storm',
+      nodeType: 'emergency-combat',
+      title: '神经风暴封锁区',
+      body: '高密度残响沿金属墙面反复折射，实体护盾正在持续增生。终端将这里标记为高威胁作战区。',
+      choices: [
+        { id: 'emergency-breach', label: '以立柱强行破壁', description: '承受额外过载，快速击穿增生护盾。', effect: { sanityDelta: -5, overloadDelta: 16 } },
+        { id: 'emergency-watch', label: '展开门扉稳步推进', description: '牺牲速度换取稳定的防护窗口。', effect: { sanityDelta: 2, overloadDelta: 9 } },
+      ],
+    },
+  ],
+  'encounter': [
     {
       id: 'wonder-reversed-rain',
-      nodeType: 'wonder',
+      nodeType: 'encounter',
       title: '向上坠落的雨',
       body: '雨滴从地面积水升向天花板，带走沿途所有可以辨认的倒影。迷迭香在其中看见一段被剪去开头的病历。',
       choices: [
@@ -70,7 +82,7 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
     },
     {
       id: 'wonder-missing-stair',
-      nodeType: 'wonder',
+      nodeType: 'encounter',
       title: '缺失的第十三阶',
       body: '楼梯每次被计数都会少去同一阶。空缺处没有深坑，只有一段无法被语言描述的白色间隔。',
       choices: [
@@ -79,10 +91,10 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       ],
     },
   ],
-  'rest': [
+  'safehouse': [
     {
       id: 'rest-r09-breathing',
-      nodeType: 'rest',
+      nodeType: 'safehouse',
       title: '反复翻转的 R-09 门牌',
       body: '迷迭香抬起手，雨滴在她身前三厘米处停住。走廊尽头的金属门牌从 R-08 缓慢翻转为 R-09，门后传来三个频率完全相同的呼吸声。',
       choices: [
@@ -93,12 +105,24 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
     },
     {
       id: 'rest-glass-greenhouse',
-      nodeType: 'rest',
+      nodeType: 'safehouse',
       title: '玻璃思维温室',
       body: '透明墙面后长满没有气味的迷迭香。叶片碰触玻璃时，会播放一段安静到近乎虚假的午后。',
       choices: [
         { id: 'rest-inside', label: '在温室边缘短暂休息', description: '降低神经链路带宽，让思绪重新排列。', effect: { sanityDelta: 8, overloadDelta: -10 } },
         { id: 'sample-leaf', label: '采集一片无气味的叶片', description: '记录这段安定记忆的物理残留。', effect: { sanityDelta: 3, overloadDelta: 1 } },
+      ],
+    },
+  ],
+  'dilemma': [
+    {
+      id: 'dilemma-memory-exchange',
+      nodeType: 'dilemma',
+      title: '等价记忆置换',
+      body: '两段互相排斥的记忆悬在通道两侧：一段能够减轻痛苦，另一段则能强化战斗本能。迷迭香无法同时带走它们。',
+      choices: [
+        { id: 'dilemma-release-pain', label: '放下痛苦记忆', description: '恢复稳定性，但失去一次强化机会。', effect: { sanityDelta: 8, overloadDelta: -8 } },
+        { id: 'dilemma-keep-instinct', label: '保留战术本能', description: '接受更高神经负荷，换取危险路径的优势。', effect: { sanityDelta: -4, overloadDelta: 14 } },
       ],
     },
   ],
@@ -159,7 +183,7 @@ export function selectPresetEvent(input: SelectPresetEventInput): {
   const [draw, randomState] = randomInt(input.randomState, 0, pool.length - 1);
   const pressureOffset = input.overload >= 70 || input.sanity <= 40 ? 1 : 0;
   const fragmentOffset = input.fragments.length % pool.length;
-  const nodeTypeOffset = input.nodeType === 'rest' ? 1 : 0;
+  const nodeTypeOffset = input.nodeType === 'safehouse' ? 1 : 0;
   const template = pool[(draw + pressureOffset + fragmentOffset + nodeTypeOffset) % pool.length];
   const fragmentName = input.fragments.at(-1)?.name;
   const context = fragmentName

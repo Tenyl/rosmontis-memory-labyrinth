@@ -53,7 +53,7 @@ test('disables node-incompatible and cooling swords while dispatching a legal co
         ...rosmontis,
         greatswords: { ...rosmontis.greatswords, watch: { cooldown: 1 } },
       }}
-      currentNodeType="wonder"
+      currentNodeType="encounter"
       ruleLog={[]}
       onUse={onUse}
     />,
@@ -70,7 +70,7 @@ test('disables node-incompatible and cooling swords while dispatching a legal co
   expect(onUse).toHaveBeenCalledWith({
     swordId: 'perception',
     target: 'maze',
-    nodeType: 'wonder',
+    nodeType: 'encounter',
   });
 });
 
@@ -83,7 +83,7 @@ test('reports the newest settled sword event without recalculating its values', 
   render(
     <GreatswordActions
       rosmontis={rosmontis}
-      currentNodeType="wonder"
+      currentNodeType="encounter"
       ruleLog={ruleLog}
       onUse={vi.fn()}
     />,

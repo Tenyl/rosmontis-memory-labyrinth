@@ -2,17 +2,26 @@ import { describe, expect, test } from 'vitest';
 
 import { generateMaze, getReachableNodeIds, validateMaze } from './maze';
 
-const REQUIRED_NODE_TYPES = ['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss'] as const;
+const REQUIRED_NODE_TYPES = [
+  'combat',
+  'emergency-combat',
+  'safehouse',
+  'shop',
+  'encounter',
+  'dilemma',
+  'unknown',
+  'boss',
+] as const;
 
 describe('memory maze generation', () => {
-  test('a three-floor run contains every required node type and one final boss', () => {
-    const floors = [1, 2, 3].map((floor) =>
+  test('a five-floor run contains every required node type and one boss per floor', () => {
+    const floors = [1, 2, 3, 4, 5].map((floor) =>
       generateMaze({
-        seed: 'SIX-TYPES',
+        seed: 'EIGHT-TYPES',
         mode: 'preset',
         floor,
-        maxFloor: 3,
-        targetNodeCount: 10,
+        maxFloor: 5,
+        targetNodeCount: 11,
       }),
     );
     const nodes = floors.flatMap((graph) => graph.nodes);
@@ -20,9 +29,9 @@ describe('memory maze generation', () => {
     expect(new Set(nodes.map((node) => node.type))).toEqual(
       new Set(REQUIRED_NODE_TYPES),
     );
-    expect(nodes.filter((node) => node.type === 'boss')).toHaveLength(1);
-    expect(floors[0].nodes.find((node) => node.id === floors[0].startNodeId)?.type).toBe('rest');
-    expect(floors[2].nodes.at(-1)?.type).toBe('boss');
+    expect(nodes.filter((node) => node.type === 'boss')).toHaveLength(5);
+    expect(floors.every((graph) => graph.nodes.find((node) => node.id === graph.startNodeId)?.type === 'safehouse')).toBe(true);
+    expect(floors.every((graph) => graph.nodes.at(-1)?.type === 'boss')).toBe(true);
   });
 
   test('100 seeds produce connected, acyclic, valid and replayable floor graphs', () => {
@@ -30,9 +39,9 @@ describe('memory maze generation', () => {
       const input = {
         seed: `maze-seed-${index}`,
         mode: 'preset' as const,
-        floor: (index % 3) + 1,
-        maxFloor: 3,
-        targetNodeCount: 8 + (index % 4),
+        floor: (index % 5) + 1,
+        maxFloor: 5,
+        targetNodeCount: 9 + (index % 5),
       };
       const graph = generateMaze(input);
       const replay = generateMaze(input);
@@ -49,6 +58,10 @@ describe('memory maze generation', () => {
       })).toBe(true);
       expect(graph.edges.some((edge) => edge.locked)).toBe(true);
       expect(getReachableNodeIds(graph, graph.startNodeId).size).toBe(graph.nodes.length);
+      expect(hasUnlockedPath(graph, graph.startNodeId, graph.coreNodeId)).toBe(true);
+      expect(graph.nodes.filter((node) => node.id !== graph.coreNodeId).every((node) => (
+        graph.edges.some((edge) => edge.sourceId === node.id && !edge.locked)
+      ))).toBe(true);
       expect(validateMaze(graph)).toEqual({ valid: true, issues: [] });
     }
   });
@@ -58,7 +71,7 @@ describe('memory maze generation', () => {
       seed: 'HIDDEN',
       mode: 'preset' as const,
       floor: 2,
-      maxFloor: 3,
+      maxFloor: 5,
       targetNodeCount: 10,
     };
     const first = generateMaze(input);
@@ -70,30 +83,53 @@ describe('memory maze generation', () => {
     expect(unknownNodes.every((node) => node.hiddenType && !node.revealed)).toBe(true);
   });
 
-  test('each floor provides combat, rest and a non-combat decision node', () => {
-    for (const floor of [1, 2, 3]) {
+  test('each floor provides combat, safehouse and a non-combat decision node', () => {
+    for (const floor of [1, 2, 3, 4, 5]) {
       const graph = generateMaze({
         seed: 'FLOOR-QUOTAS',
         mode: 'endless',
         floor,
-        maxFloor: 3,
-        targetNodeCount: 8,
+        maxFloor: 5,
+        targetNodeCount: 11,
       });
       const types = new Set(graph.nodes.map((node) => node.type));
 
       expect(types.has('combat')).toBe(true);
-      expect(types.has('rest')).toBe(true);
-      expect([...types].some((type) => ['shop', 'wonder', 'unknown'].includes(type))).toBe(true);
+      expect(types.has('safehouse')).toBe(true);
+      expect([...types].some((type) => ['shop', 'encounter', 'dilemma', 'unknown'].includes(type))).toBe(true);
+      if (floor > 1) {
+        expect(types.has('emergency-combat')).toBe(true);
+        expect(types.has('dilemma')).toBe(true);
+      }
     }
   });
 
   test('rejects malformed generation requests', () => {
-    const base = { seed: 'invalid', mode: 'preset' as const, floor: 1, maxFloor: 3 };
+    const base = { seed: 'invalid', mode: 'preset' as const, floor: 1, maxFloor: 5 };
 
-    expect(() => generateMaze({ ...base, targetNodeCount: 7 })).toThrow(/8/);
+    expect(() => generateMaze({ ...base, targetNodeCount: 8 })).toThrow(/9/);
     expect(() => generateMaze({ ...base, targetNodeCount: 11.5 })).toThrow(/整数/);
-    expect(() => generateMaze({ ...base, floor: 0, targetNodeCount: 8 })).toThrow(/层数/);
-    expect(() => generateMaze({ ...base, maxFloor: 0, targetNodeCount: 8 })).toThrow(/总层数/);
-    expect(() => generateMaze({ ...base, floor: 4, targetNodeCount: 8 })).toThrow(/总层数/);
+    expect(() => generateMaze({ ...base, floor: 0, targetNodeCount: 9 })).toThrow(/层数/);
+    expect(() => generateMaze({ ...base, maxFloor: 0, targetNodeCount: 9 })).toThrow(/总层数/);
+    expect(() => generateMaze({ ...base, floor: 6, targetNodeCount: 11 })).toThrow(/总层数/);
   });
 });
+
+function hasUnlockedPath(
+  graph: ReturnType<typeof generateMaze>,
+  sourceId: string,
+  targetId: string,
+) {
+  const visited = new Set<string>();
+  const pending = [sourceId];
+  while (pending.length) {
+    const current = pending.shift();
+    if (!current || visited.has(current)) continue;
+    if (current === targetId) return true;
+    visited.add(current);
+    graph.edges
+      .filter((edge) => edge.sourceId === current && !edge.locked)
+      .forEach((edge) => pending.push(edge.targetId));
+  }
+  return false;
+}

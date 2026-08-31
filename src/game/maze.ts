@@ -1,4 +1,5 @@
 import { createSeededRandom, randomInt } from './random';
+import { getFloorDefinition } from './floors';
 import type {
   HiddenMazeNodeType,
   MazeEdge,
@@ -18,18 +19,18 @@ interface GenerateMazeInput {
   targetNodeCount: number;
 }
 
-const MIN_NODE_COUNT = 8;
-const MAX_NODE_COUNT = 11;
+const MIN_NODE_COUNT = 9;
+const MAX_NODE_COUNT = 13;
 const MIDDLE_COLUMN_COUNT = 4;
-const HIDDEN_TYPES: readonly HiddenMazeNodeType[] = ['combat', 'rest', 'shop', 'wonder'];
+const HIDDEN_TYPES: readonly HiddenMazeNodeType[] = ['combat', 'safehouse', 'shop', 'encounter'];
 const FILLER_TYPES: readonly MazeNodeType[] = [
   'combat',
   'combat',
-  'combat',
-  'rest',
+  'emergency-combat',
+  'safehouse',
   'shop',
-  'wonder',
-  'wonder',
+  'encounter',
+  'dilemma',
   'unknown',
 ];
 const RISKS: readonly MazeRisk[] = ['C', 'B', 'B', 'A', 'A', 'S'];
@@ -63,14 +64,10 @@ function createColumnWidths(
   return { widths: [1, ...widths, 1], randomState };
 }
 
-function requiredMiddleTypes(floor: number): MazeNodeType[] {
-  if (floor === 1) return ['combat', 'shop', 'unknown', 'wonder'];
-  if (floor === 2) return ['combat', 'wonder', 'unknown', 'shop'];
-  return ['combat', 'unknown', 'wonder', 'shop'];
-}
-
 function getNodeModifiers(type: MazeNodeType, risk: MazeRisk): string[] {
   if (type === 'combat' && (risk === 'A' || risk === 'S')) return ['high-threat'];
+  if (type === 'emergency-combat') return ['high-threat', 'overload-surge', 'reinforced-shield'];
+  if (type === 'dilemma') return ['memory-transmutation'];
   if (type === 'unknown' && risk === 'S') return ['unstable-signal'];
   if (type === 'boss') return ['two-phase-core'];
   return [];
@@ -99,7 +96,7 @@ export function generateMaze(input: GenerateMazeInput): MazeGraph {
   const columnResult = createColumnWidths(input.targetNodeCount, randomState);
   const columnWidths = columnResult.widths;
   randomState = columnResult.randomState;
-  const requiredTypes = requiredMiddleTypes(input.floor);
+  const requiredTypes = getFloorDefinition(input.floor).requiredNodeTypes;
   const nodes: MazeNode[] = [];
   const columns: MazeNode[][] = [];
   let middleIndex = 0;
@@ -114,9 +111,9 @@ export function generateMaze(input: GenerateMazeInput): MazeGraph {
       let type: MazeNodeType;
 
       if (isStart) {
-        type = 'rest';
+        type = 'safehouse';
       } else if (isExit) {
-        type = input.floor === input.maxFloor ? 'boss' : 'rest';
+        type = 'boss';
       } else if (middleIndex < requiredTypes.length) {
         type = requiredTypes[middleIndex];
         middleIndex += 1;
@@ -218,20 +215,18 @@ export function validateMaze(graph: MazeGraph): { valid: boolean; issues: string
   if (!nodeIdSet.has(graph.coreNodeId)) issues.push('出口坐标不存在。');
 
   const bosses = graph.nodes.filter((node) => node.type === 'boss');
-  if (graph.floor === graph.maxFloor) {
-    if (bosses.length !== 1 || bosses[0]?.id !== graph.coreNodeId) {
-      issues.push('最终层必须以唯一 Boss 房结束。');
-    }
-  } else if (bosses.length > 0) {
-    issues.push('Boss 房只能出现在最终层。');
+  if (bosses.length !== 1 || bosses[0]?.id !== graph.coreNodeId) {
+    issues.push('每层必须以唯一 Boss 房结束。');
   }
 
   const types = new Set(graph.nodes.map((node) => node.type));
   if (!types.has('combat')) issues.push('每层必须包含战斗节点。');
-  if (!types.has('rest')) issues.push('每层必须包含休息节点。');
-  if (![...types].some((type) => type === 'shop' || type === 'wonder' || type === 'unknown')) {
+  if (!types.has('safehouse')) issues.push('每层必须包含安全屋节点。');
+  if (![...types].some((type) => type === 'shop' || type === 'encounter' || type === 'dilemma' || type === 'unknown')) {
     issues.push('每层必须包含非战斗决策节点。');
   }
+  if (graph.floor > 1 && !types.has('emergency-combat')) issues.push('第二层起必须包含紧急作战节点。');
+  if (graph.floor > 1 && !types.has('dilemma')) issues.push('第二层起必须包含命运抉择节点。');
   if (graph.nodes.some((node) => node.type === 'unknown' && (!node.hiddenType || node.revealed))) {
     issues.push('未知节点必须保存未公开的真实类型。');
   }
@@ -256,8 +251,34 @@ export function validateMaze(graph: MazeGraph): { valid: boolean; issues: string
     if (source.id === target.id) issues.push(`路径不能自环：${edge.id}`);
     if (source.depth >= target.depth) issues.push(`路径必须向更深层延伸：${edge.id}`);
   }
+
+  for (const node of graph.nodes) {
+    if (node.id === graph.coreNodeId) continue;
+    if (!graph.edges.some((edge) => edge.sourceId === node.id && !edge.locked)) {
+      issues.push(`节点缺少可用出口：${node.id}`);
+    }
+  }
+
+  if (!hasUnlockedPath(graph, graph.startNodeId, graph.coreNodeId)) {
+    issues.push('入口到 Boss 房缺少无需解锁的合法路线。');
+  }
   if (nodeIdSet.has(graph.startNodeId) && getReachableNodeIds(graph, graph.startNodeId).size !== graph.nodes.length) {
     issues.push('存在无法从起点到达的节点。');
   }
   return { valid: issues.length === 0, issues };
+}
+
+function hasUnlockedPath(graph: MazeGraph, sourceId: string, targetId: string) {
+  const visited = new Set<string>();
+  const pending = [sourceId];
+  while (pending.length) {
+    const current = pending.shift();
+    if (!current || visited.has(current)) continue;
+    if (current === targetId) return true;
+    visited.add(current);
+    graph.edges
+      .filter((edge) => edge.sourceId === current && !edge.locked)
+      .forEach((edge) => pending.push(edge.targetId));
+  }
+  return false;
 }

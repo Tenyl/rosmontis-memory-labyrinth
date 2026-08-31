@@ -28,9 +28,11 @@ const SWORD_PRESENTATION: Record<GreatswordId, {
 
 const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
   combat: '战斗',
-  rest: '休息处',
+  'emergency-combat': '紧急作战',
+  safehouse: '休息处 / 安全屋',
   shop: '商店',
-  wonder: '奇境',
+  encounter: '不期而遇 / 奇境',
+  dilemma: '命运抉择',
   unknown: '未知',
   boss: 'Boss 房',
 };

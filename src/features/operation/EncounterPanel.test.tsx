@@ -81,7 +81,7 @@ test('renders shop module offers, affordability and fragment sales', async () =>
 
 test('keeps unavailable wonder choices visible with an explicit requirement', () => {
   const encounter: PendingEncounter = {
-    kind: 'wonder', nodeId: 'wonder-1', resolved: false,
+    kind: 'encounter', nodeId: 'wonder-1', resolved: false,
     choices: [
       { id: 'wonder-observe', label: '观察异常', description: '回收残响。' },
       { id: 'wonder-resonate', label: '激活共鸣层', description: '稳定场景。', requiresResonance: true },

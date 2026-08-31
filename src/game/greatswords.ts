@@ -26,7 +26,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     cooldown: 2,
     overloadDelta: 12,
     target: 'hostile',
-    nodeTypes: ['combat'],
+    nodeTypes: ['combat', 'emergency-combat'],
     effect: { field: 'enemyIntegrity', delta: -30 },
   },
   watch: {
@@ -34,7 +34,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     cooldown: 1,
     overloadDelta: 5,
     target: 'self',
-    nodeTypes: ['combat', 'rest', 'shop', 'wonder', 'unknown', 'boss'],
+    nodeTypes: ['combat', 'emergency-combat', 'safehouse', 'shop', 'encounter', 'dilemma', 'unknown', 'boss'],
     effect: { field: 'guard', delta: 24 },
   },
   perception: {
@@ -42,7 +42,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     cooldown: 2,
     overloadDelta: 7,
     target: 'maze',
-    nodeTypes: ['shop', 'wonder', 'unknown'],
+    nodeTypes: ['shop', 'encounter', 'dilemma', 'unknown'],
     effect: { field: 'insight', delta: 2 },
   },
   resonance: {

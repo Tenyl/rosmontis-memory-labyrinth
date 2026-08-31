@@ -16,8 +16,10 @@ describe('run creation and mode availability', () => {
     const run = createRun(input);
 
     expect(createRun(input)).toEqual(run);
-    expect(run.run).toMatchObject({ mode: 'preset', phase: 'exploring', turn: 1, floor: 1, result: null });
+    expect(run.run).toMatchObject({ mode: 'preset', phase: 'exploring', turn: 1, floor: 1, maxFloor: 5, result: null });
     expect(run.run.currentNodeId).toBe(run.maze.startNodeId);
+    expect(run.maze.nodes).toHaveLength(11);
+    expect(run.maze.nodes.at(-1)?.type).toBe('boss');
     expect(run.rosmontis).toMatchObject({ sanity: 100, overload: 0, actionPoints: 4 });
     expect(run.memoryInventory).toMatchObject({ capacity: 3, fragments: [], coreFragments: [], pendingFragment: null });
   });
@@ -44,7 +46,7 @@ describe('run reducer', () => {
     const moved = reduceRunAction(resolved.state, { type: 'move-to-node', nodeId: target });
 
     expect(blocked).toMatchObject({ accepted: false, state: before, reason: '必须先完成当前节点遭遇。' });
-    expect(resolved.state.pendingEncounter).toMatchObject({ kind: 'rest', resolved: true });
+    expect(resolved.state.pendingEncounter).toMatchObject({ kind: 'safehouse', resolved: true });
     expect(moved.accepted).toBe(true);
   });
 
@@ -73,7 +75,7 @@ describe('run reducer', () => {
     expect(result.state.maze.floor).toBe(2);
     expect(result.state.run.currentNodeId).toBe(result.state.maze.startNodeId);
     expect(Object.values(result.state.explorationCharges)).toEqual([1, 1, 1, 1]);
-    expect(result.state.pendingEncounter).toMatchObject({ kind: 'rest', resolved: false });
+    expect(result.state.pendingEncounter).toMatchObject({ kind: 'safehouse', resolved: false });
   });
 
   test('moves only along an outgoing path and reveals the next frontier', () => {
@@ -107,7 +109,7 @@ describe('run reducer', () => {
     const before = createRun({ seed: 'node-resources', mode: 'preset', progression: freshProgression, llmEnabled: false });
     const afterWatch = reduceRunAction(before, {
       type: 'use-greatsword',
-      action: { swordId: 'watch', target: 'self', nodeType: 'rest' },
+      action: { swordId: 'watch', target: 'self', nodeType: 'safehouse' },
     }).state;
     const ready = reduceRunAction(afterWatch, { type: 'resolve-encounter', choiceId: 'rest-rehearse' }).state;
     const target = ready.maze.edges.find((edge) => edge.sourceId === ready.run.currentNodeId && !edge.locked)!.targetId;
@@ -175,7 +177,7 @@ describe('run reducer', () => {
     const before = createRun({ seed: 'sword-action', mode: 'preset', progression: freshProgression, llmEnabled: false });
     const resolution = reduceRunAction(before, {
       type: 'use-greatsword',
-      action: { swordId: 'watch', target: 'self', nodeType: 'rest' },
+      action: { swordId: 'watch', target: 'self', nodeType: 'safehouse' },
     });
 
     expect(resolution.accepted).toBe(true);
@@ -219,7 +221,7 @@ describe('run reducer', () => {
   });
 
   test('stabilizing the current memory core wins and records the first clear', () => {
-    const before = createRun({ seed: 'victory', mode: 'preset', progression: freshProgression, llmEnabled: false, floor: 3 });
+    const before = createRun({ seed: 'victory', mode: 'preset', progression: freshProgression, llmEnabled: false, floor: 5 });
     const atCore = {
       ...before,
       run: { ...before.run, currentNodeId: before.maze.coreNodeId },
@@ -242,7 +244,7 @@ describe('run reducer', () => {
   });
 
   test('completes the memory core through its protected fragment and one legal resonance action', () => {
-    const before = createRun({ seed: 'core-route', mode: 'preset', progression: freshProgression, llmEnabled: false, floor: 3 });
+    const before = createRun({ seed: 'core-route', mode: 'preset', progression: freshProgression, llmEnabled: false, floor: 5 });
     const coreFragment: MemoryFragment = {
       id: 'fragment-core-route',
       name: '核心记忆：仍被呼唤的名字',

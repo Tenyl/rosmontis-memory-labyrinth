@@ -33,9 +33,11 @@ interface RunMazePanelProps {
 
 const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
   combat: '战斗',
-  rest: '休息处',
+  'emergency-combat': '紧急作战',
+  safehouse: '休息处 / 安全屋',
   shop: '商店',
-  wonder: '奇境',
+  encounter: '不期而遇 / 奇境',
+  dilemma: '命运抉择',
   unknown: '未知',
   boss: 'Boss 房',
 };
@@ -132,10 +134,10 @@ function RunMazeNodeButton({
 
 function NodeTypeIcon({ type }: { type: MazeNodeType }) {
   const props = { size: 18, weight: 'regular' as const, 'aria-hidden': true };
-  if (type === 'combat') return <Crosshair {...props} />;
-  if (type === 'rest') return <FirstAid {...props} />;
+  if (type === 'combat' || type === 'emergency-combat') return <Crosshair {...props} />;
+  if (type === 'safehouse') return <FirstAid {...props} />;
   if (type === 'shop') return <Storefront {...props} />;
-  if (type === 'wonder') return <Sparkle {...props} />;
+  if (type === 'encounter' || type === 'dilemma') return <Sparkle {...props} />;
   if (type === 'unknown') return <Question {...props} />;
   return <Crown {...props} />;
 }

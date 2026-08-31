@@ -71,7 +71,7 @@ test('blocks movement with an explicit instruction while the current encounter i
 
 test('offers breach only for a locked route from the current node', async () => {
   const user = userEvent.setup();
-  const current = { ...unknownNode, id: 'node-current', type: 'rest' as const, hiddenType: null, revealed: true, state: 'current' as const };
+  const current = { ...unknownNode, id: 'node-current', type: 'safehouse' as const, hiddenType: null, revealed: true, state: 'current' as const };
   const onUseExplorationPower = vi.fn();
   render(
     <NodeIntelPanel

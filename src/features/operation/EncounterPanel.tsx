@@ -25,23 +25,23 @@ interface EncounterPanelProps {
 
 const ENCOUNTER_COPY = {
   combat: { code: 'COMBAT', title: '残响实体压制', description: '以本地规则逐轮削减结构完整度。' },
-  rest: { code: 'REST', title: '思维温室休整', description: '从三项恢复方案中选择一项，本层仅可执行一次。' },
+  safehouse: { code: 'SAFEHOUSE', title: '思维温室休整', description: '从三项恢复方案中选择一项，本层仅可执行一次。' },
   shop: { code: 'SHOP', title: '认知补给终端', description: '使用记忆残响购买模块，或出售普通记忆碎片。' },
-  wonder: { code: 'WONDER', title: '奇境异常观测', description: '记忆碎片与巨剑准备状态会解锁额外处理方式。' },
+  encounter: { code: 'ENCOUNTER', title: '奇境异常观测', description: '记忆碎片与巨剑准备状态会解锁额外处理方式。' },
   unknown: { code: 'UNKNOWN', title: '未知信号接触', description: '结果已由本地种子预先生成，进入后才会揭示。' },
   boss: { code: 'CORE', title: '记忆核心对峙', description: '先击穿防护，再用共鸣重建核心稳定。' },
 } as const;
 
 const HIDDEN_TYPE_LABELS = {
-  combat: '战斗', rest: '休息处', shop: '商店', wonder: '奇境',
+  combat: '战斗', safehouse: '休息处 / 安全屋', shop: '商店', encounter: '不期而遇 / 奇境',
 } as const;
 
 function EncounterIcon({ kind }: { kind: PendingEncounter['kind'] }) {
   const props = { size: 24, 'aria-hidden': true } as const;
   if (kind === 'combat') return <Crosshair {...props} />;
-  if (kind === 'rest') return <FirstAid {...props} />;
+  if (kind === 'safehouse') return <FirstAid {...props} />;
   if (kind === 'shop') return <Storefront {...props} />;
-  if (kind === 'wonder') return <Sparkle {...props} />;
+  if (kind === 'encounter') return <Sparkle {...props} />;
   if (kind === 'boss') return <Skull {...props} />;
   return <Question {...props} />;
 }
@@ -52,7 +52,7 @@ function choiceRequirement(
   inventory: MemoryInventory,
   resonanceActive: boolean,
 ) {
-  if (encounter.kind !== 'wonder') return null;
+  if (encounter.kind !== 'encounter') return null;
   if (choice.requiredTag && !inventory.fragments.some((fragment) => fragment.tags.includes(choice.requiredTag!))) {
     return `需要“${choice.requiredTag}”碎片`;
   }

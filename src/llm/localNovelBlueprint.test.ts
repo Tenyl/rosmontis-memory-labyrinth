@@ -4,8 +4,8 @@ import { createLocalNovelBlueprint } from './localNovelBlueprint';
 
 const nodes: Pick<MazeNode, 'id' | 'type'>[] = [
   { id: 'node-a', type: 'combat' },
-  { id: 'node-b', type: 'wonder' },
-  { id: 'node-c', type: 'rest' },
+  { id: 'node-b', type: 'encounter' },
+  { id: 'node-c', type: 'safehouse' },
   { id: 'node-d', type: 'shop' },
   { id: 'node-e', type: 'unknown' },
   { id: 'node-f', type: 'boss' },

@@ -36,7 +36,7 @@ describe('LocalTavernTransport', () => {
       messages: [{ role: 'user' as const, content: '扫描空白断层' }],
       offlineContext: {
         randomState: createSeededRandom('transport-event'),
-        nodeType: 'wonder' as const,
+        nodeType: 'encounter' as const,
         sanity: 64,
         overload: 38,
         fragments: [{ id: 'fragment-rain', name: '逆流的雨声', kind: 'standard' as const, tags: ['雨幕'] }],

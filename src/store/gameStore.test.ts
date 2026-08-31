@@ -81,7 +81,7 @@ test('persists encounter, economy, modules, and exploration actions through stor
   useGameStore.getState().startRun('STORE-INTEGRATED', 'preset', false);
   let state = useGameStore.getState();
 
-  expect(state.pendingEncounter).toMatchObject({ kind: 'rest', resolved: false });
+  expect(state.pendingEncounter).toMatchObject({ kind: 'safehouse', resolved: false });
   useGameStore.getState().resolveEncounterChoice('rest-rehearse');
   state = useGameStore.getState();
   expect(state.economy.scoutPoints).toBe(2);
@@ -146,7 +146,7 @@ test('rejects stale director responses and resets director content for a new Run
 
 test('settles greatswords through pure rules and synchronizes the status-page adapter', () => {
   useGameStore.getState().startRun('STORE-SWORD', 'preset', false);
-  useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'rest' });
+  useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'safehouse' });
   const state = useGameStore.getState();
 
   expect(state.rosmontis).toMatchObject({ actionPoints: 3, overload: 5, guard: 24 });

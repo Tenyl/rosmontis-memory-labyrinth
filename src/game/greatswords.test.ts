@@ -33,7 +33,7 @@ describe('four greatsword tactics', () => {
   }>([
     { swordId: 'breach', target: 'hostile', nodeType: 'combat', expected: { enemyIntegrity: 70 }, ap: 2, cooldown: 2, overload: 32 },
     { swordId: 'watch', target: 'self', nodeType: 'combat', expected: { guard: 24 }, ap: 1, cooldown: 1, overload: 25 },
-    { swordId: 'perception', target: 'maze', nodeType: 'wonder', expected: { insight: 2 }, ap: 1, cooldown: 2, overload: 27 },
+    { swordId: 'perception', target: 'maze', nodeType: 'encounter', expected: { insight: 2 }, ap: 1, cooldown: 2, overload: 27 },
     { swordId: 'resonance', target: 'memory', nodeType: 'boss', expected: { coreStability: 25 }, ap: 2, cooldown: 3, overload: 35 },
   ])('$swordId applies only its configured settlement', ({ swordId, target, nodeType, expected, ap, cooldown, overload }) => {
     const before = buildCombatState();
@@ -60,7 +60,7 @@ describe('four greatsword tactics', () => {
   test.each([
     ['breach', 'self', 'combat'],
     ['perception', 'maze', 'combat'],
-    ['resonance', 'memory', 'wonder'],
+    ['resonance', 'memory', 'encounter'],
   ] as const)('rejects illegal %s target/node combinations without mutation', (swordId, target, nodeType) => {
     const before = buildCombatState();
     const snapshot = structuredClone(before);

@@ -55,8 +55,8 @@ export function createRun(input: CreateRunInput): RoguelikeState {
     seed: input.seed,
     mode: input.mode,
     floor,
-    maxFloor: input.maxFloor ?? 3,
-    targetNodeCount: input.targetNodeCount ?? 10,
+    maxFloor: input.maxFloor ?? 5,
+    targetNodeCount: input.targetNodeCount ?? 11,
   });
   const rosmontis: GreatswordCombatState = {
     actionPoints: 4,
@@ -309,10 +309,10 @@ function createEncounterFragment(
   encounter: NonNullable<RoguelikeState['pendingEncounter']>,
 ): MemoryFragment | null {
   const node = state.maze.nodes.find((item) => item.id === encounter.nodeId);
-  if (!node || !['combat', 'wonder', 'unknown'].includes(encounter.kind)) return null;
+  if (!node || !['combat', 'encounter', 'unknown'].includes(encounter.kind)) return null;
   const copy = encounter.kind === 'combat'
     ? { name: '破壁后的残响编号', tags: ['战斗', '破壁'] }
-    : encounter.kind === 'wonder'
+    : encounter.kind === 'encounter'
       ? { name: '因果断层中的雨声', tags: ['奇境', '感知'] }
       : { name: '未辨识信号切片', tags: ['未知', '共鸣'] };
   return {

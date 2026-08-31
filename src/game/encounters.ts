@@ -51,20 +51,20 @@ function buildShopOffers(state: EncounterRuleState, node: MazeNode): ModuleShopO
 }
 
 function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncounter {
-  if (node.type === 'combat') {
+  if (node.type === 'combat' || node.type === 'emergency-combat') {
     return {
       kind: 'combat',
       nodeId: node.id,
       resolved: false,
       round: 1,
-      maxRounds: node.risk === 'A' || node.risk === 'S' ? 3 : 2,
-      enemyIntegrity: 80,
-      rewardEchoes: 8,
+      maxRounds: node.type === 'emergency-combat' ? 4 : node.risk === 'A' || node.risk === 'S' ? 3 : 2,
+      enemyIntegrity: node.type === 'emergency-combat' ? 120 : 80,
+      rewardEchoes: node.type === 'emergency-combat' ? 14 : 8,
       choices: COMBAT_CHOICES,
     };
   }
-  if (node.type === 'rest') {
-    return { kind: 'rest', nodeId: node.id, resolved: false, choices: REST_CHOICES };
+  if (node.type === 'safehouse') {
+    return { kind: 'safehouse', nodeId: node.id, resolved: false, choices: REST_CHOICES };
   }
   if (node.type === 'shop') {
     return {
@@ -75,8 +75,8 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
       choices: [{ id: 'leave-shop', label: '离开商店', description: '结束本次交易。' }],
     };
   }
-  if (node.type === 'wonder') {
-    return { kind: 'wonder', nodeId: node.id, resolved: false, choices: WONDER_CHOICES };
+  if (node.type === 'encounter' || node.type === 'dilemma') {
+    return { kind: 'encounter', nodeId: node.id, resolved: false, choices: WONDER_CHOICES };
   }
   if (node.type === 'unknown') {
     if (!node.hiddenType) throw new Error('未知节点缺少本地生成的真实类型。');
@@ -204,7 +204,7 @@ export function resolveEncounterChoice(
     );
   }
 
-  if (encounter.kind === 'rest') {
+  if (encounter.kind === 'safehouse') {
     if (choiceId === 'rest-stabilize') {
       return completed(updateVitals(state, 20, 0), encounter);
     }
@@ -239,7 +239,7 @@ export function resolveEncounterChoice(
     };
   }
 
-  if (encounter.kind === 'wonder') {
+  if (encounter.kind === 'encounter') {
     const choice = encounter.choices.find((item) => item.id === choiceId);
     if (!choice) return rejected(state, '奇境选项无效。');
     if (choice.requiredTag && !state.memoryInventory.fragments.some((fragment) => fragment.tags.includes(choice.requiredTag!))) {
@@ -264,7 +264,7 @@ export function resolveEncounterChoice(
     if (state.routeEffects.nextNodeGuarded) penalty = Math.ceil(penalty / 2);
     const hiddenEffects = encounter.hiddenType === 'combat'
       ? { sanity: -penalty, overload: penalty }
-      : encounter.hiddenType === 'rest'
+      : encounter.hiddenType === 'safehouse'
         ? { sanity: 10, overload: -6 }
         : encounter.hiddenType === 'shop'
           ? { sanity: 0, overload: 1 }

@@ -1,7 +1,27 @@
 export type RunMode = 'preset' | 'endless' | 'novel';
 export type RunPhase = 'idle' | 'exploring' | 'resolving' | 'fragment-overflow' | 'victory' | 'defeat';
-export type MazeNodeType = 'combat' | 'rest' | 'shop' | 'wonder' | 'unknown' | 'boss';
-export type HiddenMazeNodeType = Exclude<MazeNodeType, 'unknown' | 'boss'>;
+export type MazeNodeType =
+  | 'combat'
+  | 'emergency-combat'
+  | 'safehouse'
+  | 'shop'
+  | 'encounter'
+  | 'dilemma'
+  | 'unknown'
+  | 'boss';
+export type HiddenMazeNodeType = 'combat' | 'safehouse' | 'shop' | 'encounter';
+export type OverloadBand = 'normal' | 'warning' | 'berserk' | 'collapse';
+export type MemoryFragmentKind = 'emotion' | 'pain' | 'skill' | 'core';
+export type RunEra = 'trauma-recovery' | 'boundless-mindsea';
+
+export interface FloorDefinition {
+  floor: number;
+  title: string;
+  era: RunEra;
+  bossKind: 'gatekeeper' | 'closed-heart' | 'mindsea-exit';
+  requiredNodeTypes: MazeNodeType[];
+  targetNodeRange: readonly [number, number];
+}
 export type MazeRisk = 'C' | 'B' | 'A' | 'S';
 export type MazeNodeState = 'hidden' | 'detected' | 'reachable' | 'current' | 'completed' | 'corrupted';
 export type GreatswordId = 'breach' | 'watch' | 'perception' | 'resonance';
@@ -165,9 +185,9 @@ export type PendingEncounter =
       enemyIntegrity: number;
       rewardEchoes: number;
     })
-  | (EncounterBase & { kind: 'rest' })
+  | (EncounterBase & { kind: 'safehouse' })
   | (EncounterBase & { kind: 'shop'; offers: ModuleShopOffer[] })
-  | (EncounterBase & { kind: 'wonder' })
+  | (EncounterBase & { kind: 'encounter' })
   | (EncounterBase & {
       kind: 'unknown';
       hiddenType: HiddenMazeNodeType;

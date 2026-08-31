@@ -6,10 +6,10 @@ import {
 } from './gameContent';
 
 const expectedNodes = [
-  { id: 'maze-1-start', type: 'rest' as const },
+  { id: 'maze-1-start', type: 'safehouse' as const },
   { id: 'maze-1-combat', type: 'combat' as const },
   { id: 'maze-1-shop', type: 'shop' as const },
-  { id: 'maze-1-wonder', type: 'wonder' as const },
+  { id: 'maze-1-wonder', type: 'encounter' as const },
   { id: 'maze-1-unknown', type: 'unknown' as const },
   { id: 'maze-1-core', type: 'boss' as const },
 ];

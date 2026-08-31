@@ -14,10 +14,10 @@ const maze: MazeGraph = {
   randomState: createSeededRandom('PANEL-MAZE'),
   nodes: [
     { id: 'node-current', type: 'combat', state: 'current', floor: 2, depth: 0, risk: 'B', hiddenType: null, revealed: true, modifiers: [] },
-    { id: 'node-reachable', type: 'wonder', state: 'reachable', floor: 2, depth: 1, risk: 'A', hiddenType: null, revealed: true, modifiers: [] },
+    { id: 'node-reachable', type: 'encounter', state: 'reachable', floor: 2, depth: 1, risk: 'A', hiddenType: null, revealed: true, modifiers: [] },
     { id: 'node-shop', type: 'shop', state: 'hidden', floor: 2, depth: 2, risk: 'C', hiddenType: null, revealed: true, modifiers: [] },
     { id: 'node-unknown', type: 'unknown', state: 'hidden', floor: 2, depth: 3, risk: 'A', hiddenType: 'combat', revealed: false, modifiers: [] },
-    { id: 'node-hidden', type: 'rest', state: 'hidden', floor: 2, depth: 4, risk: 'C', hiddenType: null, revealed: true, modifiers: [] },
+    { id: 'node-hidden', type: 'safehouse', state: 'hidden', floor: 2, depth: 4, risk: 'C', hiddenType: null, revealed: true, modifiers: [] },
     { id: 'node-core', type: 'boss', state: 'completed', floor: 2, depth: 5, risk: 'S', hiddenType: null, revealed: true, modifiers: ['two-phase-core'] },
   ],
   edges: [
@@ -37,7 +37,7 @@ test('renders all node types and exposes current, reachable, and hidden states w
   );
 
   expect(screen.getByRole('heading', { name: '迷宫拓扑图' })).toBeVisible();
-  for (const label of ['战斗', '奇境', '商店', '未知', '休息处', 'Boss 房']) {
+  for (const label of ['战斗', '不期而遇 / 奇境', '商店', '未知', '休息处 / 安全屋', 'Boss 房']) {
     expect(screen.getAllByText(label)[0]).toBeVisible();
   }
   expect(container.querySelector('.run-maze-edges')).toHaveStyle({ pointerEvents: 'none' });
@@ -49,7 +49,7 @@ test('renders all node types and exposes current, reachable, and hidden states w
   expect(screen.getByRole('button', { name: /休息处.*未侦测/ })).toBeDisabled();
 
   await user.click(reachable);
-  expect(screen.getByRole('heading', { name: '奇境' })).toBeVisible();
+  expect(screen.getByRole('heading', { name: '不期而遇 / 奇境' })).toBeVisible();
   expect(onMove).not.toHaveBeenCalled();
   await user.click(screen.getByRole('button', { name: '进入节点' }));
   expect(onMove).toHaveBeenCalledOnce();
@@ -76,7 +76,7 @@ test('attaches novel briefs by node ID without changing graph order or movement'
       viewMode="list"
       onMove={onMove}
       nodeBriefs={[
-        { nodeId: 'node-reachable', nodeType: 'wonder', title: '倒流雨幕', description: '车窗外的雨向天空回收倒影。' },
+        { nodeId: 'node-reachable', nodeType: 'encounter', title: '倒流雨幕', description: '车窗外的雨向天空回收倒影。' },
         { nodeId: 'node-current', nodeType: 'combat', title: '无名站台', description: '广播正在擦除站名。' },
       ]}
     />,
