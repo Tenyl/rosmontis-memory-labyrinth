@@ -8,6 +8,9 @@ const OperatorsPage = lazy(() => import('../features/operators/OperatorsPage'));
 const ArchivePage = lazy(() => import('../features/archive/ArchivePage'));
 const LogPage = lazy(() => import('../features/log/LogPage'));
 const SettingsPage = lazy(() => import('../features/settings/SettingsPage'));
+const CompendiumPage = lazy(() => import('../features/compendium/CompendiumPage'));
+const DiaryPage = lazy(() => import('../features/diary/DiaryPage'));
+const RecordsPage = lazy(() => import('../features/records/RecordsPage'));
 
 export function createAppRouter() {
   return createBrowserRouter([
@@ -22,6 +25,9 @@ export function createAppRouter() {
         { path: 'archive', element: <ArchivePage /> },
         { path: 'log', element: <LogPage /> },
         { path: 'settings', element: <SettingsPage /> },
+        { path: 'compendium', element: <CompendiumPage /> },
+        { path: 'diary', element: <DiaryPage /> },
+        { path: 'records', element: <RecordsPage /> },
         { path: '*', element: <Navigate to="/operation" replace /> },
       ],
     },
