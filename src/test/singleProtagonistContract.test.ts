@@ -2,12 +2,10 @@ import { describe, expect, test } from 'vitest';
 import appShellSource from '../app/AppShell.tsx?raw';
 import commandConsoleSource from '../features/operation/CommandConsole.tsx?raw';
 import demoDataSource from '../data/demoData.ts?raw';
-import expansionDialogSource from '../features/memory/ExpansionDialog.tsx?raw';
-import memoryInspectorSource from '../features/memory/MemoryInspector.tsx?raw';
-import memoryPageSource from '../features/memory/MemoryPage.tsx?raw';
-import narrativeEngineSource from '../features/operation/narrativeEngine.ts?raw';
-import operationPageSource from '../features/operation/OperationPage.tsx?raw';
-import tacticalOverviewSource from '../features/operation/TacticalOverview.tsx?raw';
+import gamePageSource from '../features/game/GamePage.tsx?raw';
+import mazeStageSource from '../features/game/MazeStage.tsx?raw';
+import nodeSceneSource from '../features/game/NodeScene.tsx?raw';
+import offlineCommandSource from '../features/tavern/game/offlineCommand.ts?raw';
 import resetDialogSource from '../features/settings/ResetDemoDialog.tsx?raw';
 import gameStoreSource from '../store/gameStore.ts?raw';
 import gameTypesSource from '../types/game.ts?raw';
@@ -16,12 +14,10 @@ const runtimeFiles = [
   ['src/app/AppShell.tsx', appShellSource],
   ['src/features/operation/CommandConsole.tsx', commandConsoleSource],
   ['src/data/demoData.ts', demoDataSource],
-  ['src/features/memory/ExpansionDialog.tsx', expansionDialogSource],
-  ['src/features/memory/MemoryInspector.tsx', memoryInspectorSource],
-  ['src/features/memory/MemoryPage.tsx', memoryPageSource],
-  ['src/features/operation/narrativeEngine.ts', narrativeEngineSource],
-  ['src/features/operation/OperationPage.tsx', operationPageSource],
-  ['src/features/operation/TacticalOverview.tsx', tacticalOverviewSource],
+  ['src/features/game/GamePage.tsx', gamePageSource],
+  ['src/features/game/MazeStage.tsx', mazeStageSource],
+  ['src/features/game/NodeScene.tsx', nodeSceneSource],
+  ['src/features/tavern/game/offlineCommand.ts', offlineCommandSource],
   ['src/features/settings/ResetDemoDialog.tsx', resetDialogSource],
   ['src/store/gameStore.ts', gameStoreSource],
   ['src/types/game.ts', gameTypesSource],

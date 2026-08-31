@@ -7,11 +7,11 @@ interface LocalTavernTransportOptions {
 
 const LOCAL_RESPONSE_CHUNKS = [
   '<thinking>门牌编号与病历索引存在重复，优先确认声音来源。</thinking>',
-  '<maintext>迷迭香抬起手，雨滴在她身前三厘米处停住。走廊尽头的金属门牌从 R-08 缓慢翻转为 R-09，',
+  '<maintext>迷迭香抬起手，雨滴在她身前三厘米处停住。走廊尽头的病室门牌在空白与模糊编号之间反复翻转，',
   '门后传来三个频率完全相同的呼吸声。她没有继续靠近，只在地面标出一道浅蓝色的安全线。</maintext>',
   '<option>检查门牌背面的刻痕\n让医疗组比对呼吸频率\n沿安全线建立感知锚点</option>',
-  '<sum>R-09 门后出现三个同步意识回声，迷迭香建立临时安全线。</sum>',
-  '<vars>{"rosmontis_stress":43,"sanity":59,"risk":"A","objective":"确认 R-09 门后的同步意识回声","clue_title":"反复翻转的 R-09 门牌"}</vars>',
+  '<sum>门后出现三个同步意识回声，迷迭香建立临时安全线。</sum>',
+  '<vars>{"rosmontis_stress":43,"sanity":59,"risk":"A","objective":"确认门后的同步意识回声"}</vars>',
 ] as const;
 
 export class LocalTavernTransport implements TavernTransport {
@@ -35,19 +35,18 @@ export class LocalTavernTransport implements TavernTransport {
 }
 
 function buildPresetEventChunks(event: PresetEventDraft, context: NonNullable<TavernTransportRequest['offlineContext']>) {
-  const isOpeningEvent = event.id === 'rest-r09-breathing';
+  const isOpeningEvent = event.id === 'rest-turning-nameplate';
   const summary = isOpeningEvent
-    ? 'R-09 门后出现三个同步意识回声，迷迭香建立临时安全线。'
+    ? '门后出现三个同步意识回声，迷迭香建立临时安全线。'
     : `${event.title}已完成本地事件建模，等待玩家选择处理方式。`;
   const objective = isOpeningEvent
-    ? '确认 R-09 门后的同步意识回声'
+    ? '确认门后的同步意识回声'
     : `处理记忆事件：${event.title}`;
   const variables = {
     rosmontis_stress: isOpeningEvent ? 43 : context.overload,
     sanity: isOpeningEvent ? 59 : context.sanity,
     risk: context.overload >= 70 ? 'S' : context.overload >= 45 ? 'A' : 'B',
     objective,
-    clue_title: event.title,
   };
 
   return [

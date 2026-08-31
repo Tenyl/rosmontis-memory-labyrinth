@@ -85,12 +85,12 @@ function defaultCharacter(now: number): CharacterCard {
     name: '迷迭香',
     description: '罗德岛精英干员。她能以源石技艺搬运大型物体，并通过记忆残响感知被掩埋的意识痕迹。',
     personality: '寡言、敏锐、认真。她会用短句描述感知，不夸大结论，并在精神负荷上升时主动提醒博士。',
-    scenario: '博士陪同迷迭香进入“雨幕回声”意识战场。医疗部与战术指挥链正在远程监控，本次行动必须记录所有异常记忆、敌我态势与精神负荷变化。',
+    scenario: '博士陪同迷迭香进入记忆迷宫。她需要在指挥与陪伴下穿过五层创伤残响，找回记忆碎片并抵达核心花房。',
     firstMessage: '博士，链接已经稳定。雨声不是从外面传来的——它在这段记忆里面。',
     messageExample: '<START>\n{{user}}：先确认走廊尽头的声音。\n{{char}}：三个声源。没有脚步，只有呼吸。它们知道我们在这里。',
-    creatorNotes: '罗德岛意识战术终端默认角色卡。适用于中文战术 TRPG 与剧情探索。',
+    creatorNotes: '迷迭香的记忆迷宫默认角色卡，适用于单主角中文肉鸽叙事。',
     systemPrompt: '以冷静、克制、具象的中文描写迷迭香与环境。不要替博士决定行动。所有战术变化必须可追溯。',
-    postHistoryInstructions: '每轮推进一个可观察线索，并在适用时更新精神负荷、风险、记忆节点或档案变量。',
+    postHistoryInstructions: '每轮推进一个可观察线索，并在适用时更新过载、稳定性、风险与当前节点状态。',
     alternateGreetings: ['博士，我们可以开始。医疗部正在监听。', '连接恢复。刚才的记忆没有消失，它只是退到了更深处。'],
     tags: ['罗德岛', '迷迭香', '战术跑团', '意识探索'],
     creator: 'Rhodes Cognition Terminal',
@@ -145,11 +145,11 @@ function defaultLorebooks(now: number): Lorebook[] {
     },
     {
       id: DEFAULT_LOREBOOK_IDS[2],
-      name: '切尔诺伯格残响',
-      description: '污染记忆中的地点、人物与重复意象。',
+      name: '记忆迷宫残响',
+      description: '五层记忆迷宫中的地点、情绪与重复意象。',
       entries: [
         createEntry('lore-chernobog-rain', ['雨', '雨幕'], '这场雨只存在于记忆中。雨滴落在金属表面时会重复一段被删除的医疗编号。', { order: 70 }),
-        createEntry('lore-chernobog-ward', ['疗养院', '病历', '诊疗层'], '废弃疗养院的病历被同一种蓝黑墨水涂改，页角残留儿童手写的数字九。', { order: 80 }),
+        createEntry('lore-chernobog-ward', ['雨幕病区', '病历', '诊疗层'], '雨幕病区的记录被蓝黑墨迹覆盖，残缺页角仍留有无法辨认的童年笔迹。', { order: 80 }),
       ],
       recursiveScanning: true,
       caseSensitive: false,
@@ -164,7 +164,7 @@ function defaultPreset(now: number): ChatPreset {
   return {
     id: DEFAULT_PRESET_ID,
     name: '认知战术叙事',
-    description: '面向迷迭香意识战场的中文游戏模式预设。',
+    description: '面向《迷迭香的记忆迷宫》的中文肉鸽叙事预设。',
     settings: {
       temp_openai: 0.75,
       freq_pen_openai: 0.15,
@@ -174,7 +174,7 @@ function defaultPreset(now: number): ChatPreset {
       openai_max_tokens: 1800,
       stream_openai: true,
       openai_model: 'gpt-4.1-mini',
-      main: '你是罗德岛意识战术跑团主持人。围绕 {{char}} 与 {{user}} 推进冷峻、克制、可调查的中文剧情。不要替 {{user}} 选择行动。',
+      main: '你是《迷迭香的记忆迷宫》的叙事主持人。围绕 {{char}} 与 {{user}} 推进冷峻、克制、可调查的中文肉鸽剧情。不要替 {{user}} 选择行动。',
       prompts: [],
       prompt_order: DEFAULT_PROMPT_ORDER.map((item) => ({ ...item, enabled: true })),
     },
@@ -186,7 +186,7 @@ function defaultPreset(now: number): ChatPreset {
 function defaultChat(now: number): ChatSession {
   return {
     id: DEFAULT_CHAT_ID,
-    name: '雨幕回声',
+    name: '表层残响',
     characterName: '迷迭香',
     userName: '博士',
     characterId: DEFAULT_CHARACTER_ID,
@@ -195,7 +195,7 @@ function defaultChat(now: number): ChatSession {
     branchedFromMessageId: null,
     presetId: DEFAULT_PRESET_ID,
     lorebookIds: [...DEFAULT_LOREBOOK_IDS],
-    variables: { rosmontis_stress: 39, sanity: 62, risk: 'B', objective: '识别雨幕中的儿童意识回声' },
+    variables: { rosmontis_stress: 39, sanity: 62, risk: 'B', objective: '找回记忆碎片并抵达当前层出口' },
     messages: [
       {
         id: 'message-rain-opening',

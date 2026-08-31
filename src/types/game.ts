@@ -8,9 +8,6 @@ export type GenerationStatus =
   | 'paused'
   | 'interrupted'
   | 'complete';
-export type MemoryDirection = 'left' | 'right' | 'down';
-export type MemoryLayer = '表层记忆' | '深层潜意识' | '未知战局';
-export type ArchiveKind = '线索' | '人物' | '地点' | '事件' | '证物';
 export type InputMode = '行动描述' | '战术口令' | '状态询问';
 export type NarrativeKind = '叙事' | '对白' | '扫描' | '检定' | '警报';
 export type NotificationKind = 'success' | 'warning' | 'danger' | 'processing';
@@ -59,59 +56,6 @@ export interface NarrativeState {
   inputError: string | null;
 }
 
-export interface NarrativeOutcome {
-  entryId: string;
-  checkTotal: number;
-  operatorStress: number;
-  unlockedNodeId: string;
-  archiveRecordId: string;
-}
-
-export interface NarrativeEngine {
-  run(
-    command: string,
-    onChunk: (chunk: string) => void,
-  ): Promise<NarrativeOutcome>;
-  pause(): void;
-  resume(): void;
-  cancel(): void;
-}
-
-export interface MemoryNode {
-  id: string;
-  title: string;
-  layer: MemoryLayer;
-  risk: RiskLevel;
-  hostileCount: number | null;
-  alliedCount: number;
-  exploration: number;
-  anchored: boolean;
-  x: number;
-  y: number;
-  summary: string;
-  effects: string[];
-  intelligence: string[];
-  updatedAt: string;
-  sourceSessionId?: string;
-  sourceMessageId?: string;
-  matchedLorebookEntryIds?: string[];
-}
-
-export interface MemoryEdge {
-  id: string;
-  sourceId: string;
-  targetId: string;
-  state: 'confirmed' | 'polluted' | 'unresolved';
-}
-
-export interface MemoryMapState {
-  nodes: MemoryNode[];
-  edges: MemoryEdge[];
-  selectedNodeId: string | null;
-  viewMode: 'graph' | 'list';
-  viewport: { x: number; y: number; zoom: number };
-}
-
 export interface OperatorAttribute {
   label: string;
   value: number;
@@ -147,86 +91,12 @@ export interface OperatorsState {
   formation: string;
 }
 
-export interface ArchiveRecord {
-  id: string;
-  code: string;
-  kind: ArchiveKind;
-  title: string;
-  summary: string;
-  sourceEntryId: string;
-  discoveredIn: string;
-  discoveredBy: string;
-  confidence: number;
-  contamination: RiskLevel;
-  verification: '已验证' | '部分验证' | '未验证' | '存在冲突';
-  relatedIds: string[];
-  note: string;
-  pinned: boolean;
-  unread: boolean;
-  updatedAt: string;
-  sourceSessionId?: string;
-  sourceMessageId?: string;
-  matchedLorebookEntryIds?: string[];
-}
-
-export interface ArchiveLink {
-  id: string;
-  sourceId: string;
-  targetId: string;
-  relation: '支持' | '冲突' | '出现于' | '指向';
-}
-
-export interface ArchiveState {
-  records: ArchiveRecord[];
-  links: ArchiveLink[];
-  view: 'records' | 'relations' | 'reasoning';
-  query: string;
-  kindFilter: ArchiveKind | '全部';
-  sort: '最近更新' | '可信度';
-}
-
-export interface ActionLogEntry {
-  id: string;
-  kind: '章节' | '指令' | '检定' | '状态变化' | '节点解锁' | '情报入库';
-  title: string;
-  summary: string;
-  timestamp: string;
-  actor: string;
-  chapter: string;
-  sourceEntryId?: string;
-  relatedPath?: string;
-  sourceSessionId?: string;
-  sourceMessageId?: string;
-  matchedLorebookEntryIds?: string[];
-}
-
 export type TacticalDomainEvent = (
   | { type: 'operator.stress.changed'; operatorId: string; value: number; sourceMessageId: string }
   | { type: 'operator.sanity.changed'; operatorId: string; value: number; sourceMessageId: string }
-  | {
-      type: 'memory.node.discovered';
-      title: string;
-      risk: RiskLevel;
-      summary?: string;
-      layer?: MemoryLayer;
-      hostileCount?: number | null;
-      alliedCount?: number;
-      effects?: string[];
-      intelligence?: string[];
-      sourceMessageId: string;
-    }
-  | {
-      type: 'archive.clue.discovered' | 'archive.npc.discovered';
-      title: string;
-      summary?: string;
-      confidence?: number;
-      risk?: RiskLevel;
-      sourceMessageId: string;
-    }
   | { type: 'session.risk.changed'; value: RiskLevel; sourceMessageId: string }
   | { type: 'session.objective.changed'; value: string; sourceMessageId: string }
   | { type: 'squad.status.changed'; value: string; sourceMessageId: string }
-  | { type: 'log.turn.completed'; summary: string; sourceMessageId: string }
 ) & { matchedLorebookEntryIds?: string[] };
 
 export interface TavernProjectionSnapshot {
@@ -259,10 +129,10 @@ export interface UiPreferences {
 }
 
 export interface UiState {
-  sidebarCollapsed: boolean;
   activeDialog: string | null;
   notifications: NotificationItem[];
   migrationNotice: 'three-to-five-floors' | null;
+  mazeViewMode: 'graph' | 'list';
   preferences: UiPreferences;
 }
 
@@ -311,10 +181,7 @@ export interface GameDataState {
   pendingDiaryDrafts: PendingDiaryDraft[];
   session: SessionState;
   narrative: NarrativeState;
-  memoryMap: MemoryMapState;
   operators: OperatorsState;
-  archive: ArchiveState;
-  actionLog: ActionLogEntry[];
   tavernProjection: TavernProjectionState;
   ui: UiState;
 }

@@ -17,7 +17,7 @@ describe('default tavern content', () => {
     expect(lorebookNames).toEqual(expect.arrayContaining([
       '罗德岛行动协议',
       '迷迭香认知档案',
-      '切尔诺伯格残响',
+      '记忆迷宫残响',
     ]));
     expect((await getPresets()).map((item) => item.name)).toEqual(['认知战术叙事']);
   });

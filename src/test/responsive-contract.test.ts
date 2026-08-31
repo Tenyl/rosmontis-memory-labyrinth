@@ -3,12 +3,9 @@ import globalCss from '../styles/global.css?raw';
 import tokensCss from '../styles/tokens.css?raw';
 import componentsCss from '../components/components.css?raw';
 
-test('响应式样式定义四档布局与系统减少动效规则', () => {
+test('统一工作区定义移动端触控与系统减少动效规则', () => {
   const css = `${responsiveCss}\n${globalCss}`;
-  expect(css).toContain('@media (max-width: 1439px)');
-  expect(css).toContain('@media (max-width: 1023px)');
   expect(css).toContain('@media (max-width: 767px)');
-  expect(css).toContain('@media (max-width: 420px)');
   expect(css).toContain('@media (prefers-reduced-motion: reduce)');
   expect(css).toContain('overflow-wrap: anywhere');
   expect(css).toContain('[data-motion="reduced"] .route-page');

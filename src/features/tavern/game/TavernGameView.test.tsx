@@ -32,7 +32,7 @@ test('流式显示正文，闭合后呈现选项，并默认折叠思考过程',
   expect(screen.getByRole('button', { name: '展开思考过程' })).toHaveAttribute('aria-expanded', 'false');
 });
 
-test('回合完成后将验证过的变量投影到战术状态', async () => {
+test('回合完成后只将保留的角色变量投影到战术状态', async () => {
   const transport: TavernTransport = {
     mode: 'local',
     async *stream() {
@@ -46,9 +46,9 @@ test('回合完成后将验证过的变量投影到战术状态', async () => {
   await screen.findByText('记忆节点已显现。');
 
   await waitFor(() => expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(47));
-  expect(useGameStore.getState().memoryMap.nodes.some((node) => node.title === '沉没诊疗层')).toBe(true);
-  expect(useGameStore.getState().archive.records.some((record) => record.title === '被涂改的病历')).toBe(true);
-  expect(useGameStore.getState().actionLog.some((entry) => entry.summary === '发现沉没诊疗层')).toBe(true);
+  expect(useGameStore.getState()).not.toHaveProperty('memoryMap');
+  expect(useGameStore.getState()).not.toHaveProperty('archive');
+  expect(useGameStore.getState()).not.toHaveProperty('actionLog');
 });
 
 test('数字快捷键只填入选项，不会自动提交', async () => {

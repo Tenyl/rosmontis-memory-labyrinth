@@ -12,6 +12,25 @@ function withoutRoguelikeSlices() {
 }
 
 describe('versioned game state migration', () => {
+  test('migrates V7 by dropping legacy domains while preserving the active Run', () => {
+    const current = buildDemoState();
+    const persisted = structuredClone(current) as unknown as Record<string, unknown>;
+    persisted.memoryMap = { viewMode: 'list', nodes: [{ id: 'legacy' }], edges: [] };
+    persisted.archive = { records: [{ id: 'legacy-archive' }], links: [] };
+    persisted.actionLog = [{ id: 'legacy-log' }];
+    (persisted.ui as Record<string, unknown>).sidebarCollapsed = true;
+
+    const migrated = migrateGameState(persisted, current);
+
+    expect(migrated.run.id).toBe(current.run.id);
+    expect(migrated.maze).toEqual(current.maze);
+    expect(migrated.ui.mazeViewMode).toBe('list');
+    expect(migrated.ui).not.toHaveProperty('sidebarCollapsed');
+    expect(migrated).not.toHaveProperty('memoryMap');
+    expect(migrated).not.toHaveProperty('archive');
+    expect(migrated).not.toHaveProperty('actionLog');
+  });
+
   test('rebuilds a V5 three-floor Run as a five-floor Run with the same seed', () => {
     const current = buildDemoState();
     const previous = structuredClone(current) as any;

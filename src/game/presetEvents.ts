@@ -93,10 +93,10 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
   ],
   'safehouse': [
     {
-      id: 'rest-r09-breathing',
+      id: 'rest-turning-nameplate',
       nodeType: 'safehouse',
-      title: '反复翻转的 R-09 门牌',
-      body: '迷迭香抬起手，雨滴在她身前三厘米处停住。走廊尽头的金属门牌从 R-08 缓慢翻转为 R-09，门后传来三个频率完全相同的呼吸声。',
+      title: '反复翻转的病室门牌',
+      body: '迷迭香抬起手，雨滴在她身前三厘米处停住。走廊尽头的病室门牌在空白与模糊编号之间反复翻转，门后传来三个频率完全相同的呼吸声。',
       choices: [
         { id: 'inspect-sign', label: '检查门牌背面的刻痕', description: '确认编号是否曾被人为覆盖。', effect: { sanityDelta: -1, overloadDelta: 3 } },
         { id: 'compare-breathing', label: '比对三组呼吸频率', description: '寻找意识回声之间的细微偏差。', effect: { sanityDelta: 1, overloadDelta: 2 } },

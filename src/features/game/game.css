@@ -1,6 +1,17 @@
 .game-route { max-width: 1800px; }
 .rosmontis-presence { display: grid; gap: var(--space-3); margin-bottom: var(--space-4); }
 .game-stage { position: relative; min-width: 0; }
+.novel-maze-brief { margin-top: var(--space-4); border: 1px solid rgba(142,215,247,.28); border-left: 2px solid var(--color-memory-blue); background: linear-gradient(135deg,rgba(142,215,247,.08),rgba(9,13,17,.96)); box-shadow: var(--shadow-base); }
+.novel-maze-brief>header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-line-subtle); }
+.novel-maze-brief>header span { color: var(--color-memory-blue); font: 500 .61rem/1 var(--font-data); letter-spacing: .11em; }
+.novel-maze-brief>header h2 { margin: var(--space-3) 0 0; font-size: 1rem; }
+.novel-maze-brief>header strong { color: var(--color-memory-blue); font: 500 .61rem/1 var(--font-data); }
+.novel-maze-brief-body { display: grid; gap: var(--space-6); grid-template-columns: minmax(0,1.1fr) minmax(260px,.9fr); padding: var(--space-6); }
+.novel-maze-brief-body small,.novel-maze-brief-body dt { color: var(--color-text-tertiary); font: 500 .6rem/1 var(--font-data); letter-spacing: .08em; }
+.novel-maze-brief-body h3 { margin: var(--space-3) 0; font-size: 1.15rem; }
+.novel-maze-brief-body p,.novel-maze-brief-body dd { margin: 0; color: var(--color-text-secondary); font-size: .75rem; line-height: 1.75; }
+.novel-maze-brief-body dl { display: grid; gap: var(--space-4); margin: 0; }
+.novel-maze-brief-body dd { margin-top: var(--space-2); }
 .maze-stage { overflow: hidden; border: 1px solid var(--color-line-subtle); background: color-mix(in srgb,var(--color-background-elevated) 92%,transparent); box-shadow: var(--shadow-base); }
 .maze-stage-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-line-subtle); background: linear-gradient(115deg,var(--color-memory-blue-soft),transparent 55%); }
 .maze-stage-header>div:first-child { min-width: 0; }
@@ -84,7 +95,7 @@
 .node-scene-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding: var(--space-5) var(--space-6); border: 1px solid var(--color-line-subtle); background: var(--color-background-elevated); }
 .node-scene-footer p { max-width: 72ch; margin: 0; color: var(--color-text-secondary); font-size: .7rem; line-height: 1.65; }
 .node-scene-footer button { flex: 0 0 auto; }
-@media (max-width: 767px) { .maze-stage-header,.maze-context-toolbar,.node-scene-header,.node-scene-footer { align-items: stretch; flex-direction: column; padding: var(--space-4); } .maze-stage-header .segmented-control { width: 100%; } .maze-stage-header .segmented-control button { flex: 1; } .maze-viewport-shell { padding: var(--space-2); } .maze-viewport { min-height: 480px; } .maze-camera-controls { top: var(--space-4); right: var(--space-4); } .maze-node.is-graph { width: 104px; min-height: 88px; } .maze-context-actions { justify-content: flex-start; } .node-scene-footer button { justify-content: center; width: 100%; min-height: 44px; } }
+@media (max-width: 767px) { .maze-stage-header,.maze-context-toolbar,.node-scene-header,.node-scene-footer { align-items: stretch; flex-direction: column; padding: var(--space-4); } .maze-stage-header .segmented-control { width: 100%; } .maze-stage-header .segmented-control button { flex: 1; } .maze-viewport-shell { padding: var(--space-2); } .maze-viewport { min-height: 480px; } .maze-camera-controls { top: var(--space-4); right: var(--space-4); } .maze-node.is-graph { width: 104px; min-height: 88px; } .maze-context-actions { justify-content: flex-start; } .novel-maze-brief>header,.novel-maze-brief-body { padding: var(--space-4); } .novel-maze-brief-body { grid-template-columns: minmax(0,1fr); } .node-scene-footer button { justify-content: center; width: 100%; min-height: 44px; } }
 @keyframes transition-route { 0% { opacity: 0; transform: scaleX(.08); } 42% { opacity: 1; } 100% { opacity: 0; transform: scaleX(1); } }
 @keyframes transition-aperture { 0% { opacity: 0; transform: scale(.16) rotate(0); } 48% { opacity: .72; } 100% { opacity: 0; transform: scale(1.55) rotate(45deg); } }
 @media (prefers-reduced-motion: reduce) { .maze-node.is-current::after,.maze-node.is-reachable,.transition-route-pulse,.transition-aperture { animation: none; } .maze-camera { transition: none; } }

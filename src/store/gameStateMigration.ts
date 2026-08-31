@@ -23,18 +23,57 @@ const roguelikeKeys = [
 
 export function migrateGameState(persisted: unknown, current: GameDataState): GameDataState {
   if (!isRecord(persisted)) return current;
-  const merged = {
-    ...current,
-    ...persisted,
+  const persistedUi = isRecord(persisted.ui) ? persisted.ui : {};
+  const legacyMap = isRecord(persisted.memoryMap) ? persisted.memoryMap : null;
+  const mazeViewMode = legacyMap?.viewMode === 'list' || legacyMap?.viewMode === 'graph'
+    ? legacyMap.viewMode
+    : persistedUi.mazeViewMode === 'list' || persistedUi.mazeViewMode === 'graph'
+      ? persistedUi.mazeViewMode
+      : current.ui.mazeViewMode;
+  const merged: GameDataState = {
+    run: (persisted.run ?? current.run) as GameDataState['run'],
+    maze: (persisted.maze ?? current.maze) as GameDataState['maze'],
+    rosmontis: (persisted.rosmontis ?? current.rosmontis) as GameDataState['rosmontis'],
+    memoryInventory: (persisted.memoryInventory ?? current.memoryInventory) as GameDataState['memoryInventory'],
+    progression: (persisted.progression ?? current.progression) as GameDataState['progression'],
+    ruleLog: (persisted.ruleLog ?? current.ruleLog) as GameDataState['ruleLog'],
+    randomState: (persisted.randomState ?? current.randomState) as GameDataState['randomState'],
+    economy: current.economy,
+    modules: current.modules,
+    explorationCharges: current.explorationCharges,
+    routeEffects: current.routeEffects,
+    pendingEncounter: current.pendingEncounter,
+    llmDirector: current.llmDirector,
+    memoryCompendium: current.memoryCompendium,
+    runHistory: current.runHistory,
+    pendingDiaryDrafts: current.pendingDiaryDrafts,
+    session: isRecord(persisted.session)
+      ? { ...current.session, ...persisted.session }
+      : current.session,
+    narrative: isRecord(persisted.narrative)
+      ? { ...current.narrative, ...persisted.narrative }
+      : current.narrative,
+    operators: current.operators,
+    tavernProjection: isRecord(persisted.tavernProjection)
+      ? { ...current.tavernProjection, ...persisted.tavernProjection }
+      : current.tavernProjection,
     ui: {
-      ...current.ui,
-      ...(isRecord(persisted.ui) ? persisted.ui : {}),
+      activeDialog: typeof persistedUi.activeDialog === 'string' || persistedUi.activeDialog === null
+        ? persistedUi.activeDialog
+        : current.ui.activeDialog,
+      notifications: Array.isArray(persistedUi.notifications)
+        ? persistedUi.notifications
+        : current.ui.notifications,
+      migrationNotice: persistedUi.migrationNotice === 'three-to-five-floors'
+        ? 'three-to-five-floors'
+        : current.ui.migrationNotice,
+      mazeViewMode,
       preferences: {
         ...current.ui.preferences,
-        ...(isRecord(persisted.ui) && isRecord(persisted.ui.preferences) ? persisted.ui.preferences : {}),
+        ...(isRecord(persistedUi.preferences) ? persistedUi.preferences : {}),
       },
     },
-  } as GameDataState;
+  };
   merged.memoryCompendium = Array.isArray(persisted.memoryCompendium)
     ? persisted.memoryCompendium
     : current.memoryCompendium;

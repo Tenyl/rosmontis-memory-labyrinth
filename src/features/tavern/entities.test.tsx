@@ -43,7 +43,7 @@ test('保留的角色卡管理视图始终使用可替换空白头像', async ()
 test('批量世界书导入分别报告成功与失败并保留成功项', async () => {
   const user = userEvent.setup();
   renderOrchestrator();
-  await screen.findByText('雨幕回声');
+  await screen.findByText('表层残响');
   await user.click(screen.getByRole('tab', { name: /^世界书/ }));
 
   const input = screen.getByLabelText('批量导入世界书 JSON');
@@ -62,7 +62,7 @@ test('批量世界书导入分别报告成功与失败并保留成功项', async
 test('预设提示词顺序按钮会保存并在重新打开时保持顺序', async () => {
   const user = userEvent.setup();
   renderOrchestrator();
-  await screen.findByText('雨幕回声');
+  await screen.findByText('表层残响');
   await user.click(screen.getByRole('tab', { name: /^预设/ }));
   await user.click(screen.getByRole('button', { name: '编辑预设 认知战术叙事' }));
   await user.click(screen.getByRole('tab', { name: '提示词顺序' }));

@@ -1,4 +1,4 @@
-import { deepMemoryClue, buildDemoState } from '../data/demoData';
+import { buildDemoState } from '../data/demoData';
 import { projectTavernTurn } from '../features/tavern/projection/tavern-turn-projector';
 import type { MemoryFragment } from '../game/types';
 import { sanitizeSingleProtagonistState, useGameStore } from './gameStore';
@@ -7,24 +7,24 @@ beforeEach(() => {
   useGameStore.getState().resetDemoState();
 });
 
-test('starts with three specified surface-memory nodes', () => {
+test('starts with the current maze workspace and no legacy archive domains', () => {
   const state = buildDemoState();
 
-  expect(state.memoryMap.nodes.map((node) => node.title)).toEqual([
-    '雨幕中的疗养院',
-    '无声候车厅',
-    '编号 R-09 隔离室',
-  ]);
+  expect(state.maze.nodes.length).toBeGreaterThan(0);
+  expect(state.ui.mazeViewMode).toBe('graph');
+  expect(state).not.toHaveProperty('memoryMap');
+  expect(state).not.toHaveProperty('archive');
+  expect(state).not.toHaveProperty('actionLog');
 });
 
-test('resets mutated stress and archive state', () => {
+test('resets mutated stress and UI maze preference', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 57);
-  useGameStore.getState().addArchiveRecord(deepMemoryClue);
+  useGameStore.getState().setMazeView('list');
 
   useGameStore.getState().resetDemoState();
 
   expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(41);
-  expect(useGameStore.getState().archive.records).toHaveLength(4);
+  expect(useGameStore.getState().ui.mazeViewMode).toBe('graph');
 });
 
 test('keeps only the initial scenario and preferences when autosave is disabled', () => {
@@ -314,11 +314,14 @@ test('persists the explicit roguelike schema version', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 44);
   const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
 
-  expect(persisted.version).toBe(7);
+  expect(persisted.version).toBe(8);
   expect(persisted.state.run.seed).toBeTruthy();
   expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(9);
   expect(persisted.state.runHistory).toEqual(expect.any(Array));
   expect(persisted.state.memoryCompendium).toEqual(expect.any(Array));
+  expect(persisted.state).not.toHaveProperty('memoryMap');
+  expect(persisted.state).not.toHaveProperty('archive');
+  expect(persisted.state).not.toHaveProperty('actionLog');
 });
 
 test('resets only the active Run while preserving permanent progression', () => {
@@ -355,19 +358,15 @@ test('applies each Tavern turn once and restores an independent projection per c
 
   let state = useGameStore.getState();
   expect(state.operators.byId.rosmontis.stress).toBe(47);
-  expect(state.memoryMap.nodes.filter((node) => node.sourceMessageId === 'msg-9')).toHaveLength(1);
-  expect(state.archive.records.filter((record) => record.sourceMessageId === 'msg-9')).toHaveLength(1);
-  expect(state.actionLog.filter((entry) => entry.sourceMessageId === 'msg-9')).toHaveLength(1);
+  expect(state.tavernProjection.sessions['chat-rain']?.processedMessageIds).toEqual(['msg-9']);
 
   useGameStore.getState().activateTavernProjection('chat-silent');
   state = useGameStore.getState();
   expect(state.operators.byId.rosmontis.stress).toBe(41);
-  expect(state.memoryMap.nodes.some((node) => node.sourceMessageId === 'msg-9')).toBe(false);
 
   useGameStore.getState().activateTavernProjection('chat-rain');
   state = useGameStore.getState();
   expect(state.operators.byId.rosmontis.stress).toBe(47);
-  expect(state.memoryMap.nodes.some((node) => node.sourceMessageId === 'msg-9')).toBe(true);
 });
 
 test('reconciles removed history and carries surviving projection into a branch', () => {
@@ -382,9 +381,9 @@ test('reconciles removed history and carries surviving projection into a branch'
   useGameStore.getState().applyTavernEvents(events, 'chat-rain');
   useGameStore.getState().branchTavernProjection('chat-rain', 'chat-branch', ['msg-9']);
   expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(47);
-  expect(useGameStore.getState().archive.records.some((record) => record.sourceSessionId === 'chat-branch')).toBe(true);
+  expect(useGameStore.getState().tavernProjection.sessions['chat-branch']?.processedMessageIds).toEqual(['msg-9']);
 
   useGameStore.getState().reconcileTavernProjection('chat-branch', []);
   expect(useGameStore.getState().operators.byId.rosmontis.stress).toBe(41);
-  expect(useGameStore.getState().archive.records.some((record) => record.sourceSessionId === 'chat-branch')).toBe(false);
+  expect(useGameStore.getState().tavernProjection.sessions['chat-branch']?.processedMessageIds).toEqual([]);
 });

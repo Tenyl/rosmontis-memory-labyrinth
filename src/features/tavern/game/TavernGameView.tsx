@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGameStore } from '../../../store/gameStore';
 import { CommandConsole } from '../../operation/CommandConsole';
-import { classifyOfflineCommand } from '../../operation/narrativeEngine';
+import { classifyOfflineCommand } from './offlineCommand';
 import { useTavern } from '../runtime/useTavern';
 import { HistoryDrawer } from './HistoryDrawer';
 import { MainTextPane } from './MainTextPane';

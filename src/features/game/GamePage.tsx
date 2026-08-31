@@ -13,7 +13,6 @@ import { NodeScene } from './NodeScene';
 import { RosmontisPresence } from './RosmontisPresence';
 import { gameSceneReducer, restoreGameSceneState } from './sceneState';
 import '../operation/operation.css';
-import '../memory/memory.css';
 import './game.css';
 
 export default function GamePage() {
@@ -30,10 +29,10 @@ export default function GamePage() {
   const routeEffects = useGameStore((state) => state.routeEffects);
   const pendingEncounter = useGameStore((state) => state.pendingEncounter);
   const novel = useGameStore((state) => state.llmDirector.novel);
-  const viewMode = useGameStore((state) => state.memoryMap.viewMode);
+  const viewMode = useGameStore((state) => state.ui.mazeViewMode);
   const motionPreference = useGameStore((state) => state.ui.preferences.motion);
   const moveToNode = useGameStore((state) => state.moveToNode);
-  const setMemoryView = useGameStore((state) => state.setMemoryView);
+  const setMazeView = useGameStore((state) => state.setMazeView);
   const useExplorationPower = useGameStore((state) => state.useExplorationPower);
   const spendScoutPoint = useGameStore((state) => state.spendScoutPoint);
   const beginCurrentEncounter = useGameStore((state) => state.beginCurrentEncounter);
@@ -151,7 +150,7 @@ export default function GamePage() {
               viewMode={viewMode}
               camera={scene.camera}
               onCameraChange={(camera) => dispatchScene({ type: 'set-camera', camera })}
-              onViewModeChange={setMemoryView}
+              onViewModeChange={setMazeView}
               onRequestEnter={(nodeId) => dispatchScene({ type: 'request-node', nodeId })}
               explorationCharges={explorationCharges}
               scoutPoints={economy.scoutPoints}

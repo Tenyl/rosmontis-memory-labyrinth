@@ -11,7 +11,7 @@ const rosmontisV2Fixture = {
     scenario: '博士与迷迭香进入一段受污染的意识回廊。',
     first_mes: '博士，链接已经稳定。',
     mes_example: '<START>\n{{user}}：你听见了什么？\n{{char}}：很多孩子在走廊尽头说话。',
-    creator_notes: '罗德岛意识战术终端默认角色。',
+    creator_notes: '迷迭香的记忆迷宫默认角色。',
     system_prompt: '保持冷静、克制的中文叙事。',
     post_history_instructions: '每轮推进一个可观察线索。',
     alternate_greetings: ['博士，我们可以开始。'],

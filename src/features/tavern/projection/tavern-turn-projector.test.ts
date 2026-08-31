@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { projectTavernTurn } from './tavern-turn-projector';
 
 describe('projectTavernTurn', () => {
-  it('projects a completed turn into operator, memory, archive and log events', () => {
+  it('projects a completed turn only into retained operator and session events', () => {
     expect(projectTavernTurn({
       sessionId: 'chat-rain',
       messageId: 'msg-9',
@@ -16,9 +16,6 @@ describe('projectTavernTurn', () => {
       previousVariables: { rosmontis_stress: 39 },
     })).toEqual([
       { type: 'operator.stress.changed', operatorId: 'rosmontis', value: 47, sourceMessageId: 'msg-9' },
-      { type: 'memory.node.discovered', title: '沉没诊疗层', risk: 'A', sourceMessageId: 'msg-9' },
-      { type: 'archive.clue.discovered', title: '被涂改的病历', sourceMessageId: 'msg-9' },
-      { type: 'log.turn.completed', summary: '发现儿童意识回声', sourceMessageId: 'msg-9' },
     ]);
   });
 
@@ -46,7 +43,7 @@ describe('projectTavernTurn', () => {
     ]);
   });
 
-  it('creates an NPC event with optional validated evidence', () => {
+  it('ignores retired NPC evidence variables while retaining squad status', () => {
     expect(projectTavernTurn({
       sessionId: 'chat-rain',
       messageId: 'msg-11',
@@ -60,16 +57,7 @@ describe('projectTavernTurn', () => {
       },
       previousVariables: {},
     })).toEqual([
-      {
-        type: 'archive.npc.discovered',
-        title: '护理员伊莲',
-        summary: '镜面中没有投影。',
-        confidence: 43,
-        risk: 'A',
-        sourceMessageId: 'msg-11',
-      },
       { type: 'squad.status.changed', value: '神经链路稳定', sourceMessageId: 'msg-11' },
-      { type: 'log.turn.completed', summary: '未知通讯接入', sourceMessageId: 'msg-11' },
     ]);
   });
 });

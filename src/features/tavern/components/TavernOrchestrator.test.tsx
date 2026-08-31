@@ -24,7 +24,7 @@ test('does not expose multi-character management in the orchestrator', async () 
   );
 
   const dialog = await screen.findByRole('dialog', { name: '酒馆编排中枢' });
-  await within(dialog).findByText('雨幕回声');
+  await within(dialog).findByText('表层残响');
   expect(within(dialog).queryByRole('tab', { name: /^角色/ })).not.toBeInTheDocument();
 });
 
@@ -36,7 +36,7 @@ test('creates, renames, loads and confirms deletion of sessions', async () => {
     </TavernProvider>,
   );
 
-  expect(await screen.findByText('雨幕回声')).toBeVisible();
+  expect(await screen.findByText('表层残响')).toBeVisible();
   await user.click(screen.getByRole('button', { name: '新建会话' }));
   await user.type(screen.getByLabelText('会话名称'), '坍塌区入口');
   await user.click(screen.getByRole('button', { name: '创建并载入' }));
@@ -53,7 +53,7 @@ test('creates, renames, loads and confirms deletion of sessions', async () => {
   expect(screen.getByRole('dialog', { name: '确认删除会话' })).toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: '确认删除' }));
   await waitFor(() => expect(screen.queryByText('坍塌区入口 / 复核')).not.toBeInTheDocument());
-  expect(screen.getByText('雨幕回声')).toBeVisible();
+  expect(screen.getByText('表层残响')).toBeVisible();
 });
 
 test('edits typed variables with validation instead of a placeholder-only form', async () => {
@@ -63,7 +63,7 @@ test('edits typed variables with validation instead of a placeholder-only form',
       <TavernOrchestrator open onClose={vi.fn()} />
     </TavernProvider>,
   );
-  await screen.findByText('雨幕回声');
+  await screen.findByText('表层残响');
 
   await user.click(screen.getByRole('tab', { name: /^变量/ }));
   expect(screen.getByLabelText('变量 rosmontis_stress 的值')).toHaveValue('39');
