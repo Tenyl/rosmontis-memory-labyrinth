@@ -132,6 +132,7 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
     }
     merged.progression = savedProgression;
   }
+  merged.run = normalizeRunContent(merged.run);
 
   const persistedOperators = isRecord(persisted.operators) && isRecord(persisted.operators.byId)
     ? persisted.operators.byId
@@ -173,6 +174,28 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
       : inferLegacyFragmentKind(entry),
   }));
   return merged;
+}
+
+function normalizeRunContent(run: GameDataState['run']): GameDataState['run'] {
+  const candidate = run as GameDataState['run'] & Record<string, unknown>;
+  const binding = (isRecord(candidate.aiBinding) ? candidate.aiBinding : {}) as Record<string, unknown>;
+  return {
+    ...run,
+    contentMode: candidate.contentMode === 'ai-director' ? 'ai-director' : 'local',
+    narrativeStyle: candidate.narrativeStyle === 'novel' ? 'novel' : 'tactical',
+    aiFailurePolicy: candidate.aiFailurePolicy === 'auto-fallback' || candidate.aiFailurePolicy === 'pause'
+      ? candidate.aiFailurePolicy
+      : 'ask',
+    aiBinding: {
+      chatId: typeof binding.chatId === 'string' ? binding.chatId : null,
+      characterId: typeof binding.characterId === 'string' ? binding.characterId : null,
+      personaId: typeof binding.personaId === 'string' ? binding.personaId : null,
+      presetId: typeof binding.presetId === 'string' ? binding.presetId : null,
+      lorebookIds: Array.isArray(binding.lorebookIds)
+        ? binding.lorebookIds.filter((id: unknown): id is string => typeof id === 'string')
+        : [],
+    },
+  };
 }
 
 function normalizeFragment<T extends { kind: unknown; tags: string[] }>(fragment: T) {

@@ -5,6 +5,7 @@ export type SaveSlotId = 'slot-1' | 'slot-2' | 'slot-3';
 export interface SaveSlotSummary {
   floor: number;
   mode: GameDataState['run']['mode'];
+  contentMode: GameDataState['run']['contentMode'];
   nodeId: string;
   sanity: number;
   overload: number;
@@ -13,7 +14,7 @@ export interface SaveSlotSummary {
 }
 
 export interface SaveSnapshot {
-  version: 9;
+  version: 10;
   savedAt: string;
   summary: SaveSlotSummary;
   state: GameDataState;
@@ -41,11 +42,12 @@ export function createSaveSlot(
   savedAt = new Date().toISOString(),
 ): SaveSnapshot {
   const snapshot: SaveSnapshot = {
-    version: 9,
+    version: 10,
     savedAt,
     summary: {
       floor: state.run.floor,
       mode: state.run.mode,
+      contentMode: state.run.contentMode,
       nodeId: state.run.currentNodeId,
       sanity: state.rosmontis.sanity,
       overload: state.rosmontis.overload,

@@ -7,17 +7,28 @@ import { applyFragmentEffects } from './fragmentCatalog';
 import { resolveGreatswordAction } from './greatswords';
 import { generateMaze } from './maze';
 import type {
+  AiFailurePolicy,
+  ContentMode,
   GreatswordCombatState,
   EncounterAction,
   MemoryFragment,
+  NarrativeStyle,
   ProgressionState,
   RoguelikeState,
   RuleEvent,
   RunAction,
+  RunAiBinding,
   RunMode,
 } from './types';
 
-interface CreateRunInput {
+export interface RunContentConfiguration {
+  contentMode?: ContentMode;
+  narrativeStyle?: NarrativeStyle;
+  aiFailurePolicy?: AiFailurePolicy;
+  aiBinding?: Partial<RunAiBinding>;
+}
+
+interface CreateRunInput extends RunContentConfiguration {
   seed: string;
   mode: RunMode;
   progression: ProgressionState;
@@ -46,6 +57,10 @@ export function getAvailableModes(progression: ProgressionState, llmEnabled: boo
 }
 
 export function createRun(input: CreateRunInput): RoguelikeState {
+  const contentMode = input.contentMode ?? (input.mode === 'novel' ? 'ai-director' : 'local');
+  if (contentMode === 'ai-director' && !input.llmEnabled) {
+    throw new Error('AI 导演模式需要先连接 LLM。');
+  }
   if (input.mode === 'novel' && !input.llmEnabled) {
     throw new Error('小说剧情模式需要先启用 LLM。');
   }
@@ -88,6 +103,16 @@ export function createRun(input: CreateRunInput): RoguelikeState {
       maxFloor: maze.maxFloor,
       currentNodeId: maze.startNodeId,
       result: null,
+      contentMode,
+      narrativeStyle: input.narrativeStyle ?? (input.mode === 'novel' ? 'novel' : 'tactical'),
+      aiFailurePolicy: input.aiFailurePolicy ?? 'ask',
+      aiBinding: {
+        chatId: input.aiBinding?.chatId ?? null,
+        characterId: input.aiBinding?.characterId ?? null,
+        personaId: input.aiBinding?.personaId ?? null,
+        presetId: input.aiBinding?.presetId ?? null,
+        lorebookIds: [...(input.aiBinding?.lorebookIds ?? [])],
+      },
     },
     maze,
     rosmontis,
@@ -244,7 +269,18 @@ function continueToMindsea(state: RoguelikeState, llmEnabled: boolean): RunResol
   const maze = generateMaze({ seed: state.run.seed, mode: 'novel', floor, maxFloor: floor, targetNodeCount: state.maze.nodes.length });
   const next: RoguelikeState = {
     ...state,
-    run: { ...state.run, mode: 'novel', phase: 'exploring', result: null, floor, maxFloor: floor, currentNodeId: maze.startNodeId, turn: state.run.turn + 1 },
+    run: {
+      ...state.run,
+      mode: 'novel',
+      contentMode: 'ai-director',
+      narrativeStyle: 'novel',
+      phase: 'exploring',
+      result: null,
+      floor,
+      maxFloor: floor,
+      currentNodeId: maze.startNodeId,
+      turn: state.run.turn + 1,
+    },
     maze,
     rosmontis: { ...refreshNodeResources(state.rosmontis, state.memoryInventory.fragments), guard: 0, enemyIntegrity: 100, coreStability: 0 },
     explorationCharges: { breach: 1, watch: 1, perception: 1, resonance: 1 },

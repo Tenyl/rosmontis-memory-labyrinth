@@ -13,6 +13,10 @@ const run: RunState = {
   maxFloor: 3,
   currentNodeId: 'node-2',
   result: null,
+  contentMode: 'local',
+  narrativeStyle: 'tactical',
+  aiFailurePolicy: 'ask',
+  aiBinding: { chatId: null, characterId: null, personaId: null, presetId: null, lorebookIds: [] },
 };
 
 const rosmontis: GreatswordCombatState = {

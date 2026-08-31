@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { createSaveSlot, listSaveSlots, loadSaveSlot, setActiveSaveSlotId, type SaveSlotId } from '../../game/saveSlots';
 import { useGameStore } from '../../store/gameStore';
 import { getAvailableModes } from '../../game/run';
-import type { RunMode } from '../../game/types';
+import type { ContentMode, RunMode } from '../../game/types';
 import { useTavern } from '../tavern/runtime/useTavern';
 import './title.css';
 
@@ -15,6 +15,7 @@ export default function TitlePage() {
   const progression = useGameStore((state) => state.progression);
   const [selectingSlot, setSelectingSlot] = useState(false);
   const [mode, setMode] = useState<RunMode>('preset');
+  const [contentMode, setContentMode] = useState<ContentMode>('local');
   const [revision, setRevision] = useState(0);
   const llmEnabled = Boolean(runtime.settings?.api.apiKey.trim());
   const slots = useMemo(() => listSaveSlots(localStorage), [revision]);
@@ -25,7 +26,12 @@ export default function TitlePage() {
   const start = (slotId: SaveSlotId) => {
     const occupied = loadSaveSlot(slotId, localStorage);
     if (occupied && !window.confirm('该存档槽已有记录。是否覆盖并开始新的记忆潜入？')) return;
-    startRun(`RUN-${Date.now().toString(36).toUpperCase()}`, mode, llmEnabled, true);
+    const selectedContentMode = mode === 'novel' ? 'ai-director' : contentMode;
+    startRun(`RUN-${Date.now().toString(36).toUpperCase()}`, mode, llmEnabled, true, {
+      contentMode: selectedContentMode,
+      narrativeStyle: mode === 'novel' ? 'novel' : 'tactical',
+      aiFailurePolicy: 'ask',
+    });
     setActiveSaveSlotId(slotId, localStorage);
     createSaveSlot(slotId, useGameStore.getState(), localStorage);
     setRevision((value) => value + 1);
@@ -70,6 +76,32 @@ export default function TitlePage() {
                 <span><strong>{name}</strong><small>{unlocked ? description : candidate === 'novel' && !llmEnabled ? '首次通关并接入 LLM 后解锁' : '首次通关后解锁'}</small></span>
               </label>;
             })}
+          </fieldset>
+          <fieldset className="title-mode-grid title-content-mode-grid">
+            <legend>内容驱动</legend>
+            <label htmlFor="title-content-local">
+              <input
+                id="title-content-local"
+                type="radio"
+                name="title-content-mode"
+                value="local"
+                checked={contentMode === 'local'}
+                onChange={() => setContentMode('local')}
+              />
+              <span><strong>本地规则模式</strong><small>完整离线游玩，不显示 AI 交互</small></span>
+            </label>
+            <label htmlFor="title-content-ai" className={llmEnabled ? '' : 'is-locked'}>
+              <input
+                id="title-content-ai"
+                type="radio"
+                name="title-content-mode"
+                value="ai-director"
+                checked={contentMode === 'ai-director'}
+                disabled={!llmEnabled}
+                onChange={() => setContentMode('ai-director')}
+              />
+              <span><strong>AI 导演模式</strong><small>{llmEnabled ? '世界书与预设参与节点叙事' : '请先在系统设置中连接 LLM'}</small></span>
+            </label>
           </fieldset>
           <div className="save-slot-grid">
             {slots.map((slot) => (

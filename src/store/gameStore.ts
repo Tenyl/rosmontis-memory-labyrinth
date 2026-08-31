@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { buildDemoState } from '../data/demoData';
-import { createRun, reduceRunAction, type RunResolution } from '../game/run';
+import { createRun, reduceRunAction, type RunContentConfiguration, type RunResolution } from '../game/run';
 import type {
   FragmentOverflowChoice,
   GreatswordAction,
@@ -42,7 +42,13 @@ import { resolveD20Check } from '../game/checks';
 
 interface GameActions {
   dispatchRunAction: (action: RunAction) => RunResolution;
-  startRun: (seed: string, mode: RunMode, llmEnabled: boolean, manualStart?: boolean) => void;
+  startRun: (
+    seed: string,
+    mode: RunMode,
+    llmEnabled: boolean,
+    manualStart?: boolean,
+    content?: RunContentConfiguration,
+  ) => void;
   moveToNode: (nodeId: string) => void;
   beginCurrentEncounter: () => void;
   resolveEncounterChoice: (choiceId: string) => void;
@@ -368,9 +374,9 @@ export const useGameStore = create<GameStore>()(
         }
         return resolution;
       },
-      startRun: (seed, mode, llmEnabled, manualStart = false) =>
+      startRun: (seed, mode, llmEnabled, manualStart = false, content) =>
         set((state) => {
-          const next = createRun({ seed, mode, progression: state.progression, llmEnabled, manualStart });
+          const next = createRun({ seed, mode, progression: state.progression, llmEnabled, manualStart, ...content });
           return {
             ...applyRoguelikeState(state, next, []),
             ruleLog: [],

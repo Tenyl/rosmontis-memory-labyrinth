@@ -21,6 +21,14 @@ test('starts a new run in a chosen slot and waits for the player to select the f
   expect(useGameStore.getState().maze.nodes.filter((node) => node.state === 'reachable').length).toBeGreaterThanOrEqual(2);
 });
 
+test('offers the shared local template and locks AI direction while no LLM is connected', async () => {
+  renderApp('/');
+  fireEvent.click(await screen.findByRole('button', { name: '开始游戏' }));
+
+  expect(screen.getByRole('radio', { name: /^本地规则模式/ })).toBeEnabled();
+  expect(screen.getByRole('radio', { name: /^AI 导演模式/ })).toBeDisabled();
+});
+
 test('unlocks local endless mode on the opening screen after the first clear', async () => {
   renderApp('/');
   useGameStore.setState({ progression: { firstClear: true, completedRuns: 1 } });

@@ -11,6 +11,57 @@ const reward: MemoryFragment = {
 };
 
 describe('run creation and mode availability', () => {
+  test('uses one Run contract for local and AI-directed content', () => {
+    const local = createRun({
+      seed: 'CONTENT-LOCAL',
+      mode: 'preset',
+      progression: freshProgression,
+      llmEnabled: false,
+    });
+    const directed = createRun({
+      seed: 'CONTENT-AI',
+      mode: 'preset',
+      progression: freshProgression,
+      llmEnabled: true,
+      contentMode: 'ai-director',
+      narrativeStyle: 'novel',
+      aiFailurePolicy: 'pause',
+      aiBinding: {
+        chatId: 'chat-run-ai',
+        characterId: 'character-rosmontis',
+        personaId: 'persona-doctor',
+        presetId: 'preset-story',
+        lorebookIds: ['book-rhodes'],
+      },
+    });
+
+    expect(local.run).toMatchObject({
+      contentMode: 'local',
+      narrativeStyle: 'tactical',
+      aiFailurePolicy: 'ask',
+      aiBinding: {
+        chatId: null,
+        characterId: null,
+        personaId: null,
+        presetId: null,
+        lorebookIds: [],
+      },
+    });
+    expect(directed.run).toMatchObject({
+      contentMode: 'ai-director',
+      narrativeStyle: 'novel',
+      aiFailurePolicy: 'pause',
+      aiBinding: { chatId: 'chat-run-ai', lorebookIds: ['book-rhodes'] },
+    });
+    expect(() => createRun({
+      seed: 'CONTENT-AI-OFFLINE',
+      mode: 'preset',
+      progression: freshProgression,
+      llmEnabled: false,
+      contentMode: 'ai-director',
+    })).toThrow(/AI 导演模式需要先连接 LLM/);
+  });
+
   test('manual start waits at the completed anchor and exposes at least two first-node choices', () => {
     const state = createRun({
       seed: 'manual-entry',

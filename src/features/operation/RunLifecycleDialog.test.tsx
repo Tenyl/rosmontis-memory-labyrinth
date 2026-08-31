@@ -13,6 +13,10 @@ const exploringRun: RunState = {
   maxFloor: 3,
   currentNodeId: 'node-current',
   result: null,
+  contentMode: 'local',
+  narrativeStyle: 'tactical',
+  aiFailurePolicy: 'ask',
+  aiBinding: { chatId: null, characterId: null, personaId: null, presetId: null, lorebookIds: [] },
 };
 
 function renderLifecycle(run: RunState, llmEnabled = false) {

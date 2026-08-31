@@ -22,7 +22,8 @@ describe('local run save slots', () => {
     const state = buildDemoState();
     const saved = createSaveSlot('slot-2', state, localStorage, '2026-08-31T10:00:00.000Z');
 
-    expect(saved.summary).toMatchObject({ floor: 1, mode: 'preset', sanity: 100, overload: 0 });
+    expect(saved).toMatchObject({ version: 10 });
+    expect(saved.summary).toMatchObject({ floor: 1, mode: 'preset', contentMode: 'local', sanity: 100, overload: 0 });
     expect(loadSaveSlot('slot-2', localStorage)?.state.run).toEqual(state.run);
     expect(listSaveSlots(localStorage)[1].snapshot?.savedAt).toBe('2026-08-31T10:00:00.000Z');
   });

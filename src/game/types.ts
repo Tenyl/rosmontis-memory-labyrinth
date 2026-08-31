@@ -1,4 +1,7 @@
 export type RunMode = 'preset' | 'endless' | 'novel';
+export type ContentMode = 'local' | 'ai-director';
+export type NarrativeStyle = 'tactical' | 'novel';
+export type AiFailurePolicy = 'ask' | 'auto-fallback' | 'pause';
 export type RunPhase = 'idle' | 'exploring' | 'resolving' | 'fragment-overflow' | 'victory' | 'defeat';
 export type MazeNodeType =
   | 'combat'
@@ -56,6 +59,14 @@ export interface SeededRandomState {
   draws: number;
 }
 
+export interface RunAiBinding {
+  chatId: string | null;
+  characterId: string | null;
+  personaId: string | null;
+  presetId: string | null;
+  lorebookIds: string[];
+}
+
 export interface RunState {
   id: string;
   seed: string;
@@ -66,6 +77,10 @@ export interface RunState {
   maxFloor: number;
   currentNodeId: string;
   result: 'victory' | 'defeat' | null;
+  contentMode: ContentMode;
+  narrativeStyle: NarrativeStyle;
+  aiFailurePolicy: AiFailurePolicy;
+  aiBinding: RunAiBinding;
 }
 
 export type D20Outcome = 'critical-failure' | 'failure' | 'success' | 'critical-success';

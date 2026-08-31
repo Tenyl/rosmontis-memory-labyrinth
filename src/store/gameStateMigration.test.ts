@@ -12,6 +12,32 @@ function withoutRoguelikeSlices() {
 }
 
 describe('versioned game state migration', () => {
+  test('adds local content defaults to legacy runs without changing gameplay state', () => {
+    const current = buildDemoState();
+    const persisted = structuredClone(current) as any;
+    delete persisted.run.contentMode;
+    delete persisted.run.narrativeStyle;
+    delete persisted.run.aiFailurePolicy;
+    delete persisted.run.aiBinding;
+    persisted.run.turn = 13;
+
+    const migrated = migrateGameState(persisted, current);
+
+    expect(migrated.run).toMatchObject({
+      turn: 13,
+      contentMode: 'local',
+      narrativeStyle: 'tactical',
+      aiFailurePolicy: 'ask',
+      aiBinding: {
+        chatId: null,
+        characterId: null,
+        personaId: null,
+        presetId: null,
+        lorebookIds: [],
+      },
+    });
+  });
+
   test('migrates V7 by dropping legacy domains while preserving the active Run', () => {
     const current = buildDemoState();
     const persisted = structuredClone(current) as unknown as Record<string, unknown>;
