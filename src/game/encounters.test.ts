@@ -121,8 +121,9 @@ describe('node encounters', () => {
     expect(entered.state.economy.echoes).toBeGreaterThan(low.economy.echoes);
   });
 
-  test('boss uses shield and stability phases with a high-overload glitch', () => {
-    const before = runAtNode('boss');
+  test('the fifth-floor boss uses shield and reconciliation phases with a high-overload glitch', () => {
+    const initial = runAtNode('boss');
+    const before = { ...initial, run: { ...initial.run, floor: 5, maxFloor: 5 } };
     let state = createEncounter(
       { ...before, modules: ['breach-circuit', 'resonance-wire'], rosmontis: { ...before.rosmontis, overload: 75 } },
       before.maze.nodes[0],
@@ -130,7 +131,7 @@ describe('node encounters', () => {
     state = resolveEncounterChoice(state, 'boss-breach').state;
     state = resolveEncounterChoice(state, 'boss-breach').state;
 
-    expect(state.pendingEncounter).toMatchObject({ kind: 'boss', phase: 'stability', glitch: true });
+    expect(state.pendingEncounter).toMatchObject({ kind: 'boss', bossKind: 'closed-heart', phase: 'reconciliation', glitch: true });
     state = resolveEncounterChoice(state, 'boss-resonate').state;
     state = resolveEncounterChoice(state, 'boss-resonate').state;
     state = resolveEncounterChoice(state, 'boss-resonate').state;

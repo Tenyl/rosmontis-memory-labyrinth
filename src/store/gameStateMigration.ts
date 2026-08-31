@@ -1,6 +1,7 @@
 import { validateMaze } from '../game/maze';
 import { createRun } from '../game/run';
 import { inferLegacyFragmentKind } from '../game/fragmentCatalog';
+import { getBossDefinition } from '../game/bosses';
 import type { MazeGraph } from '../game/types';
 import { restoreLlmDirectorState } from '../llm/directorState';
 import type { GameDataState } from '../types/game';
@@ -110,6 +111,14 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
     merged.narrative = { ...merged.narrative, inputMode: '状态询问' };
   }
   merged.llmDirector = restoreLlmDirectorState(persisted.llmDirector, merged.run.id);
+  if (merged.pendingEncounter?.kind === 'boss') {
+    const legacyBoss = merged.pendingEncounter as typeof merged.pendingEncounter & { bossKind?: import('../game/bosses').BossKind };
+    merged.pendingEncounter = {
+      ...legacyBoss,
+      bossKind: legacyBoss.bossKind ?? getBossDefinition(merged.run.floor).kind,
+      phase: legacyBoss.phase === 'stability' && merged.run.floor >= 5 ? 'reconciliation' : legacyBoss.phase,
+    };
+  }
   merged.memoryInventory = {
     ...merged.memoryInventory,
     fragments: merged.memoryInventory.fragments.map(normalizeFragment),

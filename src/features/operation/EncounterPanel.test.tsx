@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { MemoryInventory, PendingEncounter } from '../../game/types';
 import { EncounterPanel } from './EncounterPanel';
@@ -11,8 +11,6 @@ const inventory: MemoryInventory = {
 };
 
 test('renders combat progress and emits the selected local rule action', async () => {
-  const user = userEvent.setup();
-  const onResolve = vi.fn();
   const encounter: PendingEncounter = {
     kind: 'combat', nodeId: 'combat-1', resolved: false, round: 2, maxRounds: 3,
     enemyIntegrity: 50, rewardEchoes: 8,
@@ -29,7 +27,8 @@ test('renders combat progress and emits the selected local rule action', async (
       echoes={12}
       modules={[]}
       resonanceActive={false}
-      onResolve={onResolve}
+      onResolve={vi.fn()}
+      onAction={vi.fn()}
       onSellFragment={vi.fn()}
       onAdvanceFloor={vi.fn()}
       canAdvanceFloor={false}
@@ -39,8 +38,9 @@ test('renders combat progress and emits the selected local rule action', async (
   expect(screen.getByRole('heading', { name: '残响实体压制' })).toBeVisible();
   expect(screen.getByText('结构完整度 50 / 80')).toBeVisible();
   expect(screen.getByText('第 2 / 3 轮')).toBeVisible();
-  await user.click(screen.getByRole('button', { name: /破壁强攻/ }));
-  expect(onResolve).toHaveBeenCalledWith('combat-breach');
+  expect(screen.queryByRole('button', { name: /破壁强攻/ })).not.toBeInTheDocument();
+  expect(document.querySelector('#btn-encounter-combat-breach')).toBeNull();
+  expect(screen.getByText(/点击上方.*立柱.*门扉/)).toBeVisible();
 });
 
 test('renders shop module offers, affordability and fragment sales', async () => {
@@ -64,6 +64,7 @@ test('renders shop module offers, affordability and fragment sales', async () =>
       modules={[]}
       resonanceActive={false}
       onResolve={onResolve}
+      onAction={vi.fn()}
       onSellFragment={onSellFragment}
       onAdvanceFloor={vi.fn()}
       canAdvanceFloor={false}
@@ -96,6 +97,7 @@ test('keeps unavailable wonder choices visible with an explicit requirement', ()
       modules={[]}
       resonanceActive={false}
       onResolve={vi.fn()}
+      onAction={vi.fn()}
       onSellFragment={vi.fn()}
       onAdvanceFloor={vi.fn()}
       canAdvanceFloor={false}
@@ -119,6 +121,7 @@ test('reveals an unknown result only after local settlement', () => {
       modules={[]}
       resonanceActive={false}
       onResolve={vi.fn()}
+      onAction={vi.fn()}
       onSellFragment={vi.fn()}
       onAdvanceFloor={vi.fn()}
       canAdvanceFloor={false}
@@ -134,6 +137,7 @@ test('reveals an unknown result only after local settlement', () => {
       modules={[]}
       resonanceActive={false}
       onResolve={vi.fn()}
+      onAction={vi.fn()}
       onSellFragment={vi.fn()}
       onAdvanceFloor={vi.fn()}
       canAdvanceFloor={false}
@@ -142,11 +146,23 @@ test('reveals an unknown result only after local settlement', () => {
   expect(screen.getByText('真实类型：战斗')).toBeVisible();
 });
 
+test('accepts a dragged tactical card as the same encounter action', () => {
+  const onAction = vi.fn();
+  const encounter: PendingEncounter = {
+    kind: 'combat', nodeId: 'combat-drop', resolved: false, round: 1, maxRounds: 3,
+    enemyIntegrity: 80, rewardEchoes: 8, choices: [],
+  };
+  render(<EncounterPanel encounter={encounter} inventory={inventory} echoes={0} modules={[]} resonanceActive={false} onResolve={vi.fn()} onAction={onAction} onSellFragment={vi.fn()} onAdvanceFloor={vi.fn()} canAdvanceFloor={false} />);
+  const panel = screen.getByRole('heading', { name: '残响实体压制' }).closest('section')!;
+  fireEvent.drop(panel, { dataTransfer: { getData: () => 'breach', types: ['application/x-rosmontis-sword'] } });
+  expect(onAction).toHaveBeenCalledWith({ type: 'play-sword', swordId: 'breach' });
+});
+
 test('shows boss phase progress and the next-floor action after settlement', async () => {
   const user = userEvent.setup();
   const onAdvanceFloor = vi.fn();
   const encounter: PendingEncounter = {
-    kind: 'boss', nodeId: 'boss-1', resolved: true, phase: 'stability',
+    kind: 'boss', bossKind: 'closed-heart', nodeId: 'boss-1', resolved: true, phase: 'reconciliation',
     enemyIntegrity: 0, coreStability: 100, glitch: false,
     choices: [],
   };
@@ -159,13 +175,14 @@ test('shows boss phase progress and the next-floor action after settlement', asy
       modules={[]}
       resonanceActive={false}
       onResolve={vi.fn()}
+      onAction={vi.fn()}
       onSellFragment={vi.fn()}
       onAdvanceFloor={onAdvanceFloor}
       canAdvanceFloor
     />,
   );
 
-  expect(screen.getByText('核心稳定 100 / 100')).toBeVisible();
+  expect(screen.getByText('共鸣度 100 / 100')).toBeVisible();
   await user.click(screen.getByRole('button', { name: '进入下一层记忆迷宫' }));
   expect(onAdvanceFloor).toHaveBeenCalledOnce();
 });

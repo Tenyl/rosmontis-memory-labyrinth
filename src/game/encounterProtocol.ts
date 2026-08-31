@@ -2,6 +2,7 @@ import { sellFragment } from './economy';
 import { resolveEncounterChoice } from './encounters';
 import { resolveGreatswordAction } from './greatswords';
 import { resolveComfortAction } from './overload';
+import { resolveBossAction } from './bosses';
 import type { EncounterAction, EncounterRuleState, GreatswordId, GreatswordTarget, PendingEncounter, RuleEvent } from './types';
 
 export type { EncounterAction } from './types';
@@ -17,8 +18,8 @@ export interface EncounterResolution {
 const SWORD_CHOICE = {
   breach: { combat: 'combat-breach', boss: 'boss-breach' },
   watch: { combat: 'combat-guard' },
-  perception: { encounter: 'wonder-observe' },
-  resonance: { boss: 'boss-resonate', encounter: 'wonder-resonate' },
+  perception: { encounter: 'wonder-observe', unknown: 'unknown-enter' },
+  resonance: { boss: 'boss-resonate', encounter: 'wonder-resonate', unknown: 'unknown-enter' },
 } as const;
 
 export function resolveEncounterAction(
@@ -28,6 +29,17 @@ export function resolveEncounterAction(
   if (action.type === 'comfort') {
     const comfort = resolveComfortAction(state.rosmontis, action.gesture);
     if (!comfort.accepted) return rejected(state, comfort.reason ?? '迷迭香现在无法回应。');
+    const encounter = state.pendingEncounter;
+    if (encounter?.kind === 'boss') {
+      const boss = resolveBossAction(encounter, { type: 'comfort', gesture: action.gesture });
+      if (!boss.accepted) return rejected(state, boss.reason ?? '现在还无法触及她。');
+      return {
+        accepted: true,
+        state: { ...state, rosmontis: comfort.state, pendingEncounter: { ...encounter, ...boss.state } },
+        events: [...comfort.events, actionEvent(encounter.nodeId, action.type)],
+        animation: 'comfort',
+      };
+    }
     return {
       accepted: true,
       state: { ...state, rosmontis: comfort.state },
@@ -38,6 +50,25 @@ export function resolveEncounterAction(
   const encounter = state.pendingEncounter;
   if (!encounter) return rejected(state, '当前没有待结算节点。');
   if (encounter.resolved) return rejected(state, '当前节点已经完成结算。');
+
+  if (action.type === 'recover') {
+    const hasCooldown = Object.values(state.rosmontis.greatswords).some(({ cooldown }) => cooldown > 0);
+    if (!hasCooldown && state.rosmontis.actionPoints >= 4) return rejected(state, '战术资源已经处于可用状态。');
+    return {
+      accepted: true,
+      state: {
+        ...state,
+        rosmontis: {
+          ...state.rosmontis,
+          actionPoints: 4,
+          overload: Math.max(0, state.rosmontis.overload - 2),
+          greatswords: Object.fromEntries(Object.entries(state.rosmontis.greatswords).map(([id, sword]) => [id, { cooldown: Math.max(0, sword.cooldown - 1) }])) as typeof state.rosmontis.greatswords,
+        },
+      },
+      events: [actionEvent(encounter.nodeId, action.type)],
+      animation: null,
+    };
+  }
 
   if (action.type === 'sell') {
     if (encounter.kind !== 'shop') return rejected(state, '只有在认知黑市中才能出售记忆碎片。');
@@ -86,6 +117,14 @@ export function resolveEncounterAction(
       : action.type === 'leave-shop'
         ? 'leave-shop'
         : swordChoice(action.swordId, encounter.kind);
+  if (!choiceId && action.type === 'play-sword') {
+    return {
+      accepted: true,
+      state: workingState,
+      events: [...swordEvents, actionEvent(encounter.nodeId, action.type)],
+      animation: action.swordId,
+    };
+  }
   if (!choiceId) return rejected(state, '这柄巨剑无法回应当前遭遇。');
 
   const result = resolveEncounterChoice(workingState, choiceId);

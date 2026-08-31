@@ -2,18 +2,22 @@ import { Eye, ShieldChevron, Sword, Waveform } from '@phosphor-icons/react';
 import { GREATSWORD_CONFIG } from '../../game/greatswords';
 import { getOverloadBand } from '../../game/overload';
 import type {
-  GreatswordAction,
   GreatswordCombatState,
   GreatswordId,
+  EncounterAction,
+  ExplorationCharges,
   MazeNodeType,
+  PendingEncounter,
   RuleEvent,
 } from '../../game/types';
 
 interface GreatswordActionsProps {
   rosmontis: GreatswordCombatState;
   currentNodeType: MazeNodeType;
+  encounter: PendingEncounter | null;
+  explorationCharges: ExplorationCharges;
   ruleLog: RuleEvent[];
-  onUse: (action: GreatswordAction) => void;
+  onAction: (action: EncounterAction) => void;
 }
 
 const SWORD_PRESENTATION: Record<GreatswordId, {
@@ -51,11 +55,17 @@ function getDisabledReason(
   swordId: GreatswordId,
   rosmontis: GreatswordCombatState,
   currentNodeType: MazeNodeType,
+  encounter: PendingEncounter | null,
 ) {
   const config = GREATSWORD_CONFIG[swordId];
   const currentCooldown = rosmontis.greatswords[swordId].cooldown;
   if (currentCooldown > 0) return `仍需冷却 ${currentCooldown} 回合`;
   if (!config.nodeTypes.includes(currentNodeType)) return `仅可用于${config.nodeTypes.map((type) => NODE_TYPE_LABELS[type]).join('、')}`;
+  if (encounter?.kind === 'boss') {
+    const reconciliation = encounter.phase === 'reconciliation' || encounter.phase === 'stability';
+    if (reconciliation && swordId !== 'resonance') return '她已经放下心防；此阶段仅允许哀鸣 / 共鸣与安抚';
+    if (!reconciliation && swordId !== 'breach') return '必须先使用立柱 / 破壁解除心防';
+  }
   if (swordId === 'perception' && getOverloadBand(rosmontis.overload) === 'berserk') return '暴走时无法维持精细的神经扫描';
   if (rosmontis.actionPoints < config.actionPointCost) return '行动点不足';
   return null;
@@ -64,8 +74,10 @@ function getDisabledReason(
 export function GreatswordActions({
   rosmontis,
   currentNodeType,
+  encounter,
+  explorationCharges,
   ruleLog,
-  onUse,
+  onAction,
 }: GreatswordActionsProps) {
   const latestEvent = [...ruleLog].reverse().find((event) => event.type === 'greatsword.used');
 
@@ -83,7 +95,7 @@ export function GreatswordActions({
         {SWORD_IDS.map((swordId) => {
           const config = GREATSWORD_CONFIG[swordId];
           const presentation = SWORD_PRESENTATION[swordId];
-          const disabledReason = getDisabledReason(swordId, rosmontis, currentNodeType);
+          const disabledReason = getDisabledReason(swordId, rosmontis, currentNodeType, encounter);
           return (
             <button
               id={`btn-greatsword-${swordId}`}
@@ -93,7 +105,9 @@ export function GreatswordActions({
               aria-label={`${presentation.name} · ${presentation.action}`}
               aria-describedby={`greatsword-${swordId}-availability`}
               disabled={disabledReason !== null}
-              onClick={() => onUse({ swordId, target: config.target, nodeType: currentNodeType })}
+              draggable={disabledReason === null}
+              onDragStart={(event) => event.dataTransfer.setData('application/x-rosmontis-sword', swordId)}
+              onClick={() => onAction({ type: 'play-sword', swordId })}
             >
               <span className="greatsword-card-icon"><SwordIcon swordId={swordId} /></span>
               <span className="greatsword-card-heading">
@@ -105,6 +119,7 @@ export function GreatswordActions({
                 <b>{config.actionPointCost} AP</b>
                 <b>冷却 {config.cooldown}</b>
                 <b>过载 +{config.overloadDelta}%</b>
+                <b>探索充能 {explorationCharges[swordId]}</b>
               </span>
               <span id={`greatsword-${swordId}-availability`} className="greatsword-card-availability">
                 {disabledReason ?? '战术链路可执行'}

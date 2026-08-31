@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { GreatswordCombatState, RuleEvent } from '../../game/types';
 import { GreatswordActions } from './GreatswordActions';
@@ -18,14 +18,17 @@ const rosmontis: GreatswordCombatState = {
     resonance: { cooldown: 0 },
   },
 };
+const explorationCharges = { breach: 1, watch: 1, perception: 1, resonance: 1 } as const;
 
 test('renders four configured tactical cards with AP, cooldown, and overload costs', () => {
   render(
     <GreatswordActions
       rosmontis={rosmontis}
       currentNodeType="combat"
+      encounter={null}
+      explorationCharges={explorationCharges}
       ruleLog={[]}
-      onUse={vi.fn()}
+      onAction={vi.fn()}
     />,
   );
 
@@ -41,12 +44,16 @@ test('renders four configured tactical cards with AP, cooldown, and overload cos
   expect(within(breach).getByText('2 AP')).toBeVisible();
   expect(within(breach).getByText('冷却 2')).toBeVisible();
   expect(within(breach).getByText('过载 +12%')).toBeVisible();
+  expect(within(breach).getByText('探索充能 1')).toBeVisible();
   expect(within(watch).getByText('1 AP')).toBeVisible();
+  const setData = vi.fn();
+  fireEvent.dragStart(breach, { dataTransfer: { setData } });
+  expect(setData).toHaveBeenCalledWith('application/x-rosmontis-sword', 'breach');
 });
 
 test('disables node-incompatible and cooling swords while dispatching a legal configured action', async () => {
   const user = userEvent.setup();
-  const onUse = vi.fn();
+  const onAction = vi.fn();
   render(
     <GreatswordActions
       rosmontis={{
@@ -54,24 +61,22 @@ test('disables node-incompatible and cooling swords while dispatching a legal co
         greatswords: { ...rosmontis.greatswords, watch: { cooldown: 1 } },
       }}
       currentNodeType="encounter"
+      encounter={null}
+      explorationCharges={explorationCharges}
       ruleLog={[]}
-      onUse={onUse}
+      onAction={onAction}
     />,
   );
 
   expect(screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ })).toBeDisabled();
   expect(screen.getByRole('button', { name: /门扉.*守望.*实体屏障/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ })).toBeEnabled();
   const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
   expect(perception).toBeEnabled();
 
   await user.click(perception);
-  expect(onUse).toHaveBeenCalledOnce();
-  expect(onUse).toHaveBeenCalledWith({
-    swordId: 'perception',
-    target: 'maze',
-    nodeType: 'encounter',
-  });
+  expect(onAction).toHaveBeenCalledOnce();
+  expect(onAction).toHaveBeenCalledWith({ type: 'play-sword', swordId: 'perception' });
 });
 
 test('reports the newest settled sword event without recalculating its values', () => {
@@ -84,8 +89,10 @@ test('reports the newest settled sword event without recalculating its values', 
     <GreatswordActions
       rosmontis={rosmontis}
       currentNodeType="encounter"
+      encounter={null}
+      explorationCharges={explorationCharges}
       ruleLog={ruleLog}
-      onUse={vi.fn()}
+      onAction={vi.fn()}
     />,
   );
 
@@ -97,12 +104,35 @@ test('disables precision scanning while overload is in the berserk band', () => 
     <GreatswordActions
       rosmontis={{ ...rosmontis, overload: 80 }}
       currentNodeType="encounter"
+      encounter={null}
+      explorationCharges={explorationCharges}
       ruleLog={[]}
-      onUse={vi.fn()}
+      onAction={vi.fn()}
     />,
   );
 
   const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
   expect(perception).toBeDisabled();
   expect(perception).toHaveAccessibleDescription('暴走时无法维持精细的神经扫描');
+});
+
+test('locks damage cards after the closed heart enters reconciliation', () => {
+  render(
+    <GreatswordActions
+      rosmontis={rosmontis}
+      currentNodeType="boss"
+      encounter={{
+        kind: 'boss', bossKind: 'closed-heart', nodeId: 'boss-five', resolved: false,
+        phase: 'reconciliation', enemyIntegrity: 0, coreStability: 40, glitch: false, choices: [],
+      }}
+      explorationCharges={explorationCharges}
+      ruleLog={[]}
+      onAction={vi.fn()}
+    />,
+  );
+  const breach = screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ });
+  const resonance = screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ });
+  expect(breach).toBeDisabled();
+  expect(breach).toHaveAccessibleDescription(/仅允许哀鸣.*共鸣与安抚/);
+  expect(resonance).toBeEnabled();
 });

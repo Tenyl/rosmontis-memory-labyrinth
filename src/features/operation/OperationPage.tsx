@@ -23,10 +23,11 @@ export default function OperationPage() {
   const progression = useGameStore((state) => state.progression);
   const maze = useGameStore((state) => state.maze);
   const ruleLog = useGameStore((state) => state.ruleLog);
-  const useGreatsword = useGameStore((state) => state.useGreatsword);
+  const resolveEncounterAction = useGameStore((state) => state.resolveEncounterAction);
   const memoryInventory = useGameStore((state) => state.memoryInventory);
   const economy = useGameStore((state) => state.economy);
   const modules = useGameStore((state) => state.modules);
+  const explorationCharges = useGameStore((state) => state.explorationCharges);
   const routeEffects = useGameStore((state) => state.routeEffects);
   const pendingEncounter = useGameStore((state) => state.pendingEncounter);
   const beginCurrentEncounter = useGameStore((state) => state.beginCurrentEncounter);
@@ -82,8 +83,10 @@ export default function OperationPage() {
           <GreatswordActions
             rosmontis={runRosmontis}
             currentNodeType={currentNode.type}
+            encounter={pendingEncounter}
+            explorationCharges={explorationCharges}
             ruleLog={ruleLog}
-            onUse={useGreatsword}
+            onAction={resolveEncounterAction}
           />
           <EncounterPanel
             encounter={pendingEncounter}
@@ -92,6 +95,7 @@ export default function OperationPage() {
             modules={modules}
             resonanceActive={routeEffects.resonanceActive}
             onResolve={resolveEncounterChoice}
+            onAction={resolveEncounterAction}
             onSellFragment={sellRunFragment}
             onAdvanceFloor={advanceRunFloor}
             canAdvanceFloor={Boolean(

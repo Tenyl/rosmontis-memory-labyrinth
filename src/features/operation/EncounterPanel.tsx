@@ -9,7 +9,8 @@ import {
 } from '@phosphor-icons/react';
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import { getModule } from '../../game/modules';
-import type { MemoryInventory, ModuleId, PendingEncounter } from '../../game/types';
+import type { EncounterAction, GreatswordId, MemoryInventory, ModuleId, PendingEncounter } from '../../game/types';
+import { BossEncounter } from './BossEncounter';
 
 interface EncounterPanelProps {
   encounter: PendingEncounter | null;
@@ -18,6 +19,7 @@ interface EncounterPanelProps {
   modules: ModuleId[];
   resonanceActive: boolean;
   onResolve: (choiceId: string) => void;
+  onAction: (action: EncounterAction) => void;
   onSellFragment: (fragmentId: string) => void;
   onAdvanceFloor: () => void;
   canAdvanceFloor: boolean;
@@ -67,6 +69,7 @@ export function EncounterPanel({
   modules,
   resonanceActive,
   onResolve,
+  onAction,
   onSellFragment,
   onAdvanceFloor,
   canAdvanceFloor,
@@ -82,7 +85,15 @@ export function EncounterPanel({
 
   const copy = ENCOUNTER_COPY[encounter.kind];
   return (
-    <section className={`encounter-panel is-${encounter.kind}`} aria-labelledby="encounter-title">
+    <section
+      className={`encounter-panel is-${encounter.kind}`}
+      aria-labelledby="encounter-title"
+      onDragOver={(event) => { if (event.dataTransfer.types.includes('application/x-rosmontis-sword')) event.preventDefault(); }}
+      onDrop={(event) => {
+        const swordId = event.dataTransfer.getData('application/x-rosmontis-sword');
+        if (isGreatswordId(swordId)) { event.preventDefault(); onAction({ type: 'play-sword', swordId }); }
+      }}
+    >
       <header>
         <span className="encounter-kind-icon"><EncounterIcon kind={encounter.kind} /></span>
         <div>
@@ -94,11 +105,11 @@ export function EncounterPanel({
       </header>
 
       {encounter.kind === 'combat' && (
-        <div className="encounter-telemetry" aria-label="战斗状态">
+        <><div className="encounter-telemetry" aria-label="战斗状态">
           <span>第 {encounter.round} / {encounter.maxRounds} 轮</span>
           <strong>结构完整度 {encounter.enemyIntegrity} / 80</strong>
           <span>胜利残响 +{encounter.rewardEchoes}</span>
-        </div>
+        </div><p className="encounter-card-guidance">请点击上方【立柱 / 破壁】或【门扉 / 守望】战术卡，也可以把可用卡片拖到本面板执行。</p></>
       )}
 
       {encounter.kind === 'shop' && (
@@ -161,14 +172,10 @@ export function EncounterPanel({
       )}
 
       {encounter.kind === 'boss' && (
-        <div className="encounter-boss-state">
-          <div><span>防护完整度</span><strong>{encounter.enemyIntegrity} / 80</strong></div>
-          <div><span>同步阶段</span><strong>核心稳定 {encounter.coreStability} / 100</strong></div>
-          <p>{encounter.glitch ? '精神过载正在制造认知故障。' : '核心信号可被稳定读取。'}</p>
-        </div>
+        <BossEncounter encounter={encounter} onAction={onAction} />
       )}
 
-      {encounter.kind !== 'shop' && !encounter.resolved && (
+      {!['shop', 'combat', 'boss'].includes(encounter.kind) && !encounter.resolved && (
         <div className="encounter-choice-grid">
           {encounter.choices.map((choice) => {
             const requirement = choiceRequirement(encounter, choice, inventory, resonanceActive);
@@ -197,6 +204,10 @@ export function EncounterPanel({
         <button id="btn-leave-encounter-shop" className="encounter-leave-button" type="button" onClick={() => onResolve('leave-shop')}>离开商店</button>
       )}
 
+      {(encounter.kind === 'combat' || encounter.kind === 'boss') && !encounter.resolved && (
+        <button id="btn-recover-tactical-turn" className="encounter-leave-button" type="button" onClick={() => onAction({ type: 'recover' })}>调整呼吸 · 恢复 4 AP / 冷却推进 1</button>
+      )}
+
       {encounter.resolved && (
         <footer className="encounter-complete">
           <span>LOCAL RULE SETTLED / 节点状态已写入</span>
@@ -209,4 +220,8 @@ export function EncounterPanel({
       )}
     </section>
   );
+}
+
+function isGreatswordId(value: string): value is GreatswordId {
+  return value === 'breach' || value === 'watch' || value === 'perception' || value === 'resonance';
 }

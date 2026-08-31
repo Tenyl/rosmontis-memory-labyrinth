@@ -33,7 +33,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     cooldown: 2,
     overloadDelta: 12,
     target: 'hostile',
-    nodeTypes: ['combat', 'emergency-combat'],
+    nodeTypes: ['combat', 'emergency-combat', 'boss'],
     effect: { field: 'enemyIntegrity', delta: -30 },
   },
   watch: {
@@ -66,7 +66,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     cooldown: 3,
     overloadDelta: 15,
     target: 'memory',
-    nodeTypes: ['boss'],
+    nodeTypes: ['encounter', 'dilemma', 'unknown', 'boss'],
     effect: { field: 'coreStability', delta: 25 },
   },
 };

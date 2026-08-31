@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useGameStore } from '../../store/gameStore';
 import { renderApp } from '../../test/renderApp';
@@ -30,6 +30,36 @@ test('settles the current node through its dedicated encounter choices', async (
   expect(useGameStore.getState().pendingEncounter).toMatchObject({ kind: 'safehouse', resolved: true });
   expect(useGameStore.getState().maze.nodes.find((node) => node.id === useGameStore.getState().run.currentNodeId)).toMatchObject({ state: 'completed' });
   expect(screen.getByText('结算完成')).toBeVisible();
+});
+
+test('uses a sword card as the only damage command in the fifth-floor boss encounter', async () => {
+  const user = userEvent.setup();
+  renderApp('/operation');
+  await screen.findByRole('heading', { name: '作战主控台' });
+  act(() => useGameStore.setState((state) => ({
+    run: { ...state.run, floor: 5, maxFloor: 5 },
+    maze: {
+      ...state.maze,
+      floor: 5,
+      maxFloor: 5,
+      nodes: state.maze.nodes.map((node) => node.id === state.run.currentNodeId ? { ...node, type: 'boss' as const, risk: 'S' as const } : node),
+    },
+    rosmontis: {
+      ...state.rosmontis,
+      actionPoints: 4,
+      greatswords: { breach: { cooldown: 0 }, watch: { cooldown: 0 }, perception: { cooldown: 0 }, resonance: { cooldown: 0 } },
+    },
+    pendingEncounter: {
+      kind: 'boss', bossKind: 'closed-heart', nodeId: state.run.currentNodeId, resolved: false,
+      phase: 'shield', enemyIntegrity: 80, coreStability: 0, glitch: false, choices: [],
+    },
+  })));
+
+  expect(await screen.findByRole('heading', { name: '阶段一：破除心防' })).toBeVisible();
+  expect(document.querySelector('#btn-encounter-boss-breach')).toBeNull();
+  await user.click(screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ }));
+  expect(useGameStore.getState().pendingEncounter).toMatchObject({ kind: 'boss', enemyIntegrity: 50, phase: 'shield' });
+  expect(screen.getByText('50 / 80')).toBeVisible();
 });
 
 test('validates an empty command inline and completes a Tavern runtime turn', async () => {

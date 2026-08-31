@@ -60,7 +60,7 @@ describe('four greatsword tactics', () => {
   test.each([
     ['breach', 'self', 'combat'],
     ['perception', 'maze', 'combat'],
-    ['resonance', 'memory', 'encounter'],
+    ['resonance', 'memory', 'combat'],
   ] as const)('rejects illegal %s target/node combinations without mutation', (swordId, target, nodeType) => {
     const before = buildCombatState();
     const snapshot = structuredClone(before);

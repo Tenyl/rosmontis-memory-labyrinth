@@ -18,7 +18,7 @@ export interface FloorDefinition {
   floor: number;
   title: string;
   era: RunEra;
-  bossKind: 'gatekeeper' | 'closed-heart' | 'mindsea-exit';
+  bossKind: import('./bosses').BossKind;
   requiredNodeTypes: MazeNodeType[];
   targetNodeRange: readonly [number, number];
 }
@@ -192,6 +192,7 @@ export type EncounterAction =
   | { type: 'buy'; offerId: string }
   | { type: 'sell'; fragmentId: string }
   | { type: 'leave-shop' }
+  | { type: 'recover' }
   | { type: 'comfort'; gesture: ComfortGesture };
 
 interface EncounterBase {
@@ -219,7 +220,8 @@ export type PendingEncounter =
     })
   | (EncounterBase & {
       kind: 'boss';
-      phase: 'shield' | 'stability';
+      bossKind: import('./bosses').BossKind;
+      phase: import('./bosses').BossPhase;
       enemyIntegrity: number;
       coreStability: number;
       glitch: boolean;

@@ -5,6 +5,7 @@ import { createRun, reduceRunAction, type RunResolution } from '../game/run';
 import type {
   FragmentOverflowChoice,
   GreatswordAction,
+  EncounterAction,
   ExplorationPowerAction,
   MemoryFragment,
   RoguelikeState,
@@ -48,6 +49,7 @@ interface GameActions {
   moveToNode: (nodeId: string) => void;
   beginCurrentEncounter: () => void;
   resolveEncounterChoice: (choiceId: string) => void;
+  resolveEncounterAction: (action: EncounterAction) => void;
   purchaseShopOffer: (offerId: string) => void;
   sellRunFragment: (fragmentId: string) => void;
   useExplorationPower: (action: ExplorationPowerAction) => void;
@@ -497,6 +499,7 @@ export const useGameStore = create<GameStore>()(
       moveToNode: (nodeId) => { get().dispatchRunAction({ type: 'move-to-node', nodeId }); },
       beginCurrentEncounter: () => { get().dispatchRunAction({ type: 'begin-node' }); },
       resolveEncounterChoice: (choiceId) => { get().dispatchRunAction({ type: 'resolve-encounter', choiceId }); },
+      resolveEncounterAction: (action) => { get().dispatchRunAction({ type: 'resolve-encounter-action', action }); },
       purchaseShopOffer: (offerId) => { get().dispatchRunAction({ type: 'purchase-offer', offerId }); },
       sellRunFragment: (fragmentId) => { get().dispatchRunAction({ type: 'sell-fragment', fragmentId }); },
       useExplorationPower: (action) => { get().dispatchRunAction({ type: 'use-exploration-power', action }); },
@@ -1049,7 +1052,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
-      version: 6,
+      version: 7,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
       migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),

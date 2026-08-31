@@ -4,6 +4,7 @@ import { applyModuleEffect, MODULE_CATALOG } from './modules';
 import { getNodeDefinition } from './nodeCatalog';
 import { applyBerserkDamage, getOverloadBand } from './overload';
 import { applyFragmentEffects } from './fragmentCatalog';
+import { getBossDefinition, resolveBossAction } from './bosses';
 import type {
   EncounterChoice,
   EncounterRuleState,
@@ -108,6 +109,7 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
   }
   return {
     kind: 'boss',
+    bossKind: getBossDefinition(state.run.floor).kind,
     nodeId: node.id,
     resolved: false,
     phase: 'shield',
@@ -314,7 +316,6 @@ export function resolveEncounterChoice(
   }
 
   if (choiceId === 'boss-breach') {
-    if (encounter.phase !== 'shield') return rejected(state, '核心防护已经解除。');
     const fragmentEffects = applyFragmentEffects({
       sanity: state.rosmontis.sanity,
       overload: state.rosmontis.overload,
@@ -326,7 +327,8 @@ export function resolveEncounterChoice(
       fragmentEffects.baseDamage,
       state.rosmontis.overload,
     );
-    const enemyIntegrity = Math.max(0, encounter.enemyIntegrity - damage);
+    const boss = resolveBossAction(encounter, { type: 'breach', power: damage });
+    if (!boss.accepted) return rejected(state, boss.reason ?? '立柱无法触及这段记忆。');
     const backlash = getOverloadBand(state.rosmontis.overload) === 'berserk' ? 8 : 0;
     const hallucination = fragmentEffects.hallucinating ? 3 : 0;
     const next = updateVitals(state, (encounter.glitch ? -3 : 0) - backlash - hallucination, encounter.glitch ? 5 : 2);
@@ -336,23 +338,23 @@ export function resolveEncounterChoice(
         ...next,
         pendingEncounter: {
           ...encounter,
-          enemyIntegrity,
-          phase: enemyIntegrity === 0 ? 'stability' : 'shield',
+          ...boss.state,
         },
       },
       events: [],
     };
   }
   if (choiceId !== 'boss-resonate') return rejected(state, 'Boss 行动无效。');
-  if (encounter.phase !== 'stability') return rejected(state, '必须先解除核心防护。');
   const stability = applyModuleEffect(state.modules, { type: 'resonance-stability', value: 25 });
-  const coreStability = Math.min(100, encounter.coreStability + stability);
+  const boss = resolveBossAction(encounter, { type: 'resonance', power: stability });
+  if (!boss.accepted) return rejected(state, boss.reason ?? '共鸣尚未抵达核心。');
+  const coreStability = boss.state.coreStability;
   const nextState = {
     ...state,
     rosmontis: { ...state.rosmontis, coreStability },
   };
-  const nextEncounter = { ...encounter, coreStability };
-  return coreStability >= 100
+  const nextEncounter = { ...encounter, ...boss.state };
+  return boss.state.resolved
     ? completed(nextState, nextEncounter)
     : { accepted: true, state: { ...nextState, pendingEncounter: nextEncounter }, events: [] };
 }

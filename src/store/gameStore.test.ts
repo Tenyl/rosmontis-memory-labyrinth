@@ -314,7 +314,7 @@ test('persists the explicit roguelike schema version', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 44);
   const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
 
-  expect(persisted.version).toBe(6);
+  expect(persisted.version).toBe(7);
   expect(persisted.state.run.seed).toBeTruthy();
   expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(9);
   expect(persisted.state.runHistory).toEqual(expect.any(Array));

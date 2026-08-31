@@ -50,6 +50,26 @@
 .greatsword-card-availability { margin-top: auto; color: var(--color-arts-green); font: 500 .61rem/1.4 var(--font-data); }
 .greatsword-action-card:disabled .greatsword-card-availability { color: var(--color-warning-amber); }
 .greatsword-action-status { margin: 0; padding: var(--space-3) var(--space-6); border-top: 1px solid var(--color-line-subtle); color: var(--color-text-tertiary); font: 500 .62rem/1.5 var(--font-data); }
+.encounter-card-guidance { margin: 0; padding: var(--space-4) var(--space-6); border-top: 1px solid var(--color-line-subtle); border-left: 2px solid var(--color-memory-blue); background: var(--color-memory-blue-soft); color: var(--color-text-secondary); font-size: .68rem; line-height: 1.7; }
+.boss-encounter { display: grid; min-width: 0; gap: var(--space-5); grid-template-columns: 160px minmax(0,1fr); padding: var(--space-6); background: linear-gradient(120deg,rgba(142,215,247,.045),transparent 54%); }
+.boss-encounter.is-reconciliation { background: linear-gradient(120deg,rgba(126,240,189,.06),transparent 58%); }
+.boss-encounter>img { width: 160px; height: 200px; grid-row: 1/4; border: 1px solid var(--color-line-subtle); object-fit: cover; opacity: .72; }
+.boss-encounter-copy>span { color: var(--color-memory-blue); font: 500 .58rem/1.2 var(--font-data); letter-spacing: .08em; }
+.boss-encounter-copy h3 { margin: var(--space-3) 0; font-size: 1.1rem; }
+.boss-encounter-copy p { max-width: 72ch; margin: 0; color: var(--color-text-secondary); font-size: .69rem; line-height: 1.75; }
+.boss-phase-meters { display: grid; gap: var(--space-3); grid-template-columns: repeat(2,minmax(0,1fr)); }
+.boss-phase-meters>div { position: relative; display: grid; overflow: hidden; gap: var(--space-2); grid-template-columns: 1fr auto; padding: var(--space-3); border: 1px solid var(--color-line-subtle); background: rgba(0,0,0,.18); }
+.boss-phase-meters span { display: flex; align-items: center; gap: var(--space-2); color: var(--color-text-tertiary); font-size: .6rem; }
+.boss-phase-meters strong { font: 600 .65rem/1.2 var(--font-data); }
+.boss-phase-meters i { position: absolute; bottom: 0; left: 0; height: 2px; background: var(--color-memory-blue); box-shadow: 0 0 12px var(--color-memory-blue); transition: width var(--motion-standard); }
+.boss-encounter.is-reconciliation .boss-phase-meters>div:last-child i { background: var(--color-arts-green); box-shadow: 0 0 12px var(--color-arts-green); }
+.boss-comfort-actions { display: grid; gap: var(--space-2); grid-template-columns: repeat(2,minmax(0,1fr)); }
+.boss-comfort-actions button { display: flex; min-height: 54px; align-items: center; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid rgba(126,240,189,.3); background: var(--color-arts-green-soft); color: var(--color-text-primary); cursor: pointer; text-align: left; }
+.boss-comfort-actions button:hover { border-color: var(--color-arts-green); }
+.boss-comfort-actions span,.boss-comfort-actions strong,.boss-comfort-actions small { display: block; }
+.boss-comfort-actions small { margin-top: 4px; color: var(--color-text-tertiary); font-size: .58rem; }
+.boss-glitch-warning { grid-column: 2; margin: 0; padding: var(--space-3); border-left: 2px solid var(--color-danger-red); background: var(--color-danger-soft); color: var(--color-text-secondary); font-size: .63rem; }
+@media (max-width: 680px) { .boss-encounter { grid-template-columns: 96px minmax(0,1fr); padding: var(--space-4); } .boss-encounter>img { width: 96px; height: 132px; grid-row: auto; } .boss-phase-meters,.boss-comfort-actions { grid-column: 1/-1; grid-template-columns: 1fr; } .boss-glitch-warning { grid-column: 1/-1; } }
 .node-resolution-panel { position: relative; overflow: hidden; border: 1px solid var(--color-line-subtle); background: linear-gradient(145deg,rgba(20,26,32,.86),rgba(9,13,17,.96)); box-shadow: var(--shadow-base); }
 .node-resolution-panel>header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--color-line-subtle); }
 .node-resolution-panel>header span { color: var(--color-memory-blue); font: 500 .62rem/1.3 var(--font-data); letter-spacing: .08em; }

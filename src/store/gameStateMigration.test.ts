@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { buildDemoState } from '../data/demoData';
+import { createRun } from '../game/run';
 import { migrateGameState } from './gameStateMigration';
 
 function withoutRoguelikeSlices() {
@@ -98,6 +99,22 @@ describe('versioned game state migration', () => {
     expect(migrated.run.turn).toBe(9);
     expect(migrated.progression).toEqual({ firstClear: true, completedRuns: 3 });
     expect(migrated.maze).toEqual(persisted.maze);
+  });
+
+  test('migrates a legacy fifth-floor boss into the closed-heart reconciliation phase', () => {
+    const current = buildDemoState();
+    const persisted = structuredClone(current) as any;
+    const legacyRun = createRun({ seed: 'LEGACY-BOSS-FIVE', mode: 'preset', progression: current.progression, llmEnabled: false, floor: 5 });
+    Object.assign(persisted, legacyRun);
+    persisted.pendingEncounter = {
+      kind: 'boss', nodeId: persisted.run.currentNodeId, resolved: false,
+      phase: 'stability', enemyIntegrity: 0, coreStability: 25, glitch: false, choices: [],
+    };
+
+    const migrated = migrateGameState(persisted, current);
+    expect(migrated.pendingEncounter).toMatchObject({
+      kind: 'boss', bossKind: 'closed-heart', phase: 'reconciliation', coreStability: 25,
+    });
   });
 
   test('migrates the retired squad inquiry mode to a single-protagonist status inquiry', () => {
