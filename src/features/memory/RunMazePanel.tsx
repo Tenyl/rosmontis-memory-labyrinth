@@ -1,11 +1,11 @@
 import {
   Crown,
   Crosshair,
-  FirstAid,
-  Question,
-  Sparkle,
-  Storefront,
-} from '@phosphor-icons/react';
+  BriefcaseMedical as FirstAid,
+  CircleHelp as Question,
+  Sparkles as Sparkle,
+  Store as Storefront,
+} from 'lucide-react';
 import { useEffect, useState, type CSSProperties } from 'react';
 import type {
   ExplorationCharges,

@@ -45,6 +45,52 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.lucide {
+  stroke-width: 1.8;
+}
+
+.overload-sensory-layer {
+  position: fixed;
+  z-index: 21;
+  inset: 0;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 3px, rgba(104, 216, 214, 0.025) 3px 4px),
+    linear-gradient(90deg, rgba(104, 216, 214, 0.22), transparent 7% 93%, rgba(104, 216, 214, 0.22)),
+    linear-gradient(rgba(255, 107, 111, 0.08), transparent 5% 95%, rgba(104, 216, 214, 0.16));
+  box-shadow: inset 0 0 76px rgba(104, 216, 214, 0.2);
+  will-change: opacity, transform;
+}
+
+[data-overload-band="warning"] .overload-sensory-layer {
+  opacity: 0.16;
+}
+
+[data-overload-band="berserk"] .overload-sensory-layer,
+[data-overload-band="collapse"] .overload-sensory-layer {
+  opacity: 0.58;
+  animation: overload-edge-pulse 1.8s var(--ease-out) infinite;
+}
+
+[data-overload-band="berserk"] #run-overload-status,
+[data-overload-band="collapse"] #run-overload-status {
+  animation: overload-text-glitch 2.4s steps(2, end) infinite;
+  text-shadow: -1px 0 rgba(104, 216, 214, 0.8), 1px 0 rgba(255, 107, 111, 0.55);
+}
+
+@keyframes overload-edge-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.68; transform: scale(1.004); }
+}
+
+@keyframes overload-text-glitch {
+  0%, 88%, 100% { opacity: 1; transform: translateX(0); }
+  90% { opacity: 0.72; transform: translateX(-1px); }
+  94% { opacity: 0.9; transform: translateX(1px); }
+}
+
 button,
 input,
 textarea,
@@ -239,6 +285,10 @@ a {
   transform: none !important;
 }
 
+[data-motion="reduced"] .overload-sensory-layer {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .route-page,
   .terminal-dialog,
@@ -246,5 +296,10 @@ a {
   .dialog-scrim {
     animation: none !important;
     transform: none !important;
+  }
+
+
+  .overload-sensory-layer {
+    display: none !important;
   }
 }

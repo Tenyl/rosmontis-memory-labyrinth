@@ -1,4 +1,7 @@
-import { ClockCounterClockwise, WarningCircle } from '@phosphor-icons/react';
+import {
+  History as ClockCounterClockwise,
+  CircleAlert as WarningCircle,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTavern } from '../runtime/useTavern';
 import './provenance.css';

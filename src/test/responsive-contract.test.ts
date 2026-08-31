@@ -13,6 +13,18 @@ test('响应式样式定义四档布局与系统减少动效规则', () => {
   expect(css).toContain('overflow-wrap: anywhere');
   expect(css).toContain('[data-motion="reduced"] .route-page');
   expect(css).toContain('animation: none !important');
+  expect(css).toContain('[data-overload-band="berserk"]');
+  expect(css).toContain('.overload-sensory-layer');
+  expect(css).toMatch(/prefers-reduced-motion[\s\S]*overload-sensory-layer[\s\S]*display:\s*none/);
+});
+
+test('过载视觉只动画合成属性并使用目标浅蓝 token', () => {
+  const css = `${tokensCss}\n${globalCss}`;
+  expect(tokensCss).toContain('--color-memory-blue: #68d8d6');
+  expect(css).toContain('@keyframes overload-edge-pulse');
+  const keyframes = css.match(/@keyframes overload-edge-pulse\s*\{[\s\S]*?\n\}/)?.[0] ?? '';
+  expect(keyframes).toMatch(/opacity|transform/);
+  expect(keyframes).not.toMatch(/(?:width|height|top|left):/);
 });
 
 test('界面偏好具有 CSS 契约并维持可触控目标', () => {

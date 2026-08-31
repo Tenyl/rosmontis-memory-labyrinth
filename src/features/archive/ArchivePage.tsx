@@ -1,4 +1,11 @@
-import { Archive, Books, Brain, Graph, Notebook, PuzzlePiece } from '@phosphor-icons/react';
+import {
+  Archive,
+  Library as Books,
+  Brain,
+  Network as Graph,
+  Notebook,
+  Puzzle as PuzzlePiece,
+} from 'lucide-react';
 import { useState } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';

@@ -1,15 +1,15 @@
 import {
-  AnchorSimple,
+  Anchor as AnchorSimple,
   ArrowDown,
   ArrowLeft,
   ArrowRight,
   Crosshair,
   DoorOpen,
-  Pulse,
+  Activity as Pulse,
   Scan,
-  UserFocus,
-  WarningDiamond,
-} from '@phosphor-icons/react';
+  Focus as UserFocus,
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { MemoryDirection, MemoryNode } from '../../types/game';
@@ -45,7 +45,7 @@ export function MemoryInspector({ node, onExpand, onEnter, onNotify }: MemoryIns
       <Meter id={`memory-exploration-${node.id}`} label="探索完成度" value={node.exploration} tone="memory" />
 
       <div className="memory-force-grid">
-        <div><span><WarningDiamond size={15} weight="fill" aria-hidden />敌对驻守</span><strong>{node.hostileCount ?? '未知'}</strong><small>{node.hostileCount === null ? '信号受污染' : '已定位单位'}</small></div>
+        <div><span><WarningDiamond size={15} aria-hidden />敌对驻守</span><strong>{node.hostileCount ?? '未知'}</strong><small>{node.hostileCount === null ? '信号受污染' : '已定位单位'}</small></div>
         <div><span><UserFocus size={15} aria-hidden />迷迭香信标</span><strong>{node.alliedCount > 0 ? '在线' : '未建立'}</strong><small>{node.alliedCount > 0 ? '神经链路稳定' : '当前节点未接入'}</small></div>
       </div>
 

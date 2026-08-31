@@ -1,4 +1,8 @@
-import { FloppyDisk, Plus, Trash } from '@phosphor-icons/react';
+import {
+  Save as FloppyDisk,
+  Plus,
+  Trash2 as Trash,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTavern } from '../runtime/useTavern';
 

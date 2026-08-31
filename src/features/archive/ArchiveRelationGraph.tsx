@@ -1,4 +1,9 @@
-import { LinkSimple, Path, Plus, X } from '@phosphor-icons/react';
+import {
+  Link as LinkSimple,
+  Route as Path,
+  Plus,
+  X,
+} from 'lucide-react';
 import type { ArchiveLink, ArchiveRecord } from '../../types/game';
 
 interface ArchiveRelationGraphProps {

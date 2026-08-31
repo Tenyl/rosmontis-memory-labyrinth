@@ -1,4 +1,8 @@
-import { ArrowDown, ArrowUp, Power } from '@phosphor-icons/react';
+import {
+  ArrowDown,
+  ArrowUp,
+  Power,
+} from 'lucide-react';
 import { movePromptItem } from '../../../sillytavern';
 
 export interface PromptOrderItem {

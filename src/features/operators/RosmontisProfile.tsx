@@ -1,13 +1,13 @@
 import {
   Brain,
-  FirstAidKit,
-  Heartbeat,
+  BriefcaseMedical as FirstAidKit,
+  HeartPulse as Heartbeat,
   Hexagon,
-  Lightning,
+  Zap as Lightning,
   ShieldCheck,
-  Sparkle,
-  Waveform,
-} from '@phosphor-icons/react';
+  Sparkles as Sparkle,
+  AudioWaveform as Waveform,
+} from 'lucide-react';
 import { CharacterArtwork } from '../../components/CharacterArtwork';
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
@@ -35,7 +35,7 @@ export function RosmontisProfile({ operator }: RosmontisProfileProps) {
           <p>{operator.role} · {operator.position}</p>
           <div><StatusBadge label="神经链路稳定" tone="success" /><StatusBadge label={operator.condition} tone="warning" /></div>
         </div>
-        <div className="operator-clearance"><ShieldCheck size={19} weight="fill" aria-hidden /><span>档案权限</span><strong>精英 / 04</strong></div>
+        <div className="operator-clearance"><ShieldCheck size={19} aria-hidden /><span>档案权限</span><strong>精英 / 04</strong></div>
       </header>
       <ProvenanceLink sessionId={operator.sourceSessionId} messageId={operator.sourceMessageId} matchedLorebookEntryIds={operator.matchedLorebookEntryIds} idSuffix={`operator-${operator.id}`} />
 
@@ -71,7 +71,7 @@ export function RosmontisProfile({ operator }: RosmontisProfileProps) {
           </div>
           <div className="operator-traits">
             <span className="panel-code">ACTIVE TRAITS / 03</span>
-            <ul>{operator.traits.map((trait) => <li key={trait}><Sparkle size={14} weight="fill" aria-hidden />{trait}</li>)}</ul>
+            <ul>{operator.traits.map((trait) => <li key={trait}><Sparkle size={14} aria-hidden />{trait}</li>)}</ul>
           </div>
         </section>
       </div>

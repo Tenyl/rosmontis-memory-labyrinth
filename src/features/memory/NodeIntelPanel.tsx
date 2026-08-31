@@ -1,11 +1,11 @@
 import {
   ArrowRight,
   Eye,
-  LockKey,
-  ShieldChevron,
-  WarningDiamond,
-  Waveform,
-} from '@phosphor-icons/react';
+  KeyRound as LockKey,
+  Shield as ShieldChevron,
+  TriangleAlert as WarningDiamond,
+  AudioWaveform as Waveform,
+} from 'lucide-react';
 
 import type {
   ExplorationCharges,

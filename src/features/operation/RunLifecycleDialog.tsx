@@ -1,4 +1,10 @@
-import { ArrowClockwise, ArrowRight, CheckCircle, Play, WarningDiamond } from '@phosphor-icons/react';
+import {
+  RefreshCw as ArrowClockwise,
+  ArrowRight,
+  CircleCheck as CheckCircle,
+  Play,
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Dialog } from '../../components/Dialog';
 import { getAvailableModes } from '../../game/run';
@@ -108,7 +114,7 @@ export function RunLifecycleDialog({
               disabled={!seed.trim() || !availableModes.includes(mode)}
               onClick={() => onStart(seed.trim(), mode, llmEnabled)}
             >
-              <Play size={17} weight="fill" aria-hidden />开始新的记忆潜入
+              <Play size={17} aria-hidden />开始新的记忆潜入
             </button>
             {currentNodeIsCore ? (
               <button

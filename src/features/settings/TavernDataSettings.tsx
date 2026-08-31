@@ -1,13 +1,13 @@
 import {
   Archive as ArchiveBox,
-  ArrowCounterClockwise,
-  ChatsCircle,
+  RotateCcw as ArrowCounterClockwise,
+  MessagesSquare as ChatsCircle,
   Database,
-  DownloadSimple,
+  Download as DownloadSimple,
   ShieldCheck,
-  UploadSimple,
-  WarningDiamond,
-} from '@phosphor-icons/react';
+  Upload as UploadSimple,
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 import { useState, type ChangeEvent } from 'react';
 import { Dialog } from '../../components/Dialog';
 import {
@@ -92,7 +92,7 @@ export function TavernDataSettings() {
         <article><div className="settings-data-icon"><ChatsCircle size={24} aria-hidden /></div><div><span className="panel-code">CHAT LIFECYCLE</span><h3>仅清理会话</h3><p>删除所有消息、分支和变量快照，但保留角色卡、世界书、生成预设与接口配置。</p></div><footer><button id="settings-clear-chats-open" className="terminal-button is-danger" type="button" onClick={() => setClearOpen(true)}><ChatsCircle size={17} aria-hidden />清理全部会话</button></footer></article>
         <article className="is-danger"><div className="settings-data-icon"><ArrowCounterClockwise size={24} aria-hidden /></div><div><span className="panel-code">FACTORY CONTENT</span><h3>恢复酒馆默认内容</h3><p>清除全部酒馆数据并重建默认角色、身份、世界书、预设和“雨幕回声”会话。该操作与清理会话分开。</p></div><footer><button id="settings-tavern-restore-open" className="terminal-button is-danger" type="button" onClick={() => setRestoreOpen(true)}><ArrowCounterClockwise size={17} aria-hidden />恢复默认内容</button></footer></article>
       </div>
-      <div className="settings-security-banner"><ShieldCheck size={22} weight="fill" aria-hidden /><div><strong>本地安全边界</strong><p>普通备份不包含主接口或次级接口密钥；恢复备份后需在“接口连接”重新填写凭据。</p></div></div>
+      <div className="settings-security-banner"><ShieldCheck size={22} aria-hidden /><div><strong>本地安全边界</strong><p>普通备份不包含主接口或次级接口密钥；恢复备份后需在“接口连接”重新填写凭据。</p></div></div>
 
       <Dialog id="settings-backup-preview-dialog" title="备份导入预览" open={Boolean(preview)} onClose={() => setPreview(null)} eyebrow="VALIDATED BACKUP / PREVIEW" footer={<><button id="settings-backup-import-cancel" className="terminal-button" type="button" onClick={() => setPreview(null)}>取消导入</button><button id="settings-backup-import-confirm" className="terminal-button is-primary" type="button" disabled={working} onClick={() => void applyImport()}>确认恢复备份</button></>}><div className="settings-backup-preview"><p>文件版本与当前数据库匹配。确认后将替换现有酒馆数据，API 密钥不会被导入。</p><ul><li>会话 {preview?.chats.length ?? 0}</li><li>角色 {preview?.characters.length ?? 0}</li><li>玩家身份 {preview?.personas.length ?? 0}</li><li>世界书 {preview?.lorebooks.length ?? 0}</li><li>预设 {preview?.presets.length ?? 0}</li></ul></div></Dialog>
       <Dialog id="settings-clear-chats-dialog" title="确认清理会话" open={clearOpen} onClose={() => setClearOpen(false)} danger footer={<><button id="settings-clear-chats-cancel" className="terminal-button" type="button" onClick={() => setClearOpen(false)}>取消</button><button id="settings-clear-chats-confirm" className="terminal-button is-danger" type="button" disabled={working} onClick={() => void clearChats()}>确认清理</button></>}><p>将删除 {runtime.chats.length} 个会话及全部分支、消息与变量快照。角色、世界书、预设和设置不受影响。</p></Dialog>

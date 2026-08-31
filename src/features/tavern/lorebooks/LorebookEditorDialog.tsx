@@ -1,4 +1,8 @@
-import { NotePencil, Plus, Trash } from '@phosphor-icons/react';
+import {
+  NotebookPen as NotePencil,
+  Plus,
+  Trash2 as Trash,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Dialog } from '../../../components/Dialog';
 import { createDefaultEntry, removeEntry, updateEntry, type Lorebook, type LorebookEntry } from '../../../sillytavern';

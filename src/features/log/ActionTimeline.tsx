@@ -1,13 +1,13 @@
 import {
   Archive,
   ArrowUpRight,
-  CheckCircle,
-  ClockCounterClockwise,
+  CircleCheck as CheckCircle,
+  History as ClockCounterClockwise,
   Command,
   Flag,
   MapPin,
-  Pulse,
-} from '@phosphor-icons/react';
+  Activity as Pulse,
+} from 'lucide-react';
 import type { ActionLogEntry } from '../../types/game';
 import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
 
@@ -26,7 +26,7 @@ export function ActionTimeline({ entries, onOpen }: ActionTimelineProps) {
         return (
           <article key={entry.id} className={`action-log-entry is-${entry.kind}`}>
             <div className="log-time"><time>{entry.timestamp}</time><span>{String(index + 1).padStart(2, '0')}</span></div>
-            <div className="log-rail" aria-hidden="true"><i><Icon size={17} weight={entry.kind === '检定' ? 'fill' : 'regular'} /></i></div>
+            <div className="log-rail" aria-hidden="true"><i><Icon size={17} /></i></div>
             <div className="log-content">
               <header><span>{entry.kind}</span><small>{entry.actor} / {entry.chapter}</small></header>
               <h2>{entry.title}</h2><p>{entry.summary}</p>

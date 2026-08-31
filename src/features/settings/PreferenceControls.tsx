@@ -1,4 +1,11 @@
-import { ArrowsOutLineHorizontal, Eye, Gauge, FloppyDisk, TextAa, Wind } from '@phosphor-icons/react';
+import {
+  MoveHorizontal as ArrowsOutLineHorizontal,
+  Eye,
+  Gauge,
+  Save as FloppyDisk,
+  CaseUpper as TextAa,
+  Wind,
+} from 'lucide-react';
 import type { UiPreferences } from '../../types/game';
 
 interface PreferenceControlsProps {

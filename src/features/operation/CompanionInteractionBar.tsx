@@ -1,4 +1,7 @@
-import { HandHeart, HandPalm } from '@phosphor-icons/react';
+import {
+  HandHeart,
+  Hand as HandPalm,
+} from 'lucide-react';
 import { useState } from 'react';
 import { resolveAudioAsset } from '../../assets/assetRegistry';
 import type { BossPhase } from '../../game/bosses';

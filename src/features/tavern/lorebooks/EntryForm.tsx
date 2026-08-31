@@ -1,4 +1,7 @@
-import { MinusCircle, Plus } from '@phosphor-icons/react';
+import {
+  CircleMinus as MinusCircle,
+  Plus,
+} from 'lucide-react';
 import { useState, type KeyboardEvent } from 'react';
 import { clampNumber, type LorebookEntry } from '../../../sillytavern';
 

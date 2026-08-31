@@ -1,4 +1,10 @@
-import { ArrowRight, FloppyDisk, MapPin, NotePencil, ShieldWarning } from '@phosphor-icons/react';
+import {
+  ArrowRight,
+  Save as FloppyDisk,
+  MapPin,
+  NotebookPen as NotePencil,
+  ShieldAlert as ShieldWarning,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Dialog } from '../../components/Dialog';
 import { StatusBadge } from '../../components/StatusBadge';

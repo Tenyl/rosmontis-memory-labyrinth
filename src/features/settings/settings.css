@@ -90,6 +90,8 @@
 .settings-backup-preview ul { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 2px; margin: 0; padding: 0; list-style: none; }
 .settings-backup-preview li { padding: var(--space-3); border: 1px solid var(--color-line-subtle); color: var(--color-memory-blue); font: 600 .64rem/1 var(--font-data); }
 .settings-workspace > .preference-grid { padding: var(--space-5); }
+.settings-fanwork-disclaimer { display: grid; gap: var(--space-3); margin-top: var(--space-5); padding: var(--space-5) var(--space-6); border: 1px solid var(--color-line-subtle); border-left: 2px solid var(--color-memory-blue); background: var(--color-memory-blue-soft); }
+.settings-fanwork-disclaimer p { max-width: 78ch; margin: 0; color: var(--color-text-secondary); font-size: .68rem; line-height: 1.75; }
 
 @media (max-width: 1100px) {
   .settings-tabs-shell { position: static; }

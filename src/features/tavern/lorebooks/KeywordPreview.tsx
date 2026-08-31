@@ -1,4 +1,7 @@
-import { MagnifyingGlass, Sparkle } from '@phosphor-icons/react';
+import {
+  Search as MagnifyingGlass,
+  Sparkles as Sparkle,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { createLorebookEngine, type Lorebook } from '../../../sillytavern';
 

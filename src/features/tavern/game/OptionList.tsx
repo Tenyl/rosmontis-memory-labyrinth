@@ -1,4 +1,6 @@
-import { ArrowBendDownRight } from '@phosphor-icons/react';
+import {
+  CornerDownRight as ArrowBendDownRight,
+} from 'lucide-react';
 
 export function OptionList({ options, disabled, onPick }: { options: string[]; disabled: boolean; onPick: (text: string) => void }) {
   if (!options.length) return null;

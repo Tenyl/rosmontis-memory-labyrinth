@@ -1,4 +1,9 @@
-import { Books, CardsThree, ChatsCircle, SlidersHorizontal } from '@phosphor-icons/react';
+import {
+  Library as Books,
+  PanelsTopLeft as CardsThree,
+  MessagesSquare as ChatsCircle,
+  SlidersHorizontal,
+} from 'lucide-react';
 import type { ComponentType } from 'react';
 
 export type TavernTab = 'sessions' | 'lorebooks' | 'presets' | 'variables';

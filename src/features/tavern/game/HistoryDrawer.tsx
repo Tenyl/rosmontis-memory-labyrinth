@@ -1,4 +1,8 @@
-import { GitBranch, NotePencil, Trash } from '@phosphor-icons/react';
+import {
+  GitBranch,
+  NotebookPen as NotePencil,
+  Trash2 as Trash,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Dialog } from '../../../components/Dialog';
 import type { ChatMessage } from '../../../sillytavern';

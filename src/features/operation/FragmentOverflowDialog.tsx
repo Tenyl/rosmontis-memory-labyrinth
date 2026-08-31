@@ -1,4 +1,6 @@
-import { WarningDiamond } from '@phosphor-icons/react';
+import {
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 import { Dialog } from '../../components/Dialog';
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import type { FragmentOverflowChoice, MemoryInventory } from '../../game/types';

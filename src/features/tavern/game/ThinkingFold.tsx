@@ -1,4 +1,7 @@
-import { Brain, CaretDown } from '@phosphor-icons/react';
+import {
+  Brain,
+  ChevronDown as CaretDown,
+} from 'lucide-react';
 import { useState } from 'react';
 
 export function ThinkingFold({ text, mode }: { text: string; mode: 'fold' | 'hide' | 'inline' }) {

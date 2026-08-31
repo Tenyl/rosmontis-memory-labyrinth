@@ -1,4 +1,8 @@
-import { HandHeart, Heart, ShieldChevron } from '@phosphor-icons/react';
+import {
+  HandHeart,
+  Heart,
+  Shield as ShieldChevron,
+} from 'lucide-react';
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import { getBossDefinition } from '../../game/bosses';
 import type { EncounterAction, PendingEncounter } from '../../game/types';

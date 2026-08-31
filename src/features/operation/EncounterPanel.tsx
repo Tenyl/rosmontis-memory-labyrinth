@@ -1,12 +1,12 @@
 import {
   ArrowRight,
   Crosshair,
-  FirstAid,
-  Question,
+  BriefcaseMedical as FirstAid,
+  CircleHelp as Question,
   Skull,
-  Sparkle,
-  Storefront,
-} from '@phosphor-icons/react';
+  Sparkles as Sparkle,
+  Store as Storefront,
+} from 'lucide-react';
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import { getModule } from '../../game/modules';
 import type { EncounterAction, GreatswordId, MemoryInventory, ModuleId, PendingEncounter } from '../../game/types';

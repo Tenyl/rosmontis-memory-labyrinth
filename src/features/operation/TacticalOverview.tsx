@@ -1,4 +1,9 @@
-import { Crosshair, Lightning, MapPin, Pulse } from '@phosphor-icons/react';
+import {
+  Crosshair,
+  Zap as Lightning,
+  MapPin,
+  Activity as Pulse,
+} from 'lucide-react';
 import { Meter } from '../../components/Meter';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { Operator, SessionState } from '../../types/game';
@@ -21,7 +26,7 @@ export function TacticalOverview({ session, rosmontis }: TacticalOverviewProps) 
       </header>
 
       <section className="objective-card" aria-labelledby="current-objective-title">
-        <span><Crosshair size={16} weight="fill" aria-hidden />当前目标</span>
+        <span><Crosshair size={16} aria-hidden />当前目标</span>
         <h3 id="current-objective-title">{session.objective}</h3>
         <div><MapPin size={14} aria-hidden />R-09 隔离区 / 东翼下层</div>
         <ProvenanceLink sessionId={session.sourceSessionId} messageId={session.sourceMessageId} matchedLorebookEntryIds={session.matchedLorebookEntryIds} idSuffix="operation-session" />

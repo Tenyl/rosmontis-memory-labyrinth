@@ -1,4 +1,8 @@
-import { Eye, UsersThree, WarningDiamond } from '@phosphor-icons/react';
+import {
+  Eye,
+  Users as UsersThree,
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 import { memoryNodeLabel } from './MemoryGraph';
 import type { MemoryLayer, MemoryNode } from '../../types/game';
 

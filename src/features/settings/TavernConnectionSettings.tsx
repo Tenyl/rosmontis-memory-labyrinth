@@ -1,11 +1,11 @@
 import {
-  CheckCircle,
+  CircleCheck as CheckCircle,
   Eye,
-  EyeSlash,
-  FloppyDisk,
-  PlugsConnected,
+  EyeOff as EyeSlash,
+  Save as FloppyDisk,
+  PlugZap as PlugsConnected,
   ShieldCheck,
-} from '@phosphor-icons/react';
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { testConnection } from '../../sillytavern/api-tools';
 import type { ApiSettings, AppSettings } from '../../sillytavern/types';

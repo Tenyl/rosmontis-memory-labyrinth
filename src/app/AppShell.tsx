@@ -1,17 +1,18 @@
 import {
   Archive,
-  Books,
-  CircleNotch,
-  ClockCounterClockwise,
+  Library as Books,
+  LoaderCircle as CircleNotch,
+  History as ClockCounterClockwise,
   Command,
-  Graph,
+  Network as Graph,
   Keyboard,
   SlidersHorizontal,
-  UserFocus,
-  WarningDiamond,
-  WifiHigh,
-} from '@phosphor-icons/react';
-import { lazy, Suspense, type ComponentType, useEffect, useState } from 'react';
+  Focus as UserFocus,
+  TriangleAlert as WarningDiamond,
+  Wifi as WifiHigh,
+  type LucideIcon,
+} from 'lucide-react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { selectSession, selectUnreadArchiveCount } from '../store/selectors';
@@ -19,6 +20,7 @@ import { NotificationCenter } from '../components/NotificationCenter';
 import { ShortcutDialog } from '../components/ShortcutDialog';
 import { useTavern } from '../features/tavern/runtime/useTavern';
 import { DiaryDirector } from '../features/diary/DiaryDirector';
+import { getOverloadBand } from '../game/overload';
 import './app-shell.css';
 import '../components/components.css';
 
@@ -28,7 +30,7 @@ interface NavItem {
   path: string;
   label: string;
   caption: string;
-  icon: ComponentType<{ size?: number; weight?: 'regular' | 'bold'; 'aria-hidden'?: boolean }>;
+  icon: LucideIcon;
 }
 
 const navItems: NavItem[] = [
@@ -45,6 +47,7 @@ export function AppShell() {
   const session = useGameStore(selectSession);
   const unreadArchiveCount = useGameStore(selectUnreadArchiveCount);
   const preferences = useGameStore((state) => state.ui.preferences);
+  const overload = useGameStore((state) => state.rosmontis.overload);
   const tavern = useTavern();
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [tavernOpen, setTavernOpen] = useState(false);
@@ -64,6 +67,7 @@ export function AppShell() {
   const activeCharacterName = tavern.activeCharacter?.name ?? '未选角色';
   const activePresetName = tavern.activePreset?.name ?? '未选预设';
   const activeModelName = tavern.settings?.api.model || '未配置模型';
+  const overloadBand = getOverloadBand(overload);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -73,6 +77,12 @@ export function AppShell() {
     root.dataset.contrast = preferences.highContrast ? 'high' : 'standard';
     root.dataset.textSpeed = preferences.textSpeed;
   }, [preferences]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.overloadBand = overloadBand;
+    return () => { delete root.dataset.overloadBand; };
+  }, [overloadBand]);
 
   useEffect(() => {
     const handleShortcut = (event: globalThis.KeyboardEvent) => {
@@ -93,8 +103,9 @@ export function AppShell() {
   }, [navigate]);
 
   return (
-    <div className="terminal-shell">
+    <div className="terminal-shell" data-overload-band={overloadBand}>
       <DiaryDirector />
+      <div className="overload-sensory-layer" aria-hidden="true" />
       <a id="global-skip-to-content" className="skip-link" href="#main-content">跳至主内容</a>
       <aside className="terminal-sidebar" aria-label="终端主导航">
         <div className="terminal-brand">
@@ -119,7 +130,7 @@ export function AppShell() {
                 {({ isActive }) => (
                   <>
                     <span className="nav-index">{String(index + 1).padStart(2, '0')}</span>
-                    <Icon size={21} weight={isActive ? 'bold' : 'regular'} aria-hidden />
+                    <Icon size={21} aria-hidden />
                     <span className="nav-copy"><strong>{item.label}</strong><small>{item.caption}</small></span>
                     {item.path === '/archive' && unreadArchiveCount > 0 ? (
                       <span className="nav-count" aria-label={`${unreadArchiveCount} 条未读情报`}>{unreadArchiveCount}</span>
@@ -174,6 +185,9 @@ export function AppShell() {
         <main id="main-content" className="terminal-main" tabIndex={-1}>
           <Suspense fallback={<RouteLoading />}><Outlet /></Suspense>
         </main>
+        <footer id="global-fanwork-disclaimer" className="fanwork-disclaimer">
+          本项目为基于《明日方舟》世界观的非营利性同人衍生作品，角色及设定版权归上海鹰角网络科技有限公司所有。
+        </footer>
       </div>
       <NotificationCenter />
       <ShortcutDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />

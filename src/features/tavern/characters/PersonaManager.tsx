@@ -1,4 +1,9 @@
-import { IdentificationCard, PencilSimple, Plus, Trash } from '@phosphor-icons/react';
+import {
+  Contact as IdentificationCard,
+  Pen as PencilSimple,
+  Plus,
+  Trash2 as Trash,
+} from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Dialog } from '../../../components/Dialog';
 import type { Persona } from '../../../sillytavern';

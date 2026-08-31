@@ -1,11 +1,11 @@
 import {
-  ChatCircleText,
-  ClipboardText,
+  MessageCircle as ChatCircleText,
+  ClipboardList as ClipboardText,
   Crosshair,
   Scan,
-  ShieldWarning,
-  TextAlignLeft,
-} from '@phosphor-icons/react';
+  ShieldAlert as ShieldWarning,
+  AlignLeft as TextAlignLeft,
+} from 'lucide-react';
 import type { NarrativeEntry } from '../../types/game';
 
 interface NarrativeStreamProps {
@@ -46,7 +46,7 @@ export function NarrativeStream({ entries, activeEntryId, onOpenCheck }: Narrati
             <article key={entry.id} className={`narrative-entry is-${entry.kind}${isActive ? ' is-streaming' : ''}`}>
               <div className="narrative-entry-rail" aria-hidden="true">
                 <span>{String(entry.index).padStart(2, '0')}</span>
-                <i><Icon size={16} weight={entry.kind === '检定' ? 'fill' : 'regular'} /></i>
+                <i><Icon size={16} /></i>
               </div>
               <div className="narrative-entry-content">
                 <header>

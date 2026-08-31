@@ -1,4 +1,7 @@
-import { Graph, ListDashes } from '@phosphor-icons/react';
+import {
+  Network as Graph,
+  List as ListDashes,
+} from 'lucide-react';
 import { useEffect } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';

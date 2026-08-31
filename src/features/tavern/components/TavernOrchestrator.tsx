@@ -1,4 +1,8 @@
-import { Database, Pulse, ShieldCheck } from '@phosphor-icons/react';
+import {
+  Database,
+  Activity as Pulse,
+  ShieldCheck,
+} from 'lucide-react';
 import { useState } from 'react';
 import { Dialog } from '../../../components/Dialog';
 import { LorebookManager } from '../lorebooks/LorebookManager';
@@ -28,7 +32,7 @@ export function TavernOrchestrator({ open, onClose }: TavernOrchestratorProps) {
     <Dialog id="tavern-orchestrator-dialog" title="酒馆编排中枢" open={open} onClose={onClose} eyebrow="TAVERN RUNTIME / LOCAL SECURE">
       <div className="tavern-orchestrator">
         <aside className="tavern-orchestrator-sidebar">
-          <div className="tavern-runtime-mark"><Pulse size={22} weight="fill" aria-hidden /><div><strong>{runtime.initialized ? '运行时已就绪' : '正在载入运行时'}</strong><small>{runtime.transportMode === 'local' ? 'LOCAL SIMULATION' : 'REMOTE MODEL'}</small></div></div>
+          <div className="tavern-runtime-mark"><Pulse size={22} aria-hidden /><div><strong>{runtime.initialized ? '运行时已就绪' : '正在载入运行时'}</strong><small>{runtime.transportMode === 'local' ? 'LOCAL SIMULATION' : 'REMOTE MODEL'}</small></div></div>
           <TavernEntityTabs active={activeTab} onChange={setActiveTab} counts={counts} />
           <div className="tavern-storage-status"><Database size={18} aria-hidden /><div><span>持久化</span><strong>IndexedDB / V4</strong></div><ShieldCheck size={18} aria-label="浏览器本地安全存储" /></div>
         </aside>

@@ -1,10 +1,10 @@
 import {
-  ArrowSquareOut,
-  DownloadSimple,
+  ExternalLink as ArrowSquareOut,
+  Download as DownloadSimple,
   GitBranch,
-  PencilSimple,
-  Trash,
-} from '@phosphor-icons/react';
+  Pen as PencilSimple,
+  Trash2 as Trash,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Dialog } from '../../components/Dialog';
 import { exportToJson, type ChatSession } from '../../sillytavern';

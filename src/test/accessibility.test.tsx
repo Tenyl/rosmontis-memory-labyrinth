@@ -34,6 +34,16 @@ test('提供键盘跳转入口和可感知的全局导航状态', async () => {
   expect(container.querySelector('#nav-operation-open')).toHaveAttribute('aria-current', 'page');
 });
 
+test('全局壳与设置页均展示非营利二创免责声明', async () => {
+  const copy = '本项目为基于《明日方舟》世界观的非营利性同人衍生作品，角色及设定版权归上海鹰角网络科技有限公司所有。';
+  const { container } = renderApp('/settings');
+  await screen.findByRole('heading', { level: 1, name: '系统设置' }, { timeout: 8_000 });
+
+  expect(container.querySelector('#global-fanwork-disclaimer')).toHaveTextContent(copy);
+  expect(container.querySelector('#settings-fanwork-disclaimer')).toHaveTextContent(copy);
+  expect(screen.getAllByText(copy, { exact: true })).toHaveLength(2);
+});
+
 test('酒馆编排四个公开工作区的交互控件有名称、字段有标签且不使用结构性表情符号', async () => {
   const user = userEvent.setup();
   renderApp('/operation');

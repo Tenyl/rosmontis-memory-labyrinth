@@ -1,4 +1,11 @@
-import { BookOpenText, DownloadSimple, PencilSimple, Plus, Trash, UploadSimple } from '@phosphor-icons/react';
+import {
+  BookOpenText,
+  Download as DownloadSimple,
+  Pen as PencilSimple,
+  Plus,
+  Trash2 as Trash,
+  Upload as UploadSimple,
+} from 'lucide-react';
 import { useState, type ChangeEvent } from 'react';
 import { Dialog } from '../../../components/Dialog';
 import { createDefaultLorebook, exportLorebook, exportToJson, importLorebook, type Lorebook, type SillyTavernLorebookExport } from '../../../sillytavern';

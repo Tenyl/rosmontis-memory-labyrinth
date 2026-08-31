@@ -1,4 +1,10 @@
-import { ArrowDown, ArrowLeft, ArrowRight, Path, WarningDiamond } from '@phosphor-icons/react';
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  Route as Path,
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 import { Dialog } from '../../components/Dialog';
 import type { MemoryDirection, MemoryNode } from '../../types/game';
 
@@ -28,7 +34,7 @@ export function ExpansionDialog({ source, direction, onClose, onConfirm }: Expan
       footer={(
         <>
           <button id="memory-expansion-cancel" className="terminal-button is-secondary" type="button" onClick={onClose}>取消</button>
-          <button id="memory-expansion-confirm" className="terminal-button is-primary" type="button" onClick={onConfirm}>确认拓建<Path size={17} weight="bold" aria-hidden /></button>
+          <button id="memory-expansion-confirm" className="terminal-button is-primary" type="button" onClick={onConfirm}>确认拓建<Path size={17} aria-hidden /></button>
         </>
       )}
     >
@@ -44,7 +50,7 @@ export function ExpansionDialog({ source, direction, onClose, onConfirm }: Expan
             <div><dt>预计精神负荷</dt><dd>{profile.load}</dd></div>
             <div><dt>信号完整度</dt><dd>41%</dd></div>
           </dl>
-          <div className="expansion-warning"><WarningDiamond size={20} weight="fill" aria-hidden /><p><strong>不可预演路径</strong>该操作会立即建立新战术节点并写入行动记录。未知意识内容只在首次进入后解析。</p></div>
+          <div className="expansion-warning"><WarningDiamond size={20} aria-hidden /><p><strong>不可预演路径</strong>该操作会立即建立新战术节点并写入行动记录。未知意识内容只在首次进入后解析。</p></div>
         </div>
       ) : null}
     </Dialog>
@@ -74,7 +80,7 @@ export function HighRiskDialog({ node, open, onClose, onConfirm }: HighRiskDialo
         </>
       )}
     >
-      <div className="high-risk-content"><WarningDiamond size={38} weight="fill" aria-hidden /><div><strong>{node?.title}</strong><p>节点存在持续精神污染与敌对意识投影。建议先启用巨剑守望协议，并将迷迭香负荷控制在 70 以下。</p></div></div>
+      <div className="high-risk-content"><WarningDiamond size={38} aria-hidden /><div><strong>{node?.title}</strong><p>节点存在持续精神污染与敌对意识投影。建议先启用巨剑守望协议，并将迷迭香负荷控制在 70 以下。</p></div></div>
     </Dialog>
   );
 }

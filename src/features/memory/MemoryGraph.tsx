@@ -1,4 +1,9 @@
-import { AnchorSimple, Eye, UsersThree, WarningDiamond } from '@phosphor-icons/react';
+import {
+  Anchor as AnchorSimple,
+  Eye,
+  Users as UsersThree,
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 import type { MemoryEdge, MemoryNode } from '../../types/game';
 
 interface MemoryGraphProps {
@@ -49,8 +54,8 @@ export function MemoryGraph({ nodes, edges, selectedNodeId, onSelect }: MemoryGr
           >
             <span className="memory-node-index">N-{String(index + 1).padStart(2, '0')}</span>
             <span className="memory-node-title">{node.title}</span>
-            <span className="memory-node-meta"><WarningDiamond size={13} weight="fill" aria-hidden />危险 {node.risk}<i />{node.hostileCount === null ? '敌情未知' : `敌对 ${node.hostileCount}`}</span>
-            <span className="memory-node-footer"><span><UsersThree size={13} aria-hidden />友方 {node.alliedCount}</span><span><Eye size={13} aria-hidden />{node.exploration}%</span>{node.anchored ? <AnchorSimple size={14} weight="fill" aria-hidden /> : null}</span>
+            <span className="memory-node-meta"><WarningDiamond size={13} aria-hidden />危险 {node.risk}<i />{node.hostileCount === null ? '敌情未知' : `敌对 ${node.hostileCount}`}</span>
+            <span className="memory-node-footer"><span><UsersThree size={13} aria-hidden />友方 {node.alliedCount}</span><span><Eye size={13} aria-hidden />{node.exploration}%</span>{node.anchored ? <AnchorSimple size={14} aria-hidden /> : null}</span>
           </button>
         ))}
         <div className="memory-depth-marker" aria-hidden="true"><span>DEPTH</span><i /><small>−03.17</small></div>

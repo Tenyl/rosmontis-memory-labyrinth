@@ -1,4 +1,8 @@
-import { Funnel, MagnifyingGlass, SortAscending } from '@phosphor-icons/react';
+import {
+  Filter as Funnel,
+  Search as MagnifyingGlass,
+  ArrowUpAZ as SortAscending,
+} from 'lucide-react';
 import type { ArchiveKind } from '../../types/game';
 
 interface ArchiveFiltersProps {

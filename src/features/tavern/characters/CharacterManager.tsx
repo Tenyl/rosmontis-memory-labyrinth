@@ -1,4 +1,10 @@
-import { DownloadSimple, PencilSimple, Plus, Trash, UploadSimple } from '@phosphor-icons/react';
+import {
+  Download as DownloadSimple,
+  Pen as PencilSimple,
+  Plus,
+  Trash2 as Trash,
+  Upload as UploadSimple,
+} from 'lucide-react';
 import { useState, type ChangeEvent } from 'react';
 import { CharacterArtwork } from '../../../components/CharacterArtwork';
 import { Dialog } from '../../../components/Dialog';

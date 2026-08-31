@@ -1,4 +1,7 @@
-import { ArrowClockwise, ClockCounterClockwise } from '@phosphor-icons/react';
+import {
+  RefreshCw as ArrowClockwise,
+  History as ClockCounterClockwise,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useGameStore } from '../../../store/gameStore';

@@ -1,4 +1,11 @@
-import { ArrowUpRight, Eye, LinkSimple, MapPin, PushPin, ShieldWarning } from '@phosphor-icons/react';
+import {
+  ArrowUpRight,
+  Eye,
+  Link as LinkSimple,
+  MapPin,
+  Pin as PushPin,
+  ShieldAlert as ShieldWarning,
+} from 'lucide-react';
 import { StatusBadge } from '../../components/StatusBadge';
 import type { ArchiveRecord } from '../../types/game';
 import { ProvenanceLink } from '../tavern/projection/ProvenanceLink';
@@ -20,7 +27,7 @@ export function ArchiveGrid({ records, onOpen, onTogglePin }: ArchiveGridProps) 
         <article key={record.id} className={`archive-card is-${record.kind}${record.unread ? ' is-unread' : ''}`}>
           <header>
             <div><span className="archive-code">{record.code}</span><StatusBadge label={record.kind} tone={record.kind === '人物' ? 'memory' : record.contamination === 'A' ? 'danger' : 'neutral'} /></div>
-            <button id={`archive-pin-${record.id}`} type="button" className={record.pinned ? 'is-pinned' : ''} aria-label={`${record.pinned ? '取消钉选' : '钉选'}${record.title}`} aria-pressed={record.pinned} onClick={() => onTogglePin(record.id)}><PushPin size={18} weight={record.pinned ? 'fill' : 'regular'} aria-hidden /></button>
+            <button id={`archive-pin-${record.id}`} type="button" className={record.pinned ? 'is-pinned' : ''} aria-label={`${record.pinned ? '取消钉选' : '钉选'}${record.title}`} aria-pressed={record.pinned} onClick={() => onTogglePin(record.id)}><PushPin size={18} aria-hidden /></button>
           </header>
           <div className="archive-card-body">
             {record.unread ? <span className="archive-unread">新情报 / UNREAD</span> : null}

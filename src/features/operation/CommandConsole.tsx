@@ -1,10 +1,10 @@
 import {
   ArrowUpRight,
-  BracketsCurly,
-  ChatCenteredText,
-  Stop,
-  Sparkle,
-} from '@phosphor-icons/react';
+  Braces as BracketsCurly,
+  MessageSquareText as ChatCenteredText,
+  Square as Stop,
+  Sparkles as Sparkle,
+} from 'lucide-react';
 import type { InputMode } from '../../types/game';
 import type { TavernRuntimeStatus } from '../tavern/runtime/TavernProvider';
 
@@ -72,7 +72,7 @@ export function CommandConsole({
             type="button"
             onClick={() => onDraftChange(suggestion)}
           >
-            <Sparkle size={14} weight="fill" aria-hidden />
+            <Sparkle size={14} aria-hidden />
             {suggestion}
           </button>
         ))}
@@ -123,7 +123,7 @@ export function CommandConsole({
           <div className="command-actions">
             {isGenerating ? (
               <button id="operation-generation-stop" className="terminal-button is-secondary" type="button" onClick={onStop}>
-                <Stop size={16} weight="fill" aria-hidden />停止生成
+                <Stop size={16} aria-hidden />停止生成
               </button>
             ) : null}
             <button
@@ -133,7 +133,7 @@ export function CommandConsole({
               disabled={isGenerating}
               onClick={onSubmit}
             >
-              发送战术指令<ArrowUpRight size={17} weight="bold" aria-hidden />
+              发送战术指令<ArrowUpRight size={17} aria-hidden />
             </button>
           </div>
         </div>

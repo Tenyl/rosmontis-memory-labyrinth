@@ -1,4 +1,9 @@
-import { ArrowRight, LinkSimple, Quotes, User } from '@phosphor-icons/react';
+import {
+  ArrowRight,
+  Link as LinkSimple,
+  Quote as Quotes,
+  User,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Dialog } from '../../components/Dialog';
 import type { ActionLogEntry, NarrativeEntry } from '../../types/game';

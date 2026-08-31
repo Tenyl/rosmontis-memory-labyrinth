@@ -1,14 +1,14 @@
 import {
-  ArrowCounterClockwise,
-  CheckCircle,
+  RotateCcw as ArrowCounterClockwise,
+  CircleCheck as CheckCircle,
   Code,
   Database,
   Eye,
-  HardDrives,
-  Plugs,
+  HardDrive as HardDrives,
+  Plug as Plugs,
   ShieldCheck,
   SlidersHorizontal,
-} from '@phosphor-icons/react';
+} from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
@@ -51,7 +51,7 @@ export default function SettingsPage() {
 
   return (
     <section className="route-page settings-route" aria-labelledby="settings-page-title">
-      <PageHeader id="settings-page-title" code="06" title="系统设置" description="配置模型接口、剧情生成、本地存档和辅助显示。离线预设与本地无尽不依赖 API。" meta="LOCAL PROFILE / SECURE" actions={<span className="settings-saved"><CheckCircle size={16} weight="fill" aria-hidden />本地持久化已开启</span>} />
+      <PageHeader id="settings-page-title" code="06" title="系统设置" description="配置模型接口、剧情生成、本地存档和辅助显示。离线预设与本地无尽不依赖 API。" meta="LOCAL PROFILE / SECURE" actions={<span className="settings-saved"><CheckCircle size={16} aria-hidden />本地持久化已开启</span>} />
       <section className="settings-overview" aria-label="设置存储概况"><div><HardDrives size={20} aria-hidden /><span>存储位置</span><strong>浏览器本地</strong><small>INDEXEDDB + LOCAL STORAGE</small></div><div><ShieldCheck size={20} aria-hidden /><span>密钥边界</span><strong>不进入备份</strong><small>LOCAL SECRET</small></div><div><span>数据库版本</span><strong>V4</strong><small>ROGUELIKE SAVE SCHEMA</small></div><div><span>本地无尽</span><strong>{progression.firstClear ? '已解锁' : '待首次通关'}</strong><small>{progression.completedRuns} RUNS COMPLETE</small></div></section>
       <div className="settings-tabs-shell">
         <SegmentedControl id="settings-tabs" label="系统设置工作区" value={workspace} items={tabs.map(({ value, label, panelId, icon: Icon }) => ({ value, label, panelId, icon: <Icon size={16} aria-hidden /> }))} onChange={setWorkspace} mode="tabs" />
@@ -61,6 +61,10 @@ export default function SettingsPage() {
       {workspace === 'parsing' ? <TavernParsingSettings /> : null}
       {workspace === 'data' ? <TavernDataSettings /> : null}
       {workspace === 'visual' ? <section id="settings-panel-visual" className="settings-workspace" role="tabpanel" aria-labelledby="settings-tabs-visual"><header className="settings-workspace-heading"><div><span className="panel-code">TERMINAL DISPLAY / ACCESSIBILITY</span><h2>视觉与辅助</h2><p>调整信息密度、叙事速度、动效、字号和辅助对比度。</p></div></header><PreferenceControls preferences={preferences} onChange={setUiPreference} /><section className="settings-danger-zone"><div><span className="panel-code">TACTICAL PROJECTION / RESET</span><h2>恢复战术演示状态</h2><p>重置节点、干员、档案、战术投影与界面偏好，不删除 IndexedDB 中的酒馆角色、世界书和会话。</p></div><button id="settings-reset-open" type="button" onClick={() => setResetOpen(true)}><ArrowCounterClockwise size={18} aria-hidden />恢复演示初始状态</button></section></section> : null}
+      <aside id="settings-fanwork-disclaimer" className="settings-fanwork-disclaimer" aria-label="非营利二创免责声明">
+        <span className="panel-code">FAN WORK / NON-COMMERCIAL</span>
+        <p>本项目为基于《明日方舟》世界观的非营利性同人衍生作品，角色及设定版权归上海鹰角网络科技有限公司所有。</p>
+      </aside>
       <ResetDemoDialog open={resetOpen} onClose={() => setResetOpen(false)} onConfirm={confirmReset} />
     </section>
   );

@@ -1,4 +1,8 @@
-import { ArrowRight, Command, Keyboard } from '@phosphor-icons/react';
+import {
+  ArrowRight,
+  Command,
+  Keyboard,
+} from 'lucide-react';
 import { Dialog } from './Dialog';
 
 interface ShortcutDialogProps { open: boolean; onClose: () => void; }

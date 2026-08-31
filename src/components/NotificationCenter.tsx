@@ -1,10 +1,10 @@
 import {
-  CheckCircle,
-  CircleNotch,
+  CircleCheck as CheckCircle,
+  LoaderCircle as CircleNotch,
   Info,
-  WarningDiamond,
+  TriangleAlert as WarningDiamond,
   X,
-} from '@phosphor-icons/react';
+} from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import type { NotificationItem } from '../types/game';
 

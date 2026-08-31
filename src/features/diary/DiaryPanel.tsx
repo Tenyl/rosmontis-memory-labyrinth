@@ -1,4 +1,8 @@
-import { BookOpenText, FloppyDisk, NotePencil } from '@phosphor-icons/react';
+import {
+  BookOpenText,
+  Save as FloppyDisk,
+  NotebookPen as NotePencil,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import { listDiaryEntries, updateDoctorNote } from '../../diary/repository';

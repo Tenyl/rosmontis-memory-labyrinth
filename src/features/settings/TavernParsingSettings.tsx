@@ -1,4 +1,10 @@
-import { ArrowCounterClockwise as RotateCcw, BracketsAngle, FloppyDisk, Plus, Trash } from '@phosphor-icons/react';
+import {
+  RotateCcw,
+  CodeXml as BracketsAngle,
+  Save as FloppyDisk,
+  Plus,
+  Trash2 as Trash,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { DEFAULT_FORMAT_PROMPT, DEFAULT_TAGS, type AppSettings } from '../../sillytavern/types';
 import { useGameStore } from '../../store/gameStore';

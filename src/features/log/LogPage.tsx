@@ -1,12 +1,12 @@
 import {
-  ClockCounterClockwise,
-  Funnel,
+  History as ClockCounterClockwise,
+  Filter as Funnel,
   GitBranch,
-  MagnifyingGlass,
-  Scroll,
+  Search as MagnifyingGlass,
+  ScrollText as Scroll,
   ShieldCheck,
-  TerminalWindow,
-} from '@phosphor-icons/react';
+  SquareTerminal as TerminalWindow,
+} from 'lucide-react';
 import { useState } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { SegmentedControl } from '../../components/SegmentedControl';
@@ -47,7 +47,7 @@ export default function LogPage() {
         title="行动记录"
         description="保存每次逃离或链路中断的 Run 摘要，并提供当前局本地规则日志与可选 LLM 会话溯源。"
         meta={`${String(runHistory.length).padStart(2, '0')} RUNS / ${String(ruleLog.length).padStart(2, '0')} RULE EVENTS`}
-        actions={<span className="log-integrity"><ShieldCheck size={16} weight="fill" aria-hidden />记录完整性 100%</span>}
+        actions={<span className="log-integrity"><ShieldCheck size={16} aria-hidden />记录完整性 100%</span>}
       />
 
       <div className="log-workspace-tabs">

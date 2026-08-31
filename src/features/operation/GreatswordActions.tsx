@@ -1,4 +1,9 @@
-import { Eye, ShieldChevron, Sword, Waveform } from '@phosphor-icons/react';
+import {
+  Eye,
+  Shield as ShieldChevron,
+  Sword,
+  AudioWaveform as Waveform,
+} from 'lucide-react';
 import { GREATSWORD_CONFIG } from '../../game/greatswords';
 import { getOverloadBand } from '../../game/overload';
 import type {

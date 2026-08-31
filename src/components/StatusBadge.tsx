@@ -1,4 +1,8 @@
-import { CheckCircle, Question, WarningDiamond } from '@phosphor-icons/react';
+import {
+  CircleCheck as CheckCircle,
+  CircleHelp as Question,
+  TriangleAlert as WarningDiamond,
+} from 'lucide-react';
 
 interface StatusBadgeProps {
   label: string;

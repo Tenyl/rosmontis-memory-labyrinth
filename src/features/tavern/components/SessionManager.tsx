@@ -1,4 +1,12 @@
-import { Check, GitBranch, NotePencil, Plus, SignIn, Trash, X } from '@phosphor-icons/react';
+import {
+  Check,
+  GitBranch,
+  NotebookPen as NotePencil,
+  Plus,
+  LogIn as SignIn,
+  Trash2 as Trash,
+  X,
+} from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Dialog } from '../../../components/Dialog';
 import { useTavern } from '../runtime/useTavern';

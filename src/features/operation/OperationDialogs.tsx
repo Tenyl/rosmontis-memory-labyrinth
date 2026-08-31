@@ -1,4 +1,8 @@
-import { ArrowRight, Crosshair, Waveform } from '@phosphor-icons/react';
+import {
+  ArrowRight,
+  Crosshair,
+  AudioWaveform as Waveform,
+} from 'lucide-react';
 import { Dialog } from '../../components/Dialog';
 import type { NarrativeEntry } from '../../types/game';
 
@@ -25,7 +29,7 @@ export function OperationDialogs({ checkEntry, onCloseCheck }: OperationDialogsP
       {check ? (
         <div className="check-dialog-content">
           <div className="check-score-visual">
-            <span><Crosshair size={24} weight="fill" aria-hidden />{check.attribute}</span>
+            <span><Crosshair size={24} aria-hidden />{check.attribute}</span>
             <strong>{check.total}</strong>
             <em>{check.result}</em>
           </div>
