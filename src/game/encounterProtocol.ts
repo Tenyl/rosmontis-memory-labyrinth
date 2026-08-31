@@ -56,7 +56,7 @@ export function resolveEncounterAction(
     const hasCooldown = Object.values(state.rosmontis.greatswords).some(({ cooldown }) => cooldown > 0);
     if (!hasCooldown && state.rosmontis.actionPoints >= 4) return rejected(state, '战术资源已经处于可用状态。');
     const intent = encounter.kind === 'combat'
-      ? getCombatIntent(encounter.round, (encounter.enemyMaxIntegrity ?? 80) > 80)
+      ? getCombatIntent(encounter.round, (encounter.enemyMaxIntegrity ?? 80) > 80, encounter.intentPlan)
       : null;
     const interrupted = encounter.kind === 'combat'
       && intent?.interruptible
@@ -151,6 +151,24 @@ export function resolveEncounterAction(
     events: [...swordEvents, ...result.events, actionEvent(encounter.nodeId, action.type)],
     animation: action.type === 'play-sword' && result.accepted ? action.swordId : null,
   };
+}
+
+export function resolveEncounterActionsAtomically(
+  state: EncounterRuleState,
+  actions: readonly EncounterAction[],
+): EncounterResolution {
+  if (actions.length === 0) return rejected(state, '战术序列不能为空。');
+  let working = state;
+  const events: RuleEvent[] = [];
+  let animation: EncounterResolution['animation'] = null;
+  for (const action of actions) {
+    const resolution = resolveEncounterAction(working, action);
+    if (!resolution.accepted) return rejected(state, resolution.reason ?? '战术序列无法完整执行。');
+    working = resolution.state;
+    events.push(...resolution.events);
+    animation = resolution.animation ?? animation;
+  }
+  return { accepted: true, state: working, events, animation };
 }
 
 const SWORD_TARGET: Record<GreatswordId, GreatswordTarget> = {

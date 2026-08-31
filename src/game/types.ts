@@ -231,6 +231,7 @@ export type PendingEncounter =
       enemyMaxIntegrity?: number;
       enemyStagger?: number;
       enemyMaxStagger?: number;
+      intentPlan?: import('./combatIntents').CombatIntentType[];
       rewardEchoes: number;
     })
   | (EncounterBase & { kind: 'safehouse' })
@@ -309,6 +310,7 @@ export type RunAction =
   | { type: 'begin-node' }
   | { type: 'resolve-encounter'; choiceId: string }
   | { type: 'resolve-encounter-action'; action: EncounterAction }
+  | { type: 'resolve-encounter-actions'; actions: EncounterAction[] }
   | { type: 'purchase-offer'; offerId: string }
   | { type: 'sell-fragment'; fragmentId: string }
   | { type: 'use-exploration-power'; action: ExplorationPowerAction }

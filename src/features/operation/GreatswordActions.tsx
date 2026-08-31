@@ -80,7 +80,7 @@ export function GreatswordActions({
     <section className="greatsword-actions" aria-labelledby="greatsword-actions-title">
       <header className="greatsword-actions-header">
         <div>
-          <span>OFFLINE TACTICAL PRESET / {NODE_TYPE_NAMES[currentNodeType]}</span>
+          <span>TACTICAL CARDS / SHARED RULE ENGINE / {NODE_TYPE_NAMES[currentNodeType]}</span>
           <h2 id="greatsword-actions-title">四柄巨剑战术</h2>
         </div>
         <p>{rosmontis.actionPoints} AP 可用 · 当前过载 {rosmontis.overload}%</p>
@@ -140,7 +140,7 @@ export function GreatswordActions({
       <p className="greatsword-action-status" role="status" aria-live="polite">
         {latestEvent && latestEvent.type === 'greatsword.used'
           ? `${GREATSWORD_CONFIG[latestEvent.swordId].name}已执行 · -${latestEvent.actionPointCost} AP · +${latestEvent.overloadDelta}% 过载 · 冷却 ${latestEvent.cooldown}`
-          : '等待指挥者选择离线战术。'}
+          : '等待指挥者选择战术。'}
       </p>
     </section>
   );

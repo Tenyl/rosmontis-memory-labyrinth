@@ -7,6 +7,7 @@ import { parseGameDirectorV1, type NodePresentation } from '../../llm/schemas/ga
 import { assembleGameDirectorPrompt } from '../../llm/tavernGamePromptBridge';
 import { useGameStore } from '../../store/gameStore';
 import { useTavern } from '../tavern/runtime/useTavern';
+import { AiTacticalCommandConsole } from '../operation/AiTacticalCommandConsole';
 
 interface GameDirectorBoundaryProps {
   run: RunState;
@@ -145,7 +146,11 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
           ) : null}
         </section>
       ) : null}
-      {aiMode ? <div id="game-ai-command-slot" className="game-ai-command-slot" data-ready={stored?.source === 'ai-director' ? 'true' : 'false'}><span>自然语言战术通道</span><small>{stored?.source === 'ai-director' ? '节点上下文已就绪' : '等待有效的 AI 节点上下文'}</small></div> : null}
+      {aiMode ? <div id="game-ai-command-slot" className="game-ai-command-slot" data-ready={stored?.source === 'ai-director' ? 'true' : 'false'}>
+        {stored?.source === 'ai-director'
+          ? <AiTacticalCommandConsole run={run} node={node} presentation={stored} />
+          : <><span>自然语言战术通道</span><small>等待有效的 AI 节点上下文</small></>}
+      </div> : null}
     </>
   );
 }

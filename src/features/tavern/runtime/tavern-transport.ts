@@ -10,7 +10,7 @@ export interface TavernTransportRequest {
   maxTokens?: number;
   stream?: boolean;
   offlineContext?: SelectPresetEventInput;
-  gameTask?: 'event' | 'quote' | 'novel' | 'diary' | 'mindsea';
+  gameTask?: 'event' | 'quote' | 'novel' | 'diary' | 'mindsea' | 'tactical-command';
 }
 
 export interface TavernTransport {

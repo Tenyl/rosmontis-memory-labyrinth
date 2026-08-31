@@ -62,7 +62,7 @@ function IntentIcon({ type }: { type: CombatIntentType }) {
 
 function CombatArena({ encounter }: { encounter: Extract<PendingEncounter, { kind: 'combat' }> }) {
   const emergency = (encounter.enemyMaxIntegrity ?? 80) > 80;
-  const intent = getCombatIntent(encounter.round, emergency);
+  const intent = getCombatIntent(encounter.round, emergency, encounter.intentPlan);
   const maxIntegrity = encounter.enemyMaxIntegrity ?? 80;
   const stagger = encounter.enemyStagger ?? 40;
   const maxStagger = encounter.enemyMaxStagger ?? 40;

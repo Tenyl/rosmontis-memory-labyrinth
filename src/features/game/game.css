@@ -175,3 +175,13 @@ html[data-motion="reduced"] .maze-node.is-graph:hover:not(:disabled),html[data-m
   border-inline-start: 3px solid var(--color-accent);
   background: color-mix(in srgb, var(--color-surface) 72%, transparent);
 }
+
+.game-ai-command-slot > .ai-tactical-command,
+.ai-tactical-command > .command-console {
+  width: 100%;
+}
+
+.ai-tactical-feedback {
+  margin: 0 0 0.65rem;
+  color: var(--color-accent);
+}

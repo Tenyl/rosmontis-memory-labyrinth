@@ -14,6 +14,12 @@ export interface GameDirectorSnapshot {
   fragmentNames: readonly string[];
   recentSummaries: readonly string[];
   playerText?: string;
+  tacticalState?: {
+    actionPoints: number;
+    cooldowns: Record<string, number>;
+    encounterKind: string | null;
+    bossPhase?: string;
+  };
 }
 
 export interface AssembleGameDirectorPromptInput {

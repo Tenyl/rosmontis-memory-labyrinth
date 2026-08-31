@@ -17,8 +17,14 @@ const INTENTS: CombatIntent[] = [
   { type: 'barrier', label: '绝对壁障', description: '残响实体将重构防护立场。', damage: 0, overload: 0, guard: 26, interruptible: false },
 ];
 
-export function getCombatIntent(round: number, emergency: boolean): CombatIntent {
-  const base = INTENTS[Math.max(0, round - 1) % INTENTS.length];
+export function getCombatIntent(
+  round: number,
+  emergency: boolean,
+  plan?: readonly CombatIntentType[],
+): CombatIntent {
+  const plannedType = plan?.length ? plan[Math.max(0, round - 1) % plan.length] : null;
+  const base = (plannedType ? INTENTS.find((intent) => intent.type === plannedType) : null)
+    ?? INTENTS[Math.max(0, round - 1) % INTENTS.length];
   const multiplier = emergency ? 1.35 : 1;
   return {
     ...base,

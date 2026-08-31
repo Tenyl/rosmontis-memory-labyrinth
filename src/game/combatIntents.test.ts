@@ -12,4 +12,10 @@ describe('combat intent rotation', () => {
   test('emergency combat raises the disclosed threat without hiding it', () => {
     expect(getCombatIntent(1, true).damage).toBeGreaterThan(getCombatIntent(1, false).damage);
   });
+
+  test('uses a validated director intent plan while retaining local numbers', () => {
+    expect(getCombatIntent(1, false, ['charge', 'barrier'])).toMatchObject({ type: 'charge', damage: 28 });
+    expect(getCombatIntent(2, false, ['charge', 'barrier'])).toMatchObject({ type: 'barrier', guard: 26 });
+    expect(getCombatIntent(3, false, ['charge', 'barrier'])).toMatchObject({ type: 'charge', damage: 28 });
+  });
 });

@@ -42,6 +42,8 @@ import { migrateGameState } from './gameStateMigration';
 import { createLocalDiaryDraft } from '../diary/localDiary';
 import { getFloorDefinition } from '../game/floors';
 import { resolveD20Check } from '../game/checks';
+import { toEncounterAction } from '../llm/tacticalCommand';
+import type { TacticalCommandPlan } from '../llm/schemas/tacticalCommandV1';
 
 interface GameActions {
   dispatchRunAction: (action: RunAction) => RunResolution;
@@ -56,6 +58,7 @@ interface GameActions {
   beginCurrentEncounter: () => void;
   resolveEncounterChoice: (choiceId: string) => void;
   resolveEncounterAction: (action: EncounterAction) => void;
+  resolveTacticalCommand: (plan: TacticalCommandPlan) => RunResolution;
   purchaseShopOffer: (offerId: string) => void;
   sellRunFragment: (fragmentId: string) => void;
   useExplorationPower: (action: ExplorationPowerAction) => void;
@@ -392,6 +395,10 @@ export const useGameStore = create<GameStore>()(
       beginCurrentEncounter: () => { get().dispatchRunAction({ type: 'begin-node' }); },
       resolveEncounterChoice: (choiceId) => { get().dispatchRunAction({ type: 'resolve-encounter', choiceId }); },
       resolveEncounterAction: (action) => { get().dispatchRunAction({ type: 'resolve-encounter-action', action }); },
+      resolveTacticalCommand: (plan) => get().dispatchRunAction({
+        type: 'resolve-encounter-actions',
+        actions: plan.actionIds.map(toEncounterAction),
+      }),
       purchaseShopOffer: (offerId) => { get().dispatchRunAction({ type: 'purchase-offer', offerId }); },
       sellRunFragment: (fragmentId) => { get().dispatchRunAction({ type: 'sell-fragment', fragmentId }); },
       useExplorationPower: (action) => { get().dispatchRunAction({ type: 'use-exploration-power', action }); },
@@ -453,6 +460,11 @@ export const useGameStore = create<GameStore>()(
       acceptNodePresentation: (presentation) =>
         set((state) => ({
           llmDirector: acceptNodePresentationState(state.llmDirector, presentation),
+          pendingEncounter: state.pendingEncounter?.kind === 'combat'
+            && state.pendingEncounter.nodeId === presentation.nodeId
+            && presentation.enemyPlan
+            ? { ...state.pendingEncounter, intentPlan: [...presentation.enemyPlan.intentIds] }
+            : state.pendingEncounter,
         })),
       setAiFailurePolicy: (policy) =>
         set((state) => ({ run: { ...state.run, aiFailurePolicy: policy } })),

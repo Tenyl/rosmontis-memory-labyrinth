@@ -19,6 +19,7 @@ interface CommandConsoleProps {
   onModeChange: (mode: InputMode) => void;
   onSubmit: () => void;
   onStop: () => void;
+  dataNotice?: string;
 }
 
 const inputModes: Array<{ value: InputMode; label: string }> = [
@@ -49,6 +50,7 @@ export function CommandConsole({
   onModeChange,
   onSubmit,
   onStop,
+  dataNotice,
 }: CommandConsoleProps) {
   const isGenerating = status === 'assembling' || status === 'streaming';
 
@@ -98,7 +100,7 @@ export function CommandConsole({
       <div className={`command-entry${error ? ' has-error' : ''}`}>
         <label htmlFor="operation-command-input">
           <span>{inputMode}</span>
-          <small>支持自然语言，不会向外部服务发送数据</small>
+          <small>{dataNotice ?? (transportMode === 'remote' ? '内容会发送至当前配置的远程模型' : '内容仅由本地规则处理')}</small>
         </label>
         <textarea
           id="operation-command-input"

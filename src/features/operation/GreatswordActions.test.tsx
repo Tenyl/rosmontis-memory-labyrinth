@@ -46,6 +46,7 @@ test('renders four configured tactical cards with AP, cooldown, and overload cos
   expect(within(breach).getByText('过载 +12%')).toBeVisible();
   expect(within(breach).getByText('探索充能 1')).toBeVisible();
   expect(within(watch).getByText('1 AP')).toBeVisible();
+  expect(screen.getByText(/TACTICAL CARDS \/ SHARED RULE ENGINE/)).toBeVisible();
   const setData = vi.fn();
   fireEvent.dragStart(breach, { dataTransfer: { setData } });
   expect(setData).toHaveBeenCalledWith('application/x-rosmontis-sword', 'breach');

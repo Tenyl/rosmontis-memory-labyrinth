@@ -166,6 +166,7 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
   }
   if (action.type === 'resolve-encounter') return resolveCurrentEncounter(state, action.choiceId);
   if (action.type === 'resolve-encounter-action') return resolveCurrentEncounterAction(state, action.action);
+  if (action.type === 'resolve-encounter-actions') return resolveCurrentEncounterActions(state, action.actions);
   if (action.type === 'purchase-offer') {
     return resolveCurrentEncounterAction(state, { type: 'buy', offerId: action.offerId });
   }
@@ -293,6 +294,22 @@ function continueToMindsea(state: RoguelikeState, llmEnabled: boolean): RunResol
 
 function resolveCurrentEncounter(state: RoguelikeState, choiceId: string): RunResolution {
   return resolveCurrentEncounterAction(state, { type: 'choose', choiceId });
+}
+
+function resolveCurrentEncounterActions(
+  state: RoguelikeState,
+  actions: readonly EncounterAction[],
+): RunResolution {
+  if (actions.length === 0) return rejected(state, '战术序列不能为空。');
+  let working = state;
+  const events: RuleEvent[] = [];
+  for (const action of actions) {
+    const resolution = resolveCurrentEncounterAction(working, action);
+    if (!resolution.accepted) return rejected(state, resolution.reason ?? '战术序列无法完整执行。');
+    working = resolution.state;
+    events.push(...resolution.events);
+  }
+  return accepted(working, events);
 }
 
 function resolveCurrentEncounterAction(
