@@ -131,3 +131,47 @@
 html[data-motion="reduced"] .maze-node,html[data-motion="reduced"] .maze-route-path,html[data-motion="reduced"] .transition-route-pulse,html[data-motion="reduced"] .transition-aperture { animation: none!important; }
 html[data-motion="reduced"] .maze-camera,html[data-motion="reduced"] .node-transition-layer,html[data-motion="reduced"] .node-transition-layer * { transition-duration: 120ms!important; }
 html[data-motion="reduced"] .maze-node.is-graph:hover:not(:disabled),html[data-motion="reduced"] .maze-node.is-focused:not(:disabled) { transform: translate(-50%,-50%); }
+.game-director-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--color-surface) 84%, transparent);
+}
+
+.game-director-status > div,
+.game-director-status span {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.game-director-status span {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.game-director-status small {
+  color: var(--color-text-muted);
+}
+
+.game-director-decisions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.game-director-decisions button {
+  min-height: 2.75rem;
+}
+
+.game-ai-command-slot {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border-inline-start: 3px solid var(--color-accent);
+  background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+}

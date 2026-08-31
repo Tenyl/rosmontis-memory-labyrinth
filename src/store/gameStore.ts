@@ -11,6 +11,7 @@ import type {
   RoguelikeState,
   RuleEvent,
   RunAction,
+  AiFailurePolicy,
   RunMode,
 } from '../game/types';
 import {
@@ -74,6 +75,7 @@ interface GameActions {
   acceptDirectorQuote: (token: string, triggerKey: string, content: TemporaryQuoteContent, source: DirectorContentSource) => void;
   acceptNovelBlueprint: (token: string, triggerKey: string, content: NovelBlueprintContent, source: DirectorContentSource, task?: 'novel' | 'mindsea') => void;
   acceptNodePresentation: (presentation: NodePresentation) => void;
+  setAiFailurePolicy: (policy: AiFailurePolicy) => void;
   failDirectorRequest: (kind: GameContentTask, token: string, errorCode: GameContentRequestErrorCode) => void;
   markDirectorTriggerHandled: (triggerKey: string) => void;
   resolveDirectorChoice: (choiceId: string) => void;
@@ -452,6 +454,8 @@ export const useGameStore = create<GameStore>()(
         set((state) => ({
           llmDirector: acceptNodePresentationState(state.llmDirector, presentation),
         })),
+      setAiFailurePolicy: (policy) =>
+        set((state) => ({ run: { ...state.run, aiFailurePolicy: policy } })),
       failDirectorRequest: (kind, token, errorCode) =>
         set((state) => ({
           llmDirector: failDirectorRequestState(state.llmDirector, state.run.id, kind, token, errorCode),

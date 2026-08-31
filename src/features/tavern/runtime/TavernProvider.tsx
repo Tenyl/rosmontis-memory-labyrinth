@@ -77,6 +77,7 @@ export interface TavernRuntimeValue {
   status: TavernRuntimeStatus;
   error: string | null;
   transportMode: TavernTransport['mode'];
+  transport: TavernTransport;
   settings: AppSettings | null;
   chats: ChatSession[];
   characters: CharacterCard[];
@@ -563,6 +564,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     status,
     error,
     transportMode: selectedTransport.mode,
+    transport: selectedTransport,
     settings,
     chats,
     characters,

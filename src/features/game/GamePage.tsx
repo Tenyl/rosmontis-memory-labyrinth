@@ -10,6 +10,7 @@ import { GameHud } from './GameHud';
 import { MazeStage } from './MazeStage';
 import { NodeTransitionLayer } from './NodeTransitionLayer';
 import { NodeScene } from './NodeScene';
+import { GameDirectorBoundary } from './GameDirectorBoundary';
 import { RosmontisPresence } from './RosmontisPresence';
 import { gameSceneReducer, restoreGameSceneState } from './sceneState';
 import { createSaveSlot, getActiveSaveSlotId } from '../../game/saveSlots';
@@ -178,8 +179,9 @@ export default function GamePage() {
             <NovelMazeBrief mode={run.mode} novel={novel} />
           </>
         ) : (
-          <NodeScene
+          <GameDirectorBoundary run={run} node={currentNode}>{(presentation) => <NodeScene
             node={currentNode}
+            presentation={presentation}
             brief={currentBrief}
             encounter={pendingEncounter}
             rosmontis={rosmontis}
@@ -195,7 +197,7 @@ export default function GamePage() {
             onSellFragment={sellRunFragment}
             onAdvanceFloor={() => { advanceRunFloor(); returnToMaze(); }}
             onReturnToMaze={returnToMaze}
-          />
+          />}</GameDirectorBoundary>
         )}
         {(scene.phase === 'entering-node' || scene.phase === 'returning-map') && scene.targetNodeId ? (
           <NodeTransitionLayer

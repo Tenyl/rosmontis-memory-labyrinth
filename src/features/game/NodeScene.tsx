@@ -11,16 +11,16 @@ import type {
   RuleEvent,
 } from '../../game/types';
 import type { NovelNodeBrief } from '../../llm/gameContent';
+import type { NodePresentation } from '../../llm/schemas/gameDirectorV1';
 import { EncounterPanel } from '../operation/EncounterPanel';
 import { GreatswordActions } from '../operation/GreatswordActions';
-import { LlmEventDirector } from '../operation/LlmEventDirector';
 import { ModuleInventory } from '../operation/ModuleInventory';
-import { TavernGameView } from '../tavern/game/TavernGameView';
 import { NodeSettlement } from './NodeSettlement';
 
 interface NodeSceneProps {
   node: MazeNode;
   brief?: NovelNodeBrief;
+  presentation: NodePresentation;
   encounter: PendingEncounter | null;
   rosmontis: GreatswordCombatState;
   explorationCharges: ExplorationCharges;
@@ -64,15 +64,15 @@ export function NodeScene(props: NodeSceneProps) {
   />;
 
   return (
-    <section className="node-scene" data-node-type={props.node.type} aria-labelledby="game-node-scene-title">
+    <section id="game-shared-node-template" data-testid="shared-node-template" className="node-scene" data-node-type={props.node.type} data-content-source={props.presentation.source} aria-labelledby="game-node-scene-title">
       <header className="node-scene-header">
         <div>
           <span>{nodeName} / RISK {props.node.risk}</span>
-          <h2 id="game-node-scene-title" tabIndex={-1}>{nodeName}</h2>
-          <p>{props.brief?.description ?? `迷迭香正在处理第 ${props.node.floor} 层、深度 ${props.node.depth} 的记忆节点。`}</p>
+          <h2 id="game-node-scene-title" tabIndex={-1}>{props.presentation.title || nodeName}</h2>
+          <p>{props.brief?.description ?? props.presentation.description}</p>
         </div>
         <div className="node-scene-header-actions">
-          <strong>{props.brief?.title ?? props.node.id}</strong>
+          <strong>{props.brief?.title ?? props.presentation.quote ?? props.node.id}</strong>
           <button
             id="game-return-to-maze"
             className="terminal-button is-primary node-scene-return"
@@ -100,8 +100,6 @@ export function NodeScene(props: NodeSceneProps) {
         <>
           {combatNode ? <>{encounterPanel}{actions}</> : <>{actions}{encounterPanel}</>}
           <ModuleInventory modules={props.modules} />
-          <LlmEventDirector />
-          <TavernGameView />
         </>
       )}
     </section>

@@ -17,6 +17,17 @@ test('shows map character state and node actions on the same route', async () =>
   expect(window.location.pathname).toBe('/game');
 });
 
+test('uses the shared node template without any AI interaction surface in local mode', async () => {
+  renderApp('/game');
+
+  expect(await screen.findByTestId('shared-node-template')).toBeVisible();
+  expect(document.querySelectorAll('#game-encounter-panel')).toHaveLength(1);
+  expect(document.getElementById('game-director-status')).toBeNull();
+  expect(document.getElementById('game-ai-command-slot')).toBeNull();
+  expect(document.getElementById('llm-independent-event')).toBeNull();
+  expect(document.querySelector('.tavern-game-view')).toBeNull();
+});
+
 test('restores an unresolved current encounter without navigating away', async () => {
   renderApp('/game');
 

@@ -120,7 +120,7 @@ export function EncounterPanel({
 }: EncounterPanelProps) {
   if (!encounter) {
     return (
-      <section className="encounter-panel is-empty" aria-labelledby="encounter-title">
+      <section id="game-encounter-panel" className="encounter-panel is-empty" aria-labelledby="encounter-title">
         <header><div><span>ENCOUNTER / STANDBY</span><h2 id="encounter-title">等待节点同步</h2></div></header>
         <p className="encounter-empty-copy">前往记忆地图选择路径，节点规则将在进入后载入。</p>
       </section>
@@ -130,6 +130,7 @@ export function EncounterPanel({
   const copy = ENCOUNTER_COPY[encounter.kind];
   return (
     <section
+      id="game-encounter-panel"
       className={`encounter-panel is-${encounter.kind}`}
       aria-labelledby="encounter-title"
       onDragOver={(event) => { if (event.dataTransfer.types.includes('application/x-rosmontis-sword')) event.preventDefault(); }}
