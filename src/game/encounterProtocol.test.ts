@@ -65,3 +65,24 @@ test('exposes the unified encounter protocol through the Run reducer', () => {
     actionType: 'play-sword',
   });
 });
+
+test('berserk doubles breach damage, applies backlash, and blocks precision scanning', () => {
+  const combat = { ...atNode('combat'), rosmontis: { ...atNode('combat').rosmontis, overload: 80 } };
+  const breached = resolveEncounterAction(combat, { type: 'play-sword', swordId: 'breach' });
+  const encounter = { ...atNode('encounter'), rosmontis: { ...atNode('encounter').rosmontis, overload: 80 } };
+  const scanned = resolveEncounterAction(encounter, { type: 'play-sword', swordId: 'perception' });
+
+  expect(breached.state.pendingEncounter).toMatchObject({ kind: 'combat', enemyIntegrity: 20 });
+  expect(breached.state.rosmontis.sanity).toBe(88);
+  expect(scanned.accepted).toBe(false);
+  expect(scanned.state).toBe(encounter);
+});
+
+test('routes companion comfort through the encounter protocol', () => {
+  const before = { ...atNode('combat'), rosmontis: { ...atNode('combat').rosmontis, overload: 85 } };
+  const result = resolveEncounterAction(before, { type: 'comfort', gesture: 'hold-hand' });
+
+  expect(result.accepted).toBe(true);
+  expect(result.state.rosmontis).toMatchObject({ actionPoints: 2, overload: 67 });
+  expect(result.animation).toBe('comfort');
+});

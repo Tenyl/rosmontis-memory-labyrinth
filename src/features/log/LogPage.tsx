@@ -187,6 +187,7 @@ function ruleEventLabel(event: RuleEvent) {
     'run.moved': '迷宫节点已移动',
     'node.completed': '迷宫节点已完成',
     'encounter.action-resolved': '遭遇行动已结算',
+    'comfort.used': '陪伴交互已完成',
     'economy.echoes-changed': '记忆残响已变更',
     'module.acquired': '认知模块已装载',
     'fragment.sold': '记忆碎片已出售',

@@ -26,6 +26,7 @@ export type MazeRisk = 'C' | 'B' | 'A' | 'S';
 export type MazeNodeState = 'hidden' | 'detected' | 'reachable' | 'current' | 'completed' | 'corrupted';
 export type GreatswordId = 'breach' | 'watch' | 'perception' | 'resonance';
 export type GreatswordTarget = 'hostile' | 'self' | 'maze' | 'memory';
+export type ComfortGesture = 'touch-forehead' | 'hold-hand';
 export type ModuleId =
   | 'breach-circuit'
   | 'watch-prism'
@@ -105,6 +106,7 @@ export type RuleEvent =
   | { type: 'run.moved'; sourceNodeId: string; targetNodeId: string }
   | { type: 'node.completed'; nodeId: string }
   | { type: 'encounter.action-resolved'; nodeId: string; actionType: EncounterAction['type'] }
+  | { type: 'comfort.used'; gesture: ComfortGesture; actionPointCost: number; overloadDelta: number }
   | { type: 'economy.echoes-changed'; delta: number; balance: number }
   | { type: 'module.acquired'; moduleId: ModuleId }
   | { type: 'fragment.sold'; fragmentId: string; echoes: number }
@@ -177,7 +179,8 @@ export type EncounterAction =
   | { type: 'choose'; choiceId: string }
   | { type: 'buy'; offerId: string }
   | { type: 'sell'; fragmentId: string }
-  | { type: 'leave-shop' };
+  | { type: 'leave-shop' }
+  | { type: 'comfort'; gesture: ComfortGesture };
 
 interface EncounterBase {
   nodeId: string;

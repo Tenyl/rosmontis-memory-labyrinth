@@ -28,6 +28,8 @@ export function describeRuleEvent(event: RuleEvent): string {
       return '完成当前迷宫节点的解析';
     case 'encounter.action-resolved':
       return '完成当前遭遇中的一次行动';
+    case 'comfort.used':
+      return event.gesture === 'hold-hand' ? '握住迷迭香的手安抚她' : '轻触迷迭香的额头安抚她';
     case 'economy.echoes-changed':
       return event.delta >= 0 ? '获得记忆残响' : '消耗记忆残响';
     case 'module.acquired':
@@ -65,6 +67,8 @@ export function selectLocalQuote(
       return { text: '我已经把这个节点记下了。' };
     case 'encounter.action-resolved':
       return { text: '这一步已经完成，我会等你的下一个指令。' };
+    case 'comfort.used':
+      return { text: event.gesture === 'hold-hand' ? '博士……这样握着就好。我能分清这里了。' : '你的手很暖，我会慢慢呼吸。' };
     case 'economy.echoes-changed':
       return { text: '这些残响还能帮助我们继续。' };
     case 'module.acquired':

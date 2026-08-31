@@ -29,10 +29,10 @@ test('renders four configured tactical cards with AP, cooldown, and overload cos
     />,
   );
 
-  const breach = screen.getByRole('button', { name: /破壁.*普通攻击/ });
-  const watch = screen.getByRole('button', { name: /守望.*巨剑护盾/ });
-  const perception = screen.getByRole('button', { name: /感知.*战术感知/ });
-  const resonance = screen.getByRole('button', { name: /共鸣.*精神爆发/ });
+  const breach = screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ });
+  const watch = screen.getByRole('button', { name: /门扉.*守望.*实体屏障/ });
+  const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
+  const resonance = screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ });
 
   expect(breach).toHaveAttribute('id', 'btn-greatsword-breach');
   expect(watch).toHaveAttribute('id', 'btn-greatsword-watch');
@@ -59,10 +59,10 @@ test('disables node-incompatible and cooling swords while dispatching a legal co
     />,
   );
 
-  expect(screen.getByRole('button', { name: /破壁.*普通攻击/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /守望.*巨剑护盾/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /共鸣.*精神爆发/ })).toBeDisabled();
-  const perception = screen.getByRole('button', { name: /感知.*战术感知/ });
+  expect(screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /门扉.*守望.*实体屏障/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ })).toBeDisabled();
+  const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
   expect(perception).toBeEnabled();
 
   await user.click(perception);
@@ -89,5 +89,20 @@ test('reports the newest settled sword event without recalculating its values', 
     />,
   );
 
-  expect(screen.getByRole('status')).toHaveTextContent('感知已执行 · -1 AP · +7% 过载 · 冷却 2');
+  expect(screen.getByRole('status')).toHaveTextContent('探针 / 认知已执行 · -1 AP · +7% 过载 · 冷却 2');
+});
+
+test('disables precision scanning while overload is in the berserk band', () => {
+  render(
+    <GreatswordActions
+      rosmontis={{ ...rosmontis, overload: 80 }}
+      currentNodeType="encounter"
+      ruleLog={[]}
+      onUse={vi.fn()}
+    />,
+  );
+
+  const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
+  expect(perception).toBeDisabled();
+  expect(perception).toHaveAccessibleDescription('暴走时无法维持精细的神经扫描');
 });

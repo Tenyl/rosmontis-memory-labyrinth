@@ -15,10 +15,10 @@ test('executes a legal offline greatsword action through the Run store', async (
   const user = userEvent.setup();
   renderApp('/operation');
 
-  await user.click(await screen.findByRole('button', { name: /守望.*巨剑护盾/ }));
+  await user.click(await screen.findByRole('button', { name: /门扉.*守望.*实体屏障/ }));
 
   expect(useGameStore.getState().rosmontis).toMatchObject({ actionPoints: 3, overload: 5, guard: 24 });
-  expect(screen.getByText('守望已执行 · -1 AP · +5% 过载 · 冷却 1')).toBeVisible();
+  expect(screen.getByText('门扉 / 守望已执行 · -1 AP · +5% 过载 · 冷却 1')).toBeVisible();
 });
 
 test('settles the current node through its dedicated encounter choices', async () => {

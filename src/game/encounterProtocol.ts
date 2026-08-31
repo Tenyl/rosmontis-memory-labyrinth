@@ -1,6 +1,8 @@
 import { sellFragment } from './economy';
 import { resolveEncounterChoice } from './encounters';
-import type { EncounterAction, EncounterRuleState, GreatswordId, PendingEncounter, RuleEvent } from './types';
+import { resolveGreatswordAction } from './greatswords';
+import { resolveComfortAction } from './overload';
+import type { EncounterAction, EncounterRuleState, GreatswordId, GreatswordTarget, PendingEncounter, RuleEvent } from './types';
 
 export type { EncounterAction } from './types';
 
@@ -9,7 +11,7 @@ export interface EncounterResolution {
   reason?: string;
   state: EncounterRuleState;
   events: RuleEvent[];
-  animation: GreatswordId | null;
+  animation: GreatswordId | 'comfort' | null;
 }
 
 const SWORD_CHOICE = {
@@ -23,6 +25,16 @@ export function resolveEncounterAction(
   state: EncounterRuleState,
   action: EncounterAction,
 ): EncounterResolution {
+  if (action.type === 'comfort') {
+    const comfort = resolveComfortAction(state.rosmontis, action.gesture);
+    if (!comfort.accepted) return rejected(state, comfort.reason ?? '迷迭香现在无法回应。');
+    return {
+      accepted: true,
+      state: { ...state, rosmontis: comfort.state },
+      events: comfort.events,
+      animation: 'comfort',
+    };
+  }
   const encounter = state.pendingEncounter;
   if (!encounter) return rejected(state, '当前没有待结算节点。');
   if (encounter.resolved) return rejected(state, '当前节点已经完成结算。');
@@ -44,6 +56,29 @@ export function resolveEncounterAction(
     };
   }
 
+  let workingState = state;
+  let swordEvents: RuleEvent[] = [];
+  if (action.type === 'play-sword') {
+    const node = state.maze.nodes.find((item) => item.id === encounter.nodeId);
+    if (!node) return rejected(state, '当前遭遇缺少对应的迷宫节点。');
+    const sword = resolveGreatswordAction(state.rosmontis, {
+      swordId: action.swordId,
+      target: SWORD_TARGET[action.swordId],
+      nodeType: node.type,
+    }, state.randomState);
+    if (!sword.accepted) return rejected(state, sword.reason ?? '这柄巨剑现在无法回应。');
+    workingState = { ...state, rosmontis: sword.state, randomState: sword.randomState };
+    swordEvents = sword.events;
+    if (action.swordId === 'watch' && encounter.kind === 'combat') {
+      return {
+        accepted: true,
+        state: { ...workingState, pendingEncounter: { ...encounter, round: encounter.round + 1 } },
+        events: [...swordEvents, actionEvent(encounter.nodeId, action.type)],
+        animation: 'watch',
+      };
+    }
+  }
+
   const choiceId = action.type === 'choose'
     ? action.choiceId
     : action.type === 'buy'
@@ -53,15 +88,18 @@ export function resolveEncounterAction(
         : swordChoice(action.swordId, encounter.kind);
   if (!choiceId) return rejected(state, '这柄巨剑无法回应当前遭遇。');
 
-  const result = resolveEncounterChoice(state, choiceId);
+  const result = resolveEncounterChoice(workingState, choiceId);
+  if (!result.accepted) return rejected(state, result.reason ?? '遭遇行动无法执行。');
   return {
     ...result,
-    events: result.accepted
-      ? [...result.events, actionEvent(encounter.nodeId, action.type)]
-      : result.events,
+    events: [...swordEvents, ...result.events, actionEvent(encounter.nodeId, action.type)],
     animation: action.type === 'play-sword' && result.accepted ? action.swordId : null,
   };
 }
+
+const SWORD_TARGET: Record<GreatswordId, GreatswordTarget> = {
+  breach: 'hostile', watch: 'self', perception: 'maze', resonance: 'memory',
+};
 
 function swordChoice(swordId: GreatswordId, kind: PendingEncounter['kind']) {
   const choices = SWORD_CHOICE[swordId] as Partial<Record<typeof kind, string>>;

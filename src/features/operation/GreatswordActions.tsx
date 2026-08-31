@@ -1,5 +1,6 @@
 import { Eye, ShieldChevron, Sword, Waveform } from '@phosphor-icons/react';
 import { GREATSWORD_CONFIG } from '../../game/greatswords';
+import { getOverloadBand } from '../../game/overload';
 import type {
   GreatswordAction,
   GreatswordCombatState,
@@ -20,10 +21,10 @@ const SWORD_PRESENTATION: Record<GreatswordId, {
   action: string;
   description: string;
 }> = {
-  breach: { name: '破壁', action: '普通攻击', description: '以质量投射击穿残响实体的结构完整度。' },
-  watch: { name: '守望', action: '巨剑护盾', description: '构筑稳定质量场，为迷迭香吸收下一次冲击。' },
-  perception: { name: '感知', action: '战术感知', description: '读取空白断层的微弱神经信号并获得洞察。' },
-  resonance: { name: '共鸣', action: '精神爆发', description: '让记忆碎片与核心共振，推进核心稳定进程。' },
+  breach: { name: '立柱 / 破壁', action: '破甲粉碎', description: '以质量投射粉碎护甲与认知障碍。' },
+  watch: { name: '门扉 / 守望', action: '实体屏障', description: '展开实体屏障，吸收伤害并保护稳定性。' },
+  perception: { name: '探针 / 认知', action: '神经扫描', description: '揭示未知节点并洞察敌方弱点。' },
+  resonance: { name: '哀鸣 / 共鸣', action: '全域共振', description: '稳定深层核心并净化失控的情绪回声。' },
 };
 
 const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
@@ -55,6 +56,7 @@ function getDisabledReason(
   const currentCooldown = rosmontis.greatswords[swordId].cooldown;
   if (currentCooldown > 0) return `仍需冷却 ${currentCooldown} 回合`;
   if (!config.nodeTypes.includes(currentNodeType)) return `仅可用于${config.nodeTypes.map((type) => NODE_TYPE_LABELS[type]).join('、')}`;
+  if (swordId === 'perception' && getOverloadBand(rosmontis.overload) === 'berserk') return '暴走时无法维持精细的神经扫描';
   if (rosmontis.actionPoints < config.actionPointCost) return '行动点不足';
   return null;
 }

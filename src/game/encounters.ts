@@ -2,6 +2,7 @@ import { clampVital } from './checks';
 import { purchaseOffer } from './economy';
 import { applyModuleEffect, MODULE_CATALOG } from './modules';
 import { getNodeDefinition } from './nodeCatalog';
+import { applyBerserkDamage, getOverloadBand } from './overload';
 import type {
   EncounterChoice,
   EncounterRuleState,
@@ -190,10 +191,14 @@ export function resolveEncounterChoice(
       };
     }
     if (choiceId !== 'combat-breach') return rejected(state, '战斗行动无效。');
-    const damage = applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 });
+    const damage = applyBerserkDamage(
+      applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 }),
+      state.rosmontis.overload,
+    );
     const enemyIntegrity = Math.max(0, encounter.enemyIntegrity - damage);
     const guarded = state.routeEffects.nextNodeGuarded || state.rosmontis.guard > 0;
-    const afterCounter = updateVitals(state, guarded ? 0 : -4, 6);
+    const backlash = getOverloadBand(state.rosmontis.overload) === 'berserk' ? 8 : 0;
+    const afterCounter = updateVitals(state, (guarded ? 0 : -4) - backlash, 6);
     const nextEncounter = { ...encounter, enemyIntegrity, round: encounter.round + 1 };
     if (enemyIntegrity > 0) {
       return {
@@ -301,9 +306,13 @@ export function resolveEncounterChoice(
 
   if (choiceId === 'boss-breach') {
     if (encounter.phase !== 'shield') return rejected(state, '核心防护已经解除。');
-    const damage = applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 });
+    const damage = applyBerserkDamage(
+      applyModuleEffect(state.modules, { type: 'breach-damage', value: 30 }),
+      state.rosmontis.overload,
+    );
     const enemyIntegrity = Math.max(0, encounter.enemyIntegrity - damage);
-    const next = updateVitals(state, encounter.glitch ? -3 : 0, encounter.glitch ? 5 : 2);
+    const backlash = getOverloadBand(state.rosmontis.overload) === 'berserk' ? 8 : 0;
+    const next = updateVitals(state, (encounter.glitch ? -3 : 0) - backlash, encounter.glitch ? 5 : 2);
     return {
       accepted: true,
       state: {
