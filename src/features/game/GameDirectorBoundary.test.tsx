@@ -40,9 +40,30 @@ test('fuses a validated remote presentation from the bound Tavern session', asyn
   const node = state.maze.nodes.find((item) => item.id === state.run.currentNodeId)!;
   await initializeDatabase();
   const settings = (await getSettings())!;
-  await saveSettings({ ...settings, api: { ...settings.api, apiKey: 'sk-test', model: 'test-model' } });
   const session = (await getChats())[0];
-  await saveChat({ ...session, purpose: 'game-run', runId: state.run.id });
+  await saveChat({
+    ...session,
+    purpose: 'game-run',
+    runId: state.run.id,
+    summaries: [{
+      triggerKey: 'node:bound:previous', kind: 'node', runId: state.run.id, floor: 1,
+      nodeId: 'previous', text: '绑定存档摘要：雨声已经远去。', createdAt: '2026-08-31T12:00:00.000Z',
+    }],
+  });
+  const distractor = {
+    ...session,
+    id: 'chat-selected-elsewhere',
+    name: '设置页当前会话',
+    purpose: 'character-chat' as const,
+    runId: null,
+    summaries: [{ triggerKey: 'wrong', kind: 'node' as const, runId: 'other', floor: 9, text: '错误会话摘要', createdAt: '2026-08-31T12:00:00.000Z' }],
+  };
+  await saveChat(distractor);
+  await saveSettings({
+    ...settings,
+    activeChatId: distractor.id,
+    api: { ...settings.api, apiKey: 'sk-test', model: 'test-model' },
+  });
   useGameStore.setState((current) => ({
     run: {
       ...current.run,
@@ -55,9 +76,11 @@ test('fuses a validated remote presentation from the bound Tavern session', asyn
       },
     },
   }));
+  let promptText = '';
   const transport: TavernTransport = {
     mode: 'remote',
-    async *stream() {
+    async *stream(request) {
+      promptText = request.messages.map((message) => message.content).join('\n');
       yield JSON.stringify({
         version: 1, nodeId: node.id, nodeType: node.type, title: 'AI 融合休息处',
         description: '世界书中的雨声在同一个节点模板内展开。',
@@ -79,4 +102,6 @@ test('fuses a validated remote presentation from the bound Tavern session', asyn
   await waitFor(() => expect(useGameStore.getState().llmDirector.presentations[`${boundRun.id}:${node.id}`]).toMatchObject({
     source: 'ai-director', title: 'AI 融合休息处',
   }));
+  expect(promptText).toContain('绑定存档摘要：雨声已经远去。');
+  expect(promptText).not.toContain('错误会话摘要');
 });

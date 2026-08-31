@@ -1,6 +1,12 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { afterEach, beforeEach } from 'vitest';
 import { renderApp } from '../../test/renderApp';
 import { useGameStore } from '../../store/gameStore';
+import { clearAllData, getChats, getSettings, initializeDatabase, saveSettings } from '../../sillytavern/database';
+import { loadSaveSlot } from '../../game/saveSlots';
+
+beforeEach(async () => clearAllData());
+afterEach(async () => clearAllData());
 
 test('opens on the title screen with continue disabled when no save exists', async () => {
   renderApp('/');
@@ -35,4 +41,42 @@ test('unlocks local endless mode on the opening screen after the first clear', a
   fireEvent.click(await screen.findByRole('button', { name: '开始游戏' }));
 
   expect(document.querySelector('#title-mode-endless')).toBeEnabled();
+});
+
+test('creates one distinct bound game-run chat per AI save and none for a local save', async () => {
+  await initializeDatabase();
+  const settings = await getSettings();
+  if (!settings) throw new Error('测试设置未初始化');
+  await saveSettings({ ...settings, api: { ...settings.api, apiKey: 'bound-run-key' } });
+
+  const first = renderApp('/');
+  fireEvent.click(await screen.findByRole('button', { name: '开始游戏' }));
+  await waitFor(() => expect(screen.getByRole('radio', { name: /^AI 导演模式/ })).toBeEnabled());
+  fireEvent.click(screen.getByRole('radio', { name: /^AI 导演模式/ }));
+  fireEvent.click(screen.getByRole('button', { name: /存档槽 1/ }));
+  await waitFor(() => expect(window.location.pathname).toBe('/game'));
+  const firstBinding = loadSaveSlot('slot-1', localStorage)?.state.run.aiBinding.chatId;
+  expect(firstBinding).toBeTruthy();
+  first.unmount();
+
+  const second = renderApp('/');
+  fireEvent.click(await screen.findByRole('button', { name: '开始游戏' }));
+  await waitFor(() => expect(screen.getByRole('radio', { name: /^AI 导演模式/ })).toBeEnabled());
+  fireEvent.click(screen.getByRole('radio', { name: /^AI 导演模式/ }));
+  fireEvent.click(screen.getByRole('button', { name: /存档槽 2/ }));
+  await waitFor(() => expect(window.location.pathname).toBe('/game'));
+  const secondBinding = loadSaveSlot('slot-2', localStorage)?.state.run.aiBinding.chatId;
+  expect(secondBinding).toBeTruthy();
+  expect(secondBinding).not.toBe(firstBinding);
+  second.unmount();
+
+  const third = renderApp('/');
+  fireEvent.click(await screen.findByRole('button', { name: '开始游戏' }));
+  fireEvent.click(screen.getByRole('button', { name: /存档槽 3/ }));
+  await waitFor(() => expect(window.location.pathname).toBe('/game'));
+
+  const gameChats = (await getChats()).filter((chat) => chat.purpose === 'game-run' && chat.runId?.startsWith('RUN-'));
+  expect(gameChats.map((chat) => chat.id).sort()).toEqual([firstBinding, secondBinding].sort());
+  expect(loadSaveSlot('slot-3', localStorage)?.state.run.aiBinding.chatId).toBeNull();
+  third.unmount();
 });

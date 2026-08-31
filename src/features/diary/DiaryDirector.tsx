@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react';
 import type { DiaryDraft } from '../../game/types';
 import { persistDiaryDraft } from '../../diary/repository';
 import { requestStructuredGameContent, type GameContentRequestError } from '../../llm/gameContentClient';
-import { buildDiaryPrompt } from '../../llm/gamePrompts';
 import { parseDiaryV1 } from '../../llm/schemas/diaryV1';
+import { assembleGameDirectorPrompt } from '../../llm/tavernGamePromptBridge';
+import { getRunRecentSummaries, resolveTavernRunBinding } from '../../llm/tavernRunBinding';
 import type { ApiSettings } from '../../sillytavern';
 import { useGameStore } from '../../store/gameStore';
-import { OpenAiTavernTransport } from '../tavern/runtime/openai-tavern-transport';
 import type { TavernTransport } from '../tavern/runtime/tavern-transport';
 import { useTavern } from '../tavern/runtime/useTavern';
 
@@ -16,17 +16,15 @@ interface DiaryDirectorProps {
   persistOverride?: typeof persistDiaryDraft;
 }
 
-const defaultTransport = new OpenAiTavernTransport();
-
 export function DiaryDirector({ apiOverride, transportOverride, persistOverride }: DiaryDirectorProps) {
   const runtime = useTavern();
   const drafts = useGameStore((state) => state.pendingDiaryDrafts);
-  const api = apiOverride === undefined ? runtime.settings?.api ?? null : apiOverride;
-  const transport = transportOverride ?? defaultTransport;
+  const transport = transportOverride ?? runtime.transport;
   const persist = persistOverride ?? persistDiaryDraft;
   const processing = useRef(new Set<string>());
 
   useEffect(() => {
+    if (!runtime.initialized) return;
     drafts.forEach((draft) => {
       const state = useGameStore.getState();
       const triggerKey = `diary:${draft.triggerKey}`;
@@ -36,7 +34,10 @@ export function DiaryDirector({ apiOverride, transportOverride, persistOverride 
       }
       if (processing.current.has(draft.id)) return;
       processing.current.add(draft.id);
-      void processDraft({ draft, api, transport, persist, triggerKey })
+      const binding = state.run.contentMode === 'ai-director' && (draft.runId ?? state.run.id) === state.run.id
+        ? resolveTavernRunBinding(state.run, runtime, apiOverride)
+        : { ok: false as const, message: '本地 Run 不调用远程手记生成。' };
+      void processDraft({ draft, binding, transport, persist, triggerKey })
         .catch(() => {
           processing.current.delete(draft.id);
           useGameStore.getState().addNotification({
@@ -48,20 +49,20 @@ export function DiaryDirector({ apiOverride, transportOverride, persistOverride 
           });
         });
     });
-  }, [api, drafts, persist, transport]);
+  }, [apiOverride, drafts, persist, runtime, transport]);
 
   return null;
 }
 
 interface ProcessDraftOptions {
   draft: DiaryDraft;
-  api: ApiSettings | null;
+  binding: ReturnType<typeof resolveTavernRunBinding>;
   transport: TavernTransport;
   persist: typeof persistDiaryDraft;
   triggerKey: string;
 }
 
-async function processDraft({ draft, api, transport, persist, triggerKey }: ProcessDraftOptions) {
+async function processDraft({ draft, binding, transport, persist, triggerKey }: ProcessDraftOptions) {
   const initial = useGameStore.getState();
   const floor = draft.floor ?? initial.run.floor;
   const runId = draft.runId ?? initial.run.id;
@@ -69,25 +70,42 @@ async function processDraft({ draft, api, transport, persist, triggerKey }: Proc
   let token: string | null = null;
   let fallbackReason: unknown = null;
 
-  if (api?.apiKey.trim() && api.baseUrl.trim() && api.model.trim()) {
+  if (binding.ok) {
     token = initial.beginDirectorRequest('diary', triggerKey);
     try {
-      const content = await requestStructuredGameContent({
-        transport,
-        api,
+      const node = initial.maze.nodes.find((item) => item.id === initial.run.currentNodeId) ?? initial.maze.nodes[0];
+      const prompt = assembleGameDirectorPrompt({
+        session: binding.session,
+        character: binding.character,
+        persona: binding.persona,
+        preset: binding.preset,
+        lorebooks: binding.lorebooks,
         task: 'diary',
-        messages: buildDiaryPrompt({
-          triggerKey: draft.triggerKey,
+        snapshot: {
+          runId: initial.run.id,
+          seed: initial.run.seed,
           floor,
+          nodeId: node.id,
+          nodeType: node.type,
           sanity: initial.rosmontis.sanity,
           overload: initial.rosmontis.overload,
-          localTitle: draft.title,
-          localBody: draft.body,
           fragmentNames: [
             ...initial.memoryInventory.fragments,
             ...initial.memoryInventory.coreFragments,
           ].map((fragment) => fragment.name),
-        }),
+          recentSummaries: getRunRecentSummaries(binding.session),
+        },
+        schema: JSON.stringify({ title: '不超过 48 字', body: '迷迭香第一人称手记正文' }),
+        instruction: `根据已结算的本地草稿生成一篇迷迭香手记。触发键：${draft.triggerKey}；本地标题：${draft.title}；本地正文：${draft.body}`,
+      });
+      const content = await requestStructuredGameContent({
+        transport,
+        api: binding.api,
+        task: 'diary',
+        messages: prompt.messages,
+        model: prompt.model,
+        temperature: prompt.temperature,
+        maxTokens: prompt.maxTokens,
         parse: parseDiaryV1,
         signal: new AbortController().signal,
       });

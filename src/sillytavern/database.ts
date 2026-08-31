@@ -278,5 +278,6 @@ function normalizeChatSession(chat: ChatSession): ChatSession {
     ...chat,
     purpose: chat.purpose === 'character-chat' ? 'character-chat' : 'game-run',
     runId: typeof chat.runId === 'string' ? chat.runId : null,
+    summaries: Array.isArray(chat.summaries) ? chat.summaries : [],
   };
 }

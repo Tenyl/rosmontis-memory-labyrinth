@@ -57,6 +57,34 @@ describe('TavernProvider', () => {
     runtime.unmount();
   });
 
+  it('appends each structured game-run summary exactly once', async () => {
+    const runtime = renderHook(() => useTavern(), { wrapper: wrapperFor(completeTransport) });
+    await waitFor(() => expect(runtime.result.current.initialized).toBe(true));
+    let chatId = '';
+    await act(async () => {
+      chatId = await runtime.result.current.createChat('摘要去重', {
+        purpose: 'game-run',
+        runId: 'run-summary',
+      });
+      const summary = {
+        triggerKey: 'node:run-summary:f1-n1',
+        kind: 'node' as const,
+        runId: 'run-summary',
+        floor: 1,
+        nodeId: 'f1-n1',
+        text: '迷迭香完成了安全屋节点。',
+        createdAt: '2026-08-31T12:00:00.000Z',
+      };
+      await runtime.result.current.appendRunSummary(chatId, summary);
+      await runtime.result.current.appendRunSummary(chatId, summary);
+    });
+
+    expect(runtime.result.current.chats.find((chat) => chat.id === chatId)?.summaries).toEqual([
+      expect.objectContaining({ triggerKey: 'node:run-summary:f1-n1', kind: 'node' }),
+    ]);
+    runtime.unmount();
+  });
+
   it('keeps character chat variables isolated from the game projection', async () => {
     const runtime = renderHook(() => useTavern(), { wrapper: wrapperFor(completeTransport) });
     await waitFor(() => expect(runtime.result.current.initialized).toBe(true));

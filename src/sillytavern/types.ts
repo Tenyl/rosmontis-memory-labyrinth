@@ -283,6 +283,16 @@ export interface ChatMessage {
 
 export type ChatPurpose = 'game-run' | 'character-chat';
 
+export interface GameRunSummary {
+  triggerKey: string;
+  kind: 'node' | 'floor';
+  runId: string;
+  floor: number;
+  nodeId?: string;
+  text: string;
+  createdAt: string;
+}
+
 export interface CreateChatOptions {
   purpose?: ChatPurpose;
   runId?: string | null;
@@ -308,6 +318,7 @@ export interface ChatSession {
   presetId: string | null;
   lorebookIds: string[];
   variables: Record<string, any>;
+  summaries?: GameRunSummary[];
   createdAt: number;
   updatedAt: number;
 }

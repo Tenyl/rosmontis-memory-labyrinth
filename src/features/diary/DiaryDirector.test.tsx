@@ -2,7 +2,8 @@ import { act, render, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { DiaryDraft } from '../../game/types';
 import type { ApiSettings } from '../../sillytavern';
-import { clearAllData } from '../../sillytavern/database';
+import { clearAllData, getChats, getSettings, initializeDatabase, saveChat, saveSettings } from '../../sillytavern/database';
+import { DEFAULT_CHARACTER_ID, DEFAULT_PERSONA_ID, DEFAULT_PRESET_ID } from '../../sillytavern/default-content';
 import { useGameStore } from '../../store/gameStore';
 import { listDiaryEntries } from '../../diary/repository';
 import { TavernProvider } from '../tavern/runtime/TavernProvider';
@@ -30,9 +31,26 @@ const draft: DiaryDraft = {
 beforeEach(async () => {
   await clearAllData();
   useGameStore.getState().resetDemoState();
+  await initializeDatabase();
+  const settings = (await getSettings())!;
+  await saveSettings({ ...settings, api });
+  const session = (await getChats())[0];
+  await saveChat({ ...session, purpose: 'game-run', runId: 'run-test' });
   act(() => {
     useGameStore.setState((state) => ({
-      run: { ...state.run, id: 'run-test', floor: 2 },
+      run: {
+        ...state.run,
+        id: 'run-test',
+        floor: 2,
+        contentMode: 'ai-director',
+        aiBinding: {
+          chatId: session.id,
+          characterId: DEFAULT_CHARACTER_ID,
+          personaId: DEFAULT_PERSONA_ID,
+          presetId: DEFAULT_PRESET_ID,
+          lorebookIds: [...session.lorebookIds],
+        },
+      },
       pendingDiaryDrafts: [{ ...draft }],
     }));
   });

@@ -5,11 +5,11 @@ import {
   GameContentRequestError,
   requestStructuredGameContent,
 } from '../../llm/gameContentClient';
-import { buildQuotePrompt } from '../../llm/gamePrompts';
 import { describeRuleEvent, selectLocalQuote } from '../../llm/localQuotes';
+import { assembleGameDirectorPrompt } from '../../llm/tavernGamePromptBridge';
+import { getRunRecentSummaries, resolveTavernRunBinding } from '../../llm/tavernRunBinding';
 import type { ApiSettings } from '../../sillytavern';
 import { useGameStore } from '../../store/gameStore';
-import { OpenAiTavernTransport } from '../tavern/runtime/openai-tavern-transport';
 import type { TavernTransport } from '../tavern/runtime/tavern-transport';
 import { useTavern } from '../tavern/runtime/useTavern';
 
@@ -23,7 +23,6 @@ interface ActiveQuoteRequest {
   consumers: number;
 }
 
-const defaultTransport = new OpenAiTavernTransport();
 const activeRequests = new Map<string, ActiveQuoteRequest>();
 
 export function RosmontisQuotePanel({ apiOverride, transportOverride }: RosmontisQuotePanelProps) {
@@ -35,15 +34,18 @@ export function RosmontisQuotePanel({ apiOverride, transportOverride }: Rosmonti
   const quote = useGameStore((state) => state.llmDirector.quote);
   const latestEvent = ruleLog.at(-1);
   const triggerKey = latestEvent ? `${run.id}:quote:${ruleLog.length}:${latestEvent.type}` : null;
-  const api = apiOverride === undefined ? runtime.settings?.api ?? null : apiOverride;
-  const transport = transportOverride ?? defaultTransport;
+  const transport = transportOverride ?? runtime.transport;
 
   useEffect(() => {
+    if (!runtime.initialized) return;
     if (!latestEvent || !triggerKey) return;
     const initial = useGameStore.getState();
     if (initial.llmDirector.handledTriggers.includes(triggerKey)) return;
 
-    if (!api?.apiKey.trim()) {
+    const binding = run.contentMode === 'ai-director'
+      ? resolveTavernRunBinding(run, runtime, apiOverride)
+      : { ok: false as const, message: '本地 Run 使用预设台词。' };
+    if (!binding.ok) {
       const token = initial.beginDirectorRequest('quote', triggerKey);
       initial.markDirectorTriggerHandled(triggerKey);
       initial.acceptDirectorQuote(
@@ -64,17 +66,37 @@ export function RosmontisQuotePanel({ apiOverride, transportOverride }: Rosmonti
     const active: ActiveQuoteRequest = { controller: new AbortController(), consumers: 1 };
     activeRequests.set(triggerKey, active);
     const token = initial.beginDirectorRequest('quote', triggerKey);
+    const node = initial.maze.nodes.find((item) => item.id === run.currentNodeId) ?? initial.maze.nodes[0];
+    const prompt = assembleGameDirectorPrompt({
+      session: binding.session,
+      character: binding.character,
+      persona: binding.persona,
+      preset: binding.preset,
+      lorebooks: binding.lorebooks,
+      task: 'quote',
+      snapshot: {
+        runId: run.id,
+        seed: run.seed,
+        floor: run.floor,
+        nodeId: node.id,
+        nodeType: node.type,
+        sanity: rosmontis.sanity,
+        overload: rosmontis.overload,
+        fragmentNames: [...initial.memoryInventory.fragments, ...initial.memoryInventory.coreFragments].map((fragment) => fragment.name),
+        recentSummaries: getRunRecentSummaries(binding.session),
+      },
+      schema: JSON.stringify({ text: '不超过 30 个中文字符的迷迭香第一人称台词' }),
+      instruction: `根据刚刚完成的本地规则动作生成即时台词。动作：${describeRuleEvent(latestEvent)}；相关事件：${eventTitle ?? '无'}。`,
+    });
 
     void requestStructuredGameContent({
       transport,
-      api,
+      api: binding.api,
       task: 'quote',
-      messages: buildQuotePrompt({
-        actionSummary: describeRuleEvent(latestEvent),
-        eventTitle,
-        sanity: rosmontis.sanity,
-        overload: rosmontis.overload,
-      }),
+      messages: prompt.messages,
+      model: prompt.model,
+      temperature: prompt.temperature,
+      maxTokens: prompt.maxTokens,
       parse: parseTemporaryQuote,
       signal: active.controller.signal,
     }).then((content) => {
@@ -98,12 +120,12 @@ export function RosmontisQuotePanel({ apiOverride, transportOverride }: Rosmonti
     });
 
     return () => releaseRequest(triggerKey, active);
-  }, [api, eventTitle, latestEvent, rosmontis.overload, rosmontis.sanity, run.id, transport, triggerKey]);
+  }, [apiOverride, eventTitle, latestEvent, rosmontis.overload, rosmontis.sanity, run, runtime, transport, triggerKey]);
 
   if (!triggerKey || quote?.triggerKey !== triggerKey) return null;
   const sourceLabel = quote.source === 'remote'
     ? '远程生成'
-    : api?.apiKey.trim() ? '本地回退' : '本地预设';
+    : run.contentMode === 'ai-director' ? '本地回退' : '本地预设';
 
   return (
     <section

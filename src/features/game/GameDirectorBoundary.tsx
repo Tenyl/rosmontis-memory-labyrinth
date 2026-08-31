@@ -5,6 +5,7 @@ import { LocalContentDriver } from '../../llm/contentDriver';
 import { requestStructuredGameContent } from '../../llm/gameContentClient';
 import { parseGameDirectorV1, type NodePresentation } from '../../llm/schemas/gameDirectorV1';
 import { assembleGameDirectorPrompt } from '../../llm/tavernGamePromptBridge';
+import { getRunRecentSummaries, resolveTavernRunBinding } from '../../llm/tavernRunBinding';
 import { useGameStore } from '../../store/gameStore';
 import { useTavern } from '../tavern/runtime/useTavern';
 import { AiTacticalCommandConsole } from '../operation/AiTacticalCommandConsole';
@@ -49,7 +50,7 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
 
   useEffect(() => {
     if (!aiMode || stored) return;
-    const binding = resolveBinding(run, runtime);
+    const binding = resolveTavernRunBinding(run, runtime);
     if (!binding.ok) {
       setStage('error');
       setError(binding.message);
@@ -81,7 +82,7 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
             ...useGameStore.getState().memoryInventory.fragments,
             ...useGameStore.getState().memoryInventory.coreFragments,
           ].map((fragment) => fragment.name),
-          recentSummaries: binding.session.messages.slice(-3).map((message) => message.parsed?.sum || message.content),
+          recentSummaries: getRunRecentSummaries(binding.session),
         },
         schema: GAME_DIRECTOR_SCHEMA,
         instruction: '为当前节点生成与本地规则一致的中文展示内容，只能引用已注册 ID。',
@@ -157,16 +158,4 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
 
 function asFallback(presentation: NodePresentation): NodePresentation {
   return { ...presentation, source: 'local-fallback' };
-}
-
-function resolveBinding(run: RunState, runtime: ReturnType<typeof useTavern>) {
-  const session = runtime.chats.find((chat) => chat.id === run.aiBinding.chatId);
-  const character = runtime.characters.find((item) => item.id === (run.aiBinding.characterId ?? session?.characterId));
-  const persona = runtime.personas.find((item) => item.id === (run.aiBinding.personaId ?? session?.personaId));
-  const preset = runtime.presets.find((item) => item.id === (run.aiBinding.presetId ?? session?.presetId));
-  const api = runtime.settings?.api;
-  if (!session || session.purpose !== 'game-run' || session.runId !== run.id || !character || !persona || !preset || !api?.apiKey.trim()) {
-    return { ok: false as const, message: '当前存档尚未绑定完整的 LLM 会话，请返回系统设置检查连接。' };
-  }
-  return { ok: true as const, session, character, persona, preset, lorebooks: runtime.lorebooks, api };
 }

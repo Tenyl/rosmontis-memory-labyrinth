@@ -9,6 +9,7 @@ import type {
   ModuleId,
   PendingEncounter,
   RuleEvent,
+  RunState,
 } from '../../game/types';
 import type { NovelNodeBrief } from '../../llm/gameContent';
 import type { NodePresentation } from '../../llm/schemas/gameDirectorV1';
@@ -21,6 +22,7 @@ interface NodeSceneProps {
   node: MazeNode;
   brief?: NovelNodeBrief;
   presentation: NodePresentation;
+  run?: RunState;
   encounter: PendingEncounter | null;
   rosmontis: GreatswordCombatState;
   explorationCharges: ExplorationCharges;
@@ -95,6 +97,8 @@ export function NodeScene(props: NodeSceneProps) {
           fragmentCount={props.inventory.fragments.length + props.inventory.coreFragments.length}
           canAdvanceFloor={props.canAdvanceFloor}
           onAdvanceFloor={props.onAdvanceFloor}
+          run={props.run}
+          presentation={props.presentation}
         />
       ) : (
         <>

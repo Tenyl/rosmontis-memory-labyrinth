@@ -1,5 +1,9 @@
 import { Activity, ArrowRight, BrainCircuit, Clock3, Database, Gem, ShieldCheck } from 'lucide-react';
-import type { PendingEncounter } from '../../game/types';
+import { useEffect } from 'react';
+import type { PendingEncounter, RunState } from '../../game/types';
+import type { NodePresentation } from '../../llm/schemas/gameDirectorV1';
+import { useGameStore } from '../../store/gameStore';
+import { useTavern } from '../tavern/runtime/useTavern';
 
 interface NodeSettlementProps {
   encounter: PendingEncounter;
@@ -9,6 +13,8 @@ interface NodeSettlementProps {
   fragmentCount: number;
   canAdvanceFloor?: boolean;
   onAdvanceFloor?: () => void;
+  run?: RunState;
+  presentation?: NodePresentation;
 }
 
 function signed(value: number, suffix = '') {
@@ -32,6 +38,7 @@ export function NodeSettlement(props: NodeSettlementProps) {
 
   return (
     <section className="node-settlement" aria-labelledby="node-settlement-title">
+      {props.run && props.presentation ? <AiSettlementSummary {...props} run={props.run} presentation={props.presentation} /> : null}
       <div className="node-settlement-seal" aria-hidden><ShieldCheck size={38} /></div>
       <div className="node-settlement-copy">
         <span>NODE RESOLVED / DATA RECOVERED</span>
@@ -55,4 +62,53 @@ export function NodeSettlement(props: NodeSettlementProps) {
       )}
     </section>
   );
+}
+
+function AiSettlementSummary(props: NodeSettlementProps & { run: RunState; presentation: NodePresentation }) {
+  const runtime = useTavern();
+  const addNotification = useGameStore((state) => state.addNotification);
+  const chatId = props.run.aiBinding.chatId;
+  const nodeId = props.encounter.nodeId;
+
+  useEffect(() => {
+    if (props.run.contentMode !== 'ai-director' || !chatId) return;
+    let active = true;
+    const write = async () => {
+      const nodeTrigger = `node:${props.run.id}:${nodeId}`;
+      const outcome = `稳定性 ${props.sanity}，过载 ${props.overload}%，记忆残响 ${props.echoes}，碎片 ${props.fragmentCount}`;
+      await runtime.appendRunSummary(chatId, {
+        triggerKey: nodeTrigger,
+        kind: 'node',
+        runId: props.run.id,
+        floor: props.run.floor,
+        nodeId,
+        text: `第 ${props.run.floor} 层节点“${props.presentation.title}”已结算。${props.presentation.description} ${outcome}。`,
+        createdAt: new Date().toISOString(),
+      });
+      if (props.presentation.nodeType === 'boss') {
+        await runtime.appendRunSummary(chatId, {
+          triggerKey: `floor:${props.run.id}:${props.run.floor}`,
+          kind: 'floor',
+          runId: props.run.id,
+          floor: props.run.floor,
+          nodeId,
+          text: `第 ${props.run.floor} 层探索完成；出口领袖残响已结算。${outcome}。`,
+          createdAt: new Date().toISOString(),
+        });
+      }
+    };
+    void write().catch((error: unknown) => {
+      if (!active) return;
+      addNotification({
+        id: `notification-run-summary-${nodeId}`,
+        kind: 'warning',
+        title: 'AI 上下文摘要未写入',
+        message: error instanceof Error ? error.message : '绑定会话暂时无法保存节点摘要。',
+        dismissible: true,
+      });
+    });
+    return () => { active = false; };
+  }, [addNotification, chatId, nodeId, props.echoes, props.fragmentCount, props.overload, props.presentation, props.run, props.sanity, runtime]);
+
+  return null;
 }

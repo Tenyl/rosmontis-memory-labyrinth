@@ -22,6 +22,7 @@ import type {
 } from './types';
 
 export interface RunContentConfiguration {
+  runId?: string;
   contentMode?: ContentMode;
   narrativeStyle?: NarrativeStyle;
   aiFailurePolicy?: AiFailurePolicy;
@@ -94,7 +95,7 @@ export function createRun(input: CreateRunInput): RoguelikeState {
 
   const state: RoguelikeState = {
     run: {
-      id: `run-${maze.randomState.cursor.toString(36)}`,
+      id: input.runId ?? `run-${maze.randomState.cursor.toString(36)}`,
       seed: input.seed,
       mode: input.mode,
       phase: 'exploring',

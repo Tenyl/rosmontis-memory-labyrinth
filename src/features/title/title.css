@@ -37,6 +37,7 @@
 .save-slot-grid span { color: var(--color-memory-blue); font: 600 .58rem/1 var(--font-data); letter-spacing: .1em; }
 .save-slot-grid small { color: var(--color-text-tertiary); }
 .save-slot-cancel { margin: 16px 24px 20px; padding: 10px 14px; border: 1px solid var(--color-line-strong); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.title-start-error { margin:0 24px 18px; padding:var(--space-3) var(--space-4); border-left:2px solid var(--color-danger-red); background:var(--color-danger-soft); color:#ffb7b9; font-size:.66rem; }
 .title-screen>footer { width: min(880px,100%); margin-top: 32px; color: var(--color-text-tertiary); font-size: .58rem; line-height: 1.6; }
 @keyframes title-signal-drift { to { transform: translate3d(-2%,1%,0) scale(1.04); } }
 @media (max-width: 700px) { .title-screen { min-height: 100vh; align-content: center; padding: 28px 18px; } .title-actions,.save-slot-grid,.title-mode-grid { grid-template-columns: minmax(0,1fr); } .title-actions button { min-height: 76px; } }

@@ -4,13 +4,13 @@ import {
   GameContentRequestError,
   requestStructuredGameContent,
 } from '../../llm/gameContentClient';
-import { buildNovelPrompt } from '../../llm/gamePrompts';
 import { createLocalNovelBlueprint } from '../../llm/localNovelBlueprint';
 import { createFallbackMindseaBlueprint } from '../../llm/mindseaBlueprint';
 import { parseMindseaFloorV1 } from '../../llm/schemas/mindseaFloorV1';
+import { assembleGameDirectorPrompt } from '../../llm/tavernGamePromptBridge';
+import { getRunRecentSummaries, resolveTavernRunBinding } from '../../llm/tavernRunBinding';
 import type { ApiSettings } from '../../sillytavern';
 import { useGameStore } from '../../store/gameStore';
-import { OpenAiTavernTransport } from '../tavern/runtime/openai-tavern-transport';
 import type { TavernTransport } from '../tavern/runtime/tavern-transport';
 import { useTavern } from '../tavern/runtime/useTavern';
 
@@ -24,24 +24,24 @@ interface ActiveNovelRequest {
   consumers: number;
 }
 
-const defaultTransport = new OpenAiTavernTransport();
 const activeRequests = new Map<string, ActiveNovelRequest>();
 
 export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDirectorProps) {
   const runtime = useTavern();
   const run = useGameStore((state) => state.run);
   const nodes = useGameStore((state) => state.maze.nodes);
-  const api = apiOverride === undefined ? runtime.settings?.api ?? null : apiOverride;
-  const transport = transportOverride ?? defaultTransport;
+  const transport = transportOverride ?? runtime.transport;
 
   useEffect(() => {
+    if (!runtime.initialized) return;
     if (run.mode !== 'novel') return;
     const triggerKey = `${run.id}:novel-blueprint:${run.floor}`;
     const initial = useGameStore.getState();
     if (initial.llmDirector.handledTriggers.includes(triggerKey)) return;
     const expectedNodes = nodes.map(({ id, type }) => ({ id, type }));
 
-    if (!api?.apiKey.trim()) {
+    const binding = resolveTavernRunBinding(run, runtime, apiOverride);
+    if (!binding.ok) {
       const task = run.floor >= 6 ? 'mindsea' : 'novel';
       const token = initial.beginDirectorRequest(task, triggerKey);
       initial.markDirectorTriggerHandled(triggerKey);
@@ -72,19 +72,42 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
       ...initial.memoryInventory.fragments,
       ...initial.memoryInventory.coreFragments,
     ].map((fragment) => fragment.name);
-
-    void requestStructuredGameContent({
-      transport,
-      api,
+    const currentNode = nodes.find((node) => node.id === run.currentNodeId) ?? nodes[0];
+    const prompt = assembleGameDirectorPrompt({
+      session: binding.session,
+      character: binding.character,
+      persona: binding.persona,
+      preset: binding.preset,
+      lorebooks: binding.lorebooks,
       task,
-      messages: buildNovelPrompt({
+      snapshot: {
+        runId: run.id,
         seed: run.seed,
         floor: run.floor,
+        nodeId: currentNode.id,
+        nodeType: currentNode.type,
         sanity: initial.rosmontis.sanity,
         overload: initial.rosmontis.overload,
         fragmentNames,
-        nodes: expectedNodes,
+        recentSummaries: getRunRecentSummaries(binding.session),
+      },
+      schema: JSON.stringify({
+        title: 'string', theme: 'string', premise: 'string', endingHook: 'string',
+        nodeBriefs: expectedNodes.map((node) => ({ nodeId: node.id, nodeType: node.type, title: 'string', description: 'string' })),
       }),
+      instruction: run.floor >= 6
+        ? '依据本 Run 已找回的记忆与历史摘要，为无垠心海生成本层主题和每个既定节点的叙事说明。不得修改节点 ID、类型或拓扑。'
+        : '为小说剧情模式生成本层主题和每个既定节点的叙事说明。不得修改节点 ID、类型或拓扑。',
+    });
+
+    void requestStructuredGameContent({
+      transport,
+      api: binding.api,
+      task,
+      messages: prompt.messages,
+      model: prompt.model,
+      temperature: prompt.temperature,
+      maxTokens: prompt.maxTokens,
       parse: (value) => run.floor >= 6
         ? parseMindseaFloorV1(value, expectedNodes)
         : parseNovelBlueprint(value, expectedNodes),
@@ -121,7 +144,7 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
     });
 
     return () => releaseRequest(triggerKey, active);
-  }, [api, nodes, run.floor, run.id, run.mode, run.seed, transport]);
+  }, [apiOverride, nodes, run, runtime, transport]);
 
   return null;
 }

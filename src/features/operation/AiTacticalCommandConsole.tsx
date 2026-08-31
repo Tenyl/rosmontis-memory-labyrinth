@@ -4,6 +4,7 @@ import { requestStructuredGameContent } from '../../llm/gameContentClient';
 import { parseTacticalCommandV1, TACTICAL_ACTION_IDS } from '../../llm/schemas/tacticalCommandV1';
 import type { NodePresentation } from '../../llm/schemas/gameDirectorV1';
 import { assembleGameDirectorPrompt } from '../../llm/tavernGamePromptBridge';
+import { getRunRecentSummaries, resolveTavernRunBinding } from '../../llm/tavernRunBinding';
 import { useGameStore } from '../../store/gameStore';
 import { useTavern } from '../tavern/runtime/useTavern';
 import type { TavernRuntimeStatus } from '../tavern/runtime/TavernProvider';
@@ -34,13 +35,9 @@ export function AiTacticalCommandConsole({ run, node, presentation }: AiTactical
       setError('请先描述想要执行的战术。');
       return;
     }
-    const session = runtime.chats.find((chat) => chat.id === run.aiBinding.chatId);
-    const character = runtime.characters.find((item) => item.id === (run.aiBinding.characterId ?? session?.characterId));
-    const persona = runtime.personas.find((item) => item.id === (run.aiBinding.personaId ?? session?.personaId));
-    const preset = runtime.presets.find((item) => item.id === (run.aiBinding.presetId ?? session?.presetId));
-    const api = runtime.settings?.api;
-    if (!session || session.purpose !== 'game-run' || session.runId !== run.id || !character || !persona || !preset || !api?.apiKey.trim()) {
-      setError('当前存档的 AI 会话绑定不完整。');
+    const binding = resolveTavernRunBinding(run, runtime);
+    if (!binding.ok) {
+      setError(binding.message);
       return;
     }
     const game = useGameStore.getState();
@@ -51,12 +48,12 @@ export function AiTacticalCommandConsole({ run, node, presentation }: AiTactical
     setFeedback(null);
     try {
       const prompt = assembleGameDirectorPrompt({
-        session, character, persona, preset, lorebooks: runtime.lorebooks, task: 'tactical-command',
+        session: binding.session, character: binding.character, persona: binding.persona, preset: binding.preset, lorebooks: binding.lorebooks, task: 'tactical-command',
         snapshot: {
           runId: run.id, seed: run.seed, floor: run.floor, nodeId: node.id, nodeType: node.type,
           sanity: game.rosmontis.sanity, overload: game.rosmontis.overload,
           fragmentNames: [...game.memoryInventory.fragments, ...game.memoryInventory.coreFragments].map((fragment) => fragment.name),
-          recentSummaries: session.messages.slice(-3).map((message) => message.parsed?.sum || message.content),
+          recentSummaries: getRunRecentSummaries(binding.session),
           playerText,
           tacticalState: {
             actionPoints: game.rosmontis.actionPoints,
@@ -70,7 +67,7 @@ export function AiTacticalCommandConsole({ run, node, presentation }: AiTactical
       });
       setStatus('streaming');
       const plan = await requestStructuredGameContent({
-        transport: runtime.transport, api, task: 'tactical-command', messages: prompt.messages,
+        transport: runtime.transport, api: binding.api, task: 'tactical-command', messages: prompt.messages,
         model: prompt.model, temperature: prompt.temperature, maxTokens: prompt.maxTokens,
         signal: controller.signal, parse: parseTacticalCommandV1,
       });

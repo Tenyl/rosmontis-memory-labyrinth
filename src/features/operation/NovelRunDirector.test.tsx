@@ -2,7 +2,8 @@ import { act, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import type { ApiSettings } from '../../sillytavern';
-import { clearAllData } from '../../sillytavern/database';
+import { clearAllData, getChats, getSettings, initializeDatabase, saveChat, saveSettings } from '../../sillytavern/database';
+import { DEFAULT_CHARACTER_ID, DEFAULT_PERSONA_ID, DEFAULT_PRESET_ID } from '../../sillytavern/default-content';
 import { createLlmDirectorState } from '../../llm/directorState';
 import { useGameStore } from '../../store/gameStore';
 import { TavernProvider } from '../tavern/runtime/TavernProvider';
@@ -19,6 +20,25 @@ const api: ApiSettings = {
 beforeEach(async () => {
   await clearAllData();
   useGameStore.getState().resetDemoState();
+  await initializeDatabase();
+  const settings = (await getSettings())!;
+  await saveSettings({ ...settings, api });
+  const runId = useGameStore.getState().run.id;
+  const session = (await getChats())[0];
+  await saveChat({ ...session, purpose: 'game-run', runId });
+  useGameStore.setState((state) => ({
+    run: {
+      ...state.run,
+      contentMode: 'ai-director',
+      aiBinding: {
+        chatId: session.id,
+        characterId: DEFAULT_CHARACTER_ID,
+        personaId: DEFAULT_PERSONA_ID,
+        presetId: DEFAULT_PRESET_ID,
+        lorebookIds: [...session.lorebookIds],
+      },
+    },
+  }));
 });
 
 function setMode(mode: 'preset' | 'novel') {

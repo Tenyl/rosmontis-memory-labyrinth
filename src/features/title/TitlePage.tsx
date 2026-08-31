@@ -16,6 +16,8 @@ export default function TitlePage() {
   const [selectingSlot, setSelectingSlot] = useState(false);
   const [mode, setMode] = useState<RunMode>('preset');
   const [contentMode, setContentMode] = useState<ContentMode>('local');
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
   const [revision, setRevision] = useState(0);
   const llmEnabled = Boolean(runtime.settings?.api.apiKey.trim());
   const slots = useMemo(() => listSaveSlots(localStorage), [revision]);
@@ -23,19 +25,60 @@ export default function TitlePage() {
     .filter((slot) => slot.snapshot)
     .sort((a, b) => (b.snapshot?.savedAt ?? '').localeCompare(a.snapshot?.savedAt ?? ''))[0];
 
-  const start = (slotId: SaveSlotId) => {
+  const start = async (slotId: SaveSlotId) => {
     const occupied = loadSaveSlot(slotId, localStorage);
     if (occupied && !window.confirm('该存档槽已有记录。是否覆盖并开始新的记忆潜入？')) return;
     const selectedContentMode = mode === 'novel' ? 'ai-director' : contentMode;
-    startRun(`RUN-${Date.now().toString(36).toUpperCase()}`, mode, llmEnabled, true, {
-      contentMode: selectedContentMode,
-      narrativeStyle: mode === 'novel' ? 'novel' : 'tactical',
-      aiFailurePolicy: 'ask',
-    });
-    setActiveSaveSlotId(slotId, localStorage);
-    createSaveSlot(slotId, useGameStore.getState(), localStorage);
-    setRevision((value) => value + 1);
-    navigate('/game');
+    const runId = `RUN-${Date.now().toString(36).toUpperCase()}-${slotId.toUpperCase()}`;
+    setStarting(true);
+    setStartError(null);
+    try {
+      const character = runtime.characters.find((item) => item.id === runtime.settings?.activeCharacterId) ?? runtime.activeCharacter;
+      const persona = runtime.personas.find((item) => item.id === runtime.settings?.activePersonaId) ?? runtime.activePersona;
+      const preset = runtime.presets.find((item) => item.id === runtime.settings?.activePresetId) ?? runtime.activePreset;
+      let aiBinding = undefined;
+      if (selectedContentMode === 'ai-director') {
+        if (!llmEnabled || !character || !persona || !preset || !runtime.settings) {
+          throw new Error('AI 导演所需的接口、角色卡、身份或预设尚未准备完成。');
+        }
+        const lorebookIds = [...runtime.settings.activeLorebookIds];
+        const chatId = await runtime.createChat(`记忆潜入 · ${runId}`, {
+          purpose: 'game-run',
+          runId,
+          activate: false,
+          characterId: character.id,
+          personaId: persona.id,
+          presetId: preset.id,
+          lorebookIds,
+        });
+        aiBinding = {
+          chatId,
+          characterId: character.id,
+          personaId: persona.id,
+          presetId: preset.id,
+          lorebookIds,
+        };
+      }
+      startRun(runId, mode, llmEnabled, true, {
+        runId,
+        contentMode: selectedContentMode,
+        narrativeStyle: mode === 'novel' ? 'novel' : 'tactical',
+        aiFailurePolicy: 'ask',
+        ...(aiBinding ? { aiBinding } : {}),
+      });
+      setActiveSaveSlotId(slotId, localStorage);
+      createSaveSlot(slotId, useGameStore.getState(), localStorage);
+      const replacedChatId = occupied?.state.run.aiBinding.chatId;
+      if (replacedChatId && replacedChatId !== aiBinding?.chatId) {
+        await runtime.removeChat(replacedChatId);
+      }
+      setRevision((value) => value + 1);
+      navigate('/game');
+    } catch (error) {
+      setStartError(error instanceof Error ? error.message : '潜入初始化失败');
+    } finally {
+      setStarting(false);
+    }
   };
 
   const continueRun = () => {
@@ -105,13 +148,14 @@ export default function TitlePage() {
           </fieldset>
           <div className="save-slot-grid">
             {slots.map((slot) => (
-              <button id={`title-${slot.id}`} key={slot.id} type="button" onClick={() => start(slot.id)} aria-label={`${slot.label}${slot.snapshot ? `，第 ${slot.snapshot.summary.floor} 层` : '，空白记录'}`}>
+              <button id={`title-${slot.id}`} key={slot.id} type="button" disabled={starting} onClick={() => void start(slot.id)} aria-label={`${slot.label}${slot.snapshot ? `，第 ${slot.snapshot.summary.floor} 层` : '，空白记录'}`}>
                 <span>{slot.label}</span>
                 <strong>{slot.snapshot ? `第 ${slot.snapshot.summary.floor} 层` : '空白记录'}</strong>
                 <small>{slot.snapshot ? `稳定 ${slot.snapshot.summary.sanity} · 过载 ${slot.snapshot.summary.overload}%` : '可建立新的潜入'}</small>
               </button>
             ))}
           </div>
+          {startError ? <p className="title-start-error" role="alert">{startError}</p> : null}
           <button id="title-cancel-slot" className="save-slot-cancel" type="button" onClick={() => setSelectingSlot(false)}>返回开屏</button>
         </div>
       )}

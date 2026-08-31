@@ -181,6 +181,7 @@ export default function GamePage() {
         ) : (
           <GameDirectorBoundary run={run} node={currentNode}>{(presentation) => <NodeScene
             node={currentNode}
+            run={run}
             presentation={presentation}
             brief={currentBrief}
             encounter={pendingEncounter}

@@ -40,6 +40,7 @@ import {
   type ChatPreset,
   type ChatSession,
   type CreateChatOptions,
+  type GameRunSummary,
   type Lorebook,
   type MatchedEntry,
   type ParsedTags,
@@ -103,6 +104,7 @@ export interface TavernRuntimeValue {
   deleteMessagesFrom: (messageId: string, chatId?: string) => Promise<void>;
   branchFromMessage: (messageId: string, name?: string, chatId?: string) => Promise<string>;
   branchChat: (chatId: string, name?: string) => Promise<string>;
+  appendRunSummary: (chatId: string, summary: GameRunSummary) => Promise<void>;
   updateVariables: (variables: Record<string, unknown>) => Promise<void>;
   updateSettings: (settings: AppSettings) => Promise<void>;
   upsertCharacter: (character: CharacterCard) => Promise<void>;
@@ -254,6 +256,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       presetId: options.presetId ?? activePreset?.id ?? settings.activePresetId,
       lorebookIds: [...(options.lorebookIds ?? settings.activeLorebookIds)],
       variables: { ...(activePersona?.variables ?? {}) },
+      summaries: [],
       createdAt: now,
       updatedAt: now,
     };
@@ -523,6 +526,18 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     return createBranch(sourceChat, sourceMessage.id, name);
   }, [chats, createBranch]);
 
+  const appendRunSummary = useCallback(async (chatId: string, summary: GameRunSummary) => {
+    const chat = await getChat(chatId);
+    if (!chat || chat.purpose !== 'game-run' || !chat.runId || chat.runId !== summary.runId) {
+      throw new Error('摘要只能写入与当前 Run 匹配的 game-run 会话');
+    }
+    const summaries = chat.summaries ?? [];
+    if (summaries.some((item) => item.triggerKey === summary.triggerKey)) return;
+    const next = { ...chat, summaries: [...summaries, summary], updatedAt: Date.now() };
+    await saveChat(next);
+    setChats((current) => current.map((item) => item.id === next.id ? next : item));
+  }, []);
+
   const updateVariables = useCallback(async (variables: Record<string, unknown>) => {
     if (!activeChat) return;
     const normalized = Object.fromEntries(Object.entries(variables).filter(([key]) => key.trim()));
@@ -599,6 +614,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     deleteMessagesFrom,
     branchFromMessage,
     branchChat,
+    appendRunSummary,
     updateVariables,
     updateSettings,
     upsertCharacter,
@@ -610,7 +626,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     upsertPreset,
     removePreset,
   }), [
-    activeCharacter, activeChat, activePersona, activePreset, branchChat, branchFromMessage, characters, chats,
+    activeCharacter, activeChat, activePersona, activePreset, appendRunSummary, branchChat, branchFromMessage, characters, chats,
     clearChats, createChat, deleteMessagesFrom, editAndRegenerate, error, initialized, loadAll, lorebooks,
     matchedEntries, personas, presets, removeCharacter, removeChat, removeLorebook, removePersona,
     removePreset, renameChat, retryLastTurn, selectChat, selectedTransport.mode, sendMessage, settings,

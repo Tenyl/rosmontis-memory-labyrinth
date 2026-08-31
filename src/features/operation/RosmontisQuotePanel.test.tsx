@@ -3,7 +3,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import type { ApiSettings } from '../../sillytavern';
-import { clearAllData } from '../../sillytavern/database';
+import { clearAllData, getChats, getSettings, initializeDatabase, saveChat, saveSettings } from '../../sillytavern/database';
+import { DEFAULT_CHARACTER_ID, DEFAULT_PERSONA_ID, DEFAULT_PRESET_ID } from '../../sillytavern/default-content';
 import { useGameStore } from '../../store/gameStore';
 import { TavernProvider } from '../tavern/runtime/TavernProvider';
 import type { TavernTransport } from '../tavern/runtime/tavern-transport';
@@ -19,6 +20,12 @@ const api: ApiSettings = {
 beforeEach(async () => {
   await clearAllData();
   useGameStore.getState().resetDemoState();
+  await initializeDatabase();
+  const settings = (await getSettings())!;
+  await saveSettings({ ...settings, api });
+  const session = (await getChats())[0];
+  const runId = useGameStore.getState().run.id;
+  await saveChat({ ...session, purpose: 'game-run', runId });
   act(() => {
     useGameStore.setState((state) => ({
       ruleLog: [{
@@ -28,7 +35,18 @@ beforeEach(async () => {
         overloadDelta: 10,
         cooldown: 2,
       }],
-      run: { ...state.run, phase: 'exploring' },
+      run: {
+        ...state.run,
+        phase: 'exploring',
+        contentMode: 'ai-director',
+        aiBinding: {
+          chatId: session.id,
+          characterId: DEFAULT_CHARACTER_ID,
+          personaId: DEFAULT_PERSONA_ID,
+          presetId: DEFAULT_PRESET_ID,
+          lorebookIds: [...session.lorebookIds],
+        },
+      },
     }));
   });
 });
@@ -45,6 +63,7 @@ function renderPanel(transport: TavernTransport, apiOverride: ApiSettings | null
 
 describe('temporary Rosmontis quote panel', () => {
   test('uses a deterministic local line without requesting when API is unavailable', async () => {
+    act(() => useGameStore.setState((state) => ({ run: { ...state.run, contentMode: 'local' } })));
     const stream = vi.fn(async function* () { yield '{}'; });
     renderPanel({ mode: 'remote', stream }, null);
 
