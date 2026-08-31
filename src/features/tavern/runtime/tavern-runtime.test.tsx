@@ -32,6 +32,31 @@ afterEach(async () => {
 });
 
 describe('TavernProvider', () => {
+  it('adds an independent roleplay boundary to character chat prompts', async () => {
+    let requestMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+    const inspectingTransport: TavernTransport = {
+      mode: 'remote',
+      async *stream(request) {
+        requestMessages = request.messages;
+        yield '<maintext>博士，我在听。</maintext>';
+      },
+    };
+    const runtime = renderHook(() => useTavern(), { wrapper: wrapperFor(inspectingTransport) });
+    await waitFor(() => expect(runtime.result.current.initialized).toBe(true));
+
+    await act(async () => {
+      const chatId = await runtime.result.current.createChat('私人对话', { purpose: 'character-chat' });
+      await runtime.result.current.sendMessage('只是聊聊天', chatId);
+    });
+
+    expect(requestMessages.at(-1)).toMatchObject({
+      role: 'system',
+      content: expect.stringContaining('独立角色对话'),
+    });
+    expect(requestMessages.at(-1)?.content).toContain('不得读取或修改迷宫 Run');
+    runtime.unmount();
+  });
+
   it('keeps character chat variables isolated from the game projection', async () => {
     const runtime = renderHook(() => useTavern(), { wrapper: wrapperFor(completeTransport) });
     await waitFor(() => expect(runtime.result.current.initialized).toBe(true));

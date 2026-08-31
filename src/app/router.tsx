@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from './AppShell';
 
 const GamePage = lazy(() => import('../features/game/GamePage'));
+const RosmontisChatPage = lazy(() => import('../features/chat/RosmontisChatPage'));
 const TitlePage = lazy(() => import('../features/title/TitlePage'));
 const CompendiumPage = lazy(() => import('../features/compendium/CompendiumPage'));
 const DiaryPage = lazy(() => import('../features/diary/DiaryPage'));
@@ -17,6 +18,7 @@ export function createAppRouter() {
       children: [
         { index: true, element: <TitlePage /> },
         { path: 'game', element: <GamePage /> },
+        { path: 'chat', element: <RosmontisChatPage /> },
         { path: 'compendium', element: <CompendiumPage /> },
         { path: 'diary', element: <DiaryPage /> },
         { path: 'records', element: <RecordsPage /> },

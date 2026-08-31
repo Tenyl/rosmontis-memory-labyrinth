@@ -344,6 +344,15 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
         variables: chatWithUser.variables,
         formatPrompt: settings.formatPromptTemplate,
       });
+      const promptMessages = chatWithUser.purpose === 'character-chat'
+        ? [
+            ...assembled.messages,
+            {
+              role: 'system' as const,
+              content: '【独立角色对话边界】这是迷迭香与用户之间的私人角色扮演对话，不是迷宫节点、战斗回合或游戏导演请求。请依据绑定的迷迭香角色卡、博士身份、预设与世界书自然回应。不得读取或修改迷宫 Run、战斗数值、节点进度或存档状态；不得输出会被解释为玩法结算的指令。',
+            },
+          ]
+        : assembled.messages;
       setMatchedEntries(assembled.matchedEntries);
 
       const parser = new StreamTagParser(settings.customTags, [...DEFAULT_OPAQUE_TAGS]);
@@ -351,13 +360,13 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       setStatus('streaming');
       for await (const chunk of selectedTransport.stream({
         task: 'story',
-        messages: assembled.messages,
+        messages: promptMessages,
         api: settings.api,
         model: typeof chatPreset.settings.openai_model === 'string' ? chatPreset.settings.openai_model : settings.api.model,
         temperature: numberSetting(chatPreset.settings.temp_openai),
         maxTokens: numberSetting(chatPreset.settings.openai_max_tokens),
         stream: true,
-        offlineContext: (() => {
+        offlineContext: chatWithUser.purpose === 'game-run' ? (() => {
           const game = useGameStore.getState();
           const currentNode = game.maze.nodes.find((node) => node.id === game.run.currentNodeId) ?? game.maze.nodes[0];
           return {
@@ -367,7 +376,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
             overload: game.rosmontis.overload,
             fragments: [...game.memoryInventory.fragments, ...game.memoryInventory.coreFragments],
           };
-        })(),
+        })() : undefined,
       }, controller.signal)) {
         const chunkEvents = parser.feed(chunk);
         events.push(...chunkEvents);

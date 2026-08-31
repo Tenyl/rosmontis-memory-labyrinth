@@ -17,6 +17,7 @@ import '../components/components.css';
 
 const navItems = [
   { path: '/game', label: '游戏' },
+  { path: '/chat', label: '迷迭香对话' },
   { path: '/compendium', label: '记忆图鉴' },
   { path: '/diary', label: '迷迭香手记' },
   { path: '/records', label: '行动记录' },

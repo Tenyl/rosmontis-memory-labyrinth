@@ -2,11 +2,11 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderApp } from '../test/renderApp';
 
-test('uses a five-item top menu and no global sidebar', async () => {
+test('uses a six-item top menu and no global sidebar', async () => {
   renderApp('/game');
 
   expect(await screen.findByRole('navigation', { name: '顶部菜单' })).toBeVisible();
-  for (const label of ['游戏', '记忆图鉴', '迷迭香手记', '行动记录', '系统设置']) {
+  for (const label of ['游戏', '迷迭香对话', '记忆图鉴', '迷迭香手记', '行动记录', '系统设置']) {
     expect(screen.getByRole('link', { name: label })).toBeVisible();
   }
   expect(document.querySelector('.terminal-sidebar')).toBeNull();

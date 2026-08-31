@@ -9,12 +9,13 @@ import type { ChatMessage } from '../../../sillytavern';
 import { paginateItems, TAVERN_PAGE_SIZE } from '../components/pagination';
 import { useTavern } from '../runtime/useTavern';
 
-export function HistoryDrawer({ open, onClose, focusMessageId }: { open: boolean; onClose: () => void; focusMessageId?: string | null }) {
+export function HistoryDrawer({ open, onClose, focusMessageId, chatId }: { open: boolean; onClose: () => void; focusMessageId?: string | null; chatId?: string | null }) {
   const runtime = useTavern();
   const [editing, setEditing] = useState<ChatMessage | null>(null);
   const [draft, setDraft] = useState('');
   const [page, setPage] = useState(1);
-  const messages = runtime.activeChat?.messages ?? [];
+  const chat = chatId ? runtime.chats.find((item) => item.id === chatId) ?? null : runtime.activeChat;
+  const messages = chat?.messages ?? [];
   const paginated = paginateItems(messages, page);
   const edit = (message: ChatMessage) => {
     setEditing(message);
@@ -22,7 +23,7 @@ export function HistoryDrawer({ open, onClose, focusMessageId }: { open: boolean
   };
   const save = async () => {
     if (!editing || !draft.trim()) return;
-    await runtime.editAndRegenerate(editing.id, draft);
+    await runtime.editAndRegenerate(editing.id, draft, chat?.id);
     setEditing(null);
   };
 
@@ -52,14 +53,14 @@ export function HistoryDrawer({ open, onClose, focusMessageId }: { open: boolean
             <div className="tavern-history-index"><span>{String(index + 1).padStart(2, '0')}</span><i aria-hidden="true" /></div>
             <article>
               <header>
-                <strong>{message.role === 'assistant' ? runtime.activeCharacter?.name ?? '模型' : runtime.activePersona?.name ?? '玩家'}</strong>
+                <strong>{message.role === 'assistant' ? chat?.characterName ?? runtime.activeCharacter?.name ?? '模型' : chat?.userName ?? runtime.activePersona?.name ?? '玩家'}</strong>
                 <time>{new Date(message.timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</time>
               </header>
               <p>{message.content}</p>
               <div>
                 {message.role === 'user' ? <button id={`history-edit-${message.id}`} type="button" aria-label={`编辑消息：${message.content}`} onClick={() => edit(message)}><NotePencil size={15} aria-hidden />编辑并重生成</button> : null}
-                <button id={`history-branch-${message.id}`} type="button" aria-label={`从第 ${index + 1} 条消息创建分支`} onClick={() => void runtime.branchFromMessage(message.id)}><GitBranch size={15} aria-hidden />创建分支</button>
-                <button id={`history-delete-${message.id}`} type="button" aria-label={`删除第 ${index + 1} 条及后续消息`} onClick={() => void runtime.deleteMessagesFrom(message.id)}><Trash size={15} aria-hidden />删除后续</button>
+                <button id={`history-branch-${message.id}`} type="button" aria-label={`从第 ${index + 1} 条消息创建分支`} onClick={() => void runtime.branchFromMessage(message.id, undefined, chat?.id)}><GitBranch size={15} aria-hidden />创建分支</button>
+                <button id={`history-delete-${message.id}`} type="button" aria-label={`删除第 ${index + 1} 条及后续消息`} onClick={() => void runtime.deleteMessagesFrom(message.id, chat?.id)}><Trash size={15} aria-hidden />删除后续</button>
               </div>
             </article>
           </li>
