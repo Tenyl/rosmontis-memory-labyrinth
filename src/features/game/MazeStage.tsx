@@ -185,6 +185,7 @@ export function MazeStage({
         aria-label={nodeAccessibleName(node, isCurrent)}
         aria-current={isCurrent ? 'step' : undefined}
         aria-pressed={isFocused}
+        data-node-id={node.id}
         data-node-state={isCurrent ? 'current' : node.state}
         disabled={!enabled}
         onFocus={() => setFocusedNodeId(node.id)}

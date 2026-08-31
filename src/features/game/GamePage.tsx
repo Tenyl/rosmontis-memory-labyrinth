@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useReducer } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
 import { FragmentOverflowDialog } from '../operation/FragmentOverflowDialog';
@@ -8,6 +8,7 @@ import { NovelMazeBrief } from '../memory/NovelMazeBrief';
 import { useTavern } from '../tavern/runtime/useTavern';
 import { GameHud } from './GameHud';
 import { MazeStage } from './MazeStage';
+import { NodeTransitionLayer } from './NodeTransitionLayer';
 import { NodeScene } from './NodeScene';
 import { RosmontisPresence } from './RosmontisPresence';
 import { gameSceneReducer, restoreGameSceneState } from './sceneState';
@@ -30,6 +31,7 @@ export default function GamePage() {
   const pendingEncounter = useGameStore((state) => state.pendingEncounter);
   const novel = useGameStore((state) => state.llmDirector.novel);
   const viewMode = useGameStore((state) => state.memoryMap.viewMode);
+  const motionPreference = useGameStore((state) => state.ui.preferences.motion);
   const moveToNode = useGameStore((state) => state.moveToNode);
   const setMemoryView = useGameStore((state) => state.setMemoryView);
   const useExplorationPower = useGameStore((state) => state.useExplorationPower);
@@ -56,16 +58,51 @@ export default function GamePage() {
   }, [beginCurrentEncounter, pendingEncounter, run.currentNodeId, run.phase]);
 
   useEffect(() => {
-    if (pendingEncounter && !pendingEncounter.resolved) {
+    if (pendingEncounter && !pendingEncounter.resolved && scene.phase !== 'entering-node' && scene.phase !== 'node') {
       dispatchScene({ type: 'open-node', nodeId: pendingEncounter.nodeId });
     }
-  }, [pendingEncounter]);
+  }, [pendingEncounter, scene.phase]);
+
+  useEffect(() => {
+    if (pendingEncounter?.resolved && scene.phase === 'node') dispatchScene({ type: 'settle-node' });
+  }, [pendingEncounter?.resolved, scene.phase]);
+
+  useEffect(() => {
+    if (scene.phase !== 'entering-node' || scene.commitState !== 'preview') return undefined;
+    const cancelEntry = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') dispatchScene({ type: 'cancel-entry' });
+    };
+    window.addEventListener('keydown', cancelEntry);
+    return () => window.removeEventListener('keydown', cancelEntry);
+  }, [scene.commitState, scene.phase]);
 
   const returnToMaze = () => {
-    dispatchScene({ type: 'settle-node' });
+    if (scene.phase === 'node') dispatchScene({ type: 'settle-node' });
     dispatchScene({ type: 'request-map' });
-    dispatchScene({ type: 'finish-return' });
   };
+
+  const commitNode = useCallback((transitionId: number) => {
+    if (transitionId !== scene.transitionId || scene.commitState !== 'preview' || !scene.targetNodeId) return;
+    moveToNode(scene.targetNodeId);
+    dispatchScene({ type: 'commit-node', transitionId });
+  }, [moveToNode, scene.commitState, scene.targetNodeId, scene.transitionId]);
+
+  const openNode = useCallback((nodeId: string) => {
+    const state = useGameStore.getState();
+    if (state.run.currentNodeId !== nodeId || state.pendingEncounter?.nodeId !== nodeId) return;
+    dispatchScene({ type: 'open-node', nodeId });
+    window.requestAnimationFrame(() => document.getElementById('game-node-scene-title')?.focus());
+  }, []);
+
+  const finishReturn = useCallback(() => {
+    dispatchScene({ type: 'finish-return' });
+    window.requestAnimationFrame(() => document.getElementById(`game-maze-node-${useGameStore.getState().run.currentNodeId}`)?.focus());
+  }, []);
+
+  const systemReducedMotion = typeof window !== 'undefined'
+    && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const reducedMotion = motionPreference === 'reduced'
+    || (motionPreference === 'system' && systemReducedMotion);
 
   const showMap = scene.phase === 'map' || scene.phase === 'entering-node' || scene.phase === 'returning-map';
 
@@ -115,7 +152,7 @@ export default function GamePage() {
               camera={scene.camera}
               onCameraChange={(camera) => dispatchScene({ type: 'set-camera', camera })}
               onViewModeChange={setMemoryView}
-              onRequestEnter={moveToNode}
+              onRequestEnter={(nodeId) => dispatchScene({ type: 'request-node', nodeId })}
               explorationCharges={explorationCharges}
               scoutPoints={economy.scoutPoints}
               movementLocked={Boolean(pendingEncounter && !pendingEncounter.resolved)}
@@ -146,6 +183,17 @@ export default function GamePage() {
             onReturnToMaze={returnToMaze}
           />
         )}
+        {(scene.phase === 'entering-node' || scene.phase === 'returning-map') && scene.targetNodeId ? (
+          <NodeTransitionLayer
+            phase={scene.phase}
+            node={maze.nodes.find((node) => node.id === scene.targetNodeId) ?? currentNode}
+            transitionId={scene.transitionId}
+            reducedMotion={reducedMotion}
+            onCommit={commitNode}
+            onOpened={openNode}
+            onReturnFinished={finishReturn}
+          />
+        ) : null}
       </section>
 
       <FragmentOverflowDialog inventory={inventory} onResolve={resolveFragmentChoice} />

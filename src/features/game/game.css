@@ -54,8 +54,29 @@
 .maze-context-actions .terminal-button { min-height: 38px; }
 @keyframes maze-scan-ring { 0% { opacity: .58; transform: scale(.94); } 80%,100% { opacity: 0; transform: scale(1.08); } }
 @keyframes maze-node-breathe { 0%,100% { box-shadow: 0 0 0 rgba(104,216,214,0); } 50% { box-shadow: 0 0 22px rgba(104,216,214,.18); } }
-.node-scene { display: grid; gap: var(--space-4); }
-.node-scene-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); padding: var(--space-6); border: 1px solid var(--color-line-subtle); border-left: 3px solid var(--color-memory-blue); background: linear-gradient(120deg,var(--color-memory-blue-soft),var(--color-background-elevated) 65%); box-shadow: var(--shadow-base); }
+.node-transition-layer { --transition-accent: var(--color-memory-blue); position: absolute; z-index: 30; inset: 0; display: grid; min-height: 360px; overflow: hidden; place-items: center; border: 1px solid color-mix(in srgb,var(--transition-accent) 55%,var(--color-line-subtle)); background: color-mix(in srgb,var(--color-background-base) 88%,transparent); backdrop-filter: blur(9px); pointer-events: none; }
+.node-transition-layer>span { z-index: 3; padding: var(--space-3) var(--space-5); border: 1px solid color-mix(in srgb,var(--transition-accent) 65%,transparent); color: var(--color-text-primary); background: var(--color-background-elevated); font: 600 .68rem/1 var(--font-data); letter-spacing: .08em; }
+.transition-route-pulse { position: absolute; width: 70%; height: 2px; background: linear-gradient(90deg,transparent,var(--transition-accent),transparent); animation: transition-route 720ms cubic-bezier(.22,.8,.24,1) both; }
+.transition-aperture { position: absolute; width: min(62vw,620px); aspect-ratio: 1; border: 1px solid var(--transition-accent); clip-path: polygon(50% 0,100% 50%,50% 100%,0 50%); animation: transition-aperture 720ms cubic-bezier(.22,.8,.24,1) both; }
+.node-transition-layer.is-returning-map .transition-route-pulse,.node-transition-layer.is-returning-map .transition-aperture { animation-direction: reverse; animation-duration: 420ms; }
+.node-transition-layer[data-transition-node-type="combat"] { --transition-accent: #ff775f; }
+.node-transition-layer[data-transition-node-type="emergency-combat"] { --transition-accent: #ff3f5f; }
+.node-transition-layer[data-transition-node-type="safehouse"] { --transition-accent: #7ae0b1; }
+.node-transition-layer[data-transition-node-type="shop"] { --transition-accent: #f1c86a; }
+.node-transition-layer[data-transition-node-type="encounter"] { --transition-accent: #a6a0ff; }
+.node-transition-layer[data-transition-node-type="dilemma"] { --transition-accent: #e68cff; }
+.node-transition-layer[data-transition-node-type="unknown"] { --transition-accent: #9aa8b8; }
+.node-transition-layer[data-transition-node-type="boss"] { --transition-accent: #68d8d6; }
+.node-scene { --scene-accent: var(--color-memory-blue); display: grid; gap: var(--space-4); }
+.node-scene[data-node-type="combat"] { --scene-accent: #ff775f; }
+.node-scene[data-node-type="emergency-combat"] { --scene-accent: #ff3f5f; }
+.node-scene[data-node-type="safehouse"] { --scene-accent: #7ae0b1; }
+.node-scene[data-node-type="shop"] { --scene-accent: #f1c86a; }
+.node-scene[data-node-type="encounter"] { --scene-accent: #a6a0ff; }
+.node-scene[data-node-type="dilemma"] { --scene-accent: #e68cff; }
+.node-scene[data-node-type="unknown"] { --scene-accent: #9aa8b8; }
+.node-scene[data-node-type="boss"] { --scene-accent: #68d8d6; }
+.node-scene-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); padding: var(--space-6); border: 1px solid var(--color-line-subtle); border-left: 3px solid var(--scene-accent); background: linear-gradient(120deg,color-mix(in srgb,var(--scene-accent) 12%,transparent),var(--color-background-elevated) 65%); box-shadow: var(--shadow-base); }
 .node-scene-header span { color: var(--color-memory-blue); font: 600 .6rem/1 var(--font-data); letter-spacing: .08em; }
 .node-scene-header h2 { margin: var(--space-3) 0 var(--space-2); font-size: clamp(1.25rem,3vw,2rem); }
 .node-scene-header p { max-width: 68ch; margin: 0; color: var(--color-text-secondary); font-size: .72rem; line-height: 1.7; }
@@ -64,4 +85,6 @@
 .node-scene-footer p { max-width: 72ch; margin: 0; color: var(--color-text-secondary); font-size: .7rem; line-height: 1.65; }
 .node-scene-footer button { flex: 0 0 auto; }
 @media (max-width: 767px) { .maze-stage-header,.maze-context-toolbar,.node-scene-header,.node-scene-footer { align-items: stretch; flex-direction: column; padding: var(--space-4); } .maze-stage-header .segmented-control { width: 100%; } .maze-stage-header .segmented-control button { flex: 1; } .maze-viewport-shell { padding: var(--space-2); } .maze-viewport { min-height: 480px; } .maze-camera-controls { top: var(--space-4); right: var(--space-4); } .maze-node.is-graph { width: 104px; min-height: 88px; } .maze-context-actions { justify-content: flex-start; } .node-scene-footer button { justify-content: center; width: 100%; min-height: 44px; } }
-@media (prefers-reduced-motion: reduce) { .maze-node.is-current::after,.maze-node.is-reachable { animation: none; } .maze-camera { transition: none; } }
+@keyframes transition-route { 0% { opacity: 0; transform: scaleX(.08); } 42% { opacity: 1; } 100% { opacity: 0; transform: scaleX(1); } }
+@keyframes transition-aperture { 0% { opacity: 0; transform: scale(.16) rotate(0); } 48% { opacity: .72; } 100% { opacity: 0; transform: scale(1.55) rotate(45deg); } }
+@media (prefers-reduced-motion: reduce) { .maze-node.is-current::after,.maze-node.is-reachable,.transition-route-pulse,.transition-aperture { animation: none; } .maze-camera { transition: none; } }
