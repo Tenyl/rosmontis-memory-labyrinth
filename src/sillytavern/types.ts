@@ -281,6 +281,18 @@ export interface ChatMessage {
   apiUsed?: ApiTarget;
 }
 
+export type ChatPurpose = 'game-run' | 'character-chat';
+
+export interface CreateChatOptions {
+  purpose?: ChatPurpose;
+  runId?: string | null;
+  activate?: boolean;
+  characterId?: string | null;
+  personaId?: string | null;
+  presetId?: string | null;
+  lorebookIds?: string[];
+}
+
 export interface ChatSession {
   id: string;
   name: string;
@@ -291,6 +303,8 @@ export interface ChatSession {
   personaId?: string | null;
   parentChatId?: string | null;
   branchedFromMessageId?: string | null;
+  purpose: ChatPurpose;
+  runId: string | null;
   presetId: string | null;
   lorebookIds: string[];
   variables: Record<string, any>;

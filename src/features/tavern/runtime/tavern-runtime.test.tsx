@@ -2,6 +2,8 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { clearAllData } from '../../../sillytavern/database';
+import { buildDemoState } from '../../../data/demoData';
+import { useGameStore } from '../../../store/gameStore';
 import { TavernProvider } from './TavernProvider';
 import type { TavernTransport } from './tavern-transport';
 import { useTavern } from './useTavern';
@@ -22,6 +24,7 @@ function wrapperFor(transport: TavernTransport) {
 
 beforeEach(async () => {
   await clearAllData();
+  useGameStore.setState(buildDemoState());
 });
 
 afterEach(async () => {
@@ -29,6 +32,46 @@ afterEach(async () => {
 });
 
 describe('TavernProvider', () => {
+  it('keeps character chat variables isolated from the game projection', async () => {
+    const runtime = renderHook(() => useTavern(), { wrapper: wrapperFor(completeTransport) });
+    await waitFor(() => expect(runtime.result.current.initialized).toBe(true));
+
+    let chatId = '';
+    await act(async () => {
+      chatId = await runtime.result.current.createChat('迷迭香对话', {
+        purpose: 'character-chat',
+      });
+      await runtime.result.current.sendMessage('你还好吗？', chatId);
+    });
+
+    expect(runtime.result.current.chats.find((chat) => chat.id === chatId)).toMatchObject({
+      purpose: 'character-chat',
+      runId: null,
+      variables: { sanity: 55 },
+    });
+    expect(useGameStore.getState().rosmontis.sanity).toBe(100);
+    expect(useGameStore.getState().tavernProjection).toEqual({ activeSessionId: null, sessions: {} });
+    runtime.unmount();
+  });
+
+  it('retains projection for an explicitly addressed game-run session', async () => {
+    const runtime = renderHook(() => useTavern(), { wrapper: wrapperFor(completeTransport) });
+    await waitFor(() => expect(runtime.result.current.initialized).toBe(true));
+
+    let chatId = '';
+    await act(async () => {
+      chatId = await runtime.result.current.createChat('潜入记录', {
+        purpose: 'game-run',
+        runId: useGameStore.getState().run.id,
+      });
+      await runtime.result.current.sendMessage('检查门牌', chatId);
+    });
+
+    expect(useGameStore.getState().operators.byId.rosmontis.sanity).toBe(55);
+    expect(useGameStore.getState().tavernProjection.activeSessionId).toBe(chatId);
+    runtime.unmount();
+  });
+
   it('creates an active chat and restores it after remount', async () => {
     const first = renderHook(() => useTavern(), { wrapper: wrapperFor(completeTransport) });
     await waitFor(() => expect(first.result.current.initialized).toBe(true));

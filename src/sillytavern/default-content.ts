@@ -193,6 +193,8 @@ function defaultChat(now: number): ChatSession {
     personaId: DEFAULT_PERSONA_ID,
     parentChatId: null,
     branchedFromMessageId: null,
+    purpose: 'game-run',
+    runId: null,
     presetId: DEFAULT_PRESET_ID,
     lorebookIds: [...DEFAULT_LOREBOOK_IDS],
     variables: { rosmontis_stress: 39, sanity: 62, risk: 'B', objective: '找回记忆碎片并抵达当前层出口' },

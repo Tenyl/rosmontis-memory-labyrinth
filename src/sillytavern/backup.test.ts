@@ -14,7 +14,7 @@ describe('tavern backup', () => {
       kind: 'rhodes-tavern-backup', version: 4, exportedAt: 1,
       lorebooks: [], presets: [], settings: DEFAULT_SETTINGS, chats: [], characters: [], personas: [],
     });
-    expect(backup.version).toBe(5);
+    expect(backup.version).toBe(6);
     expect(backup.diaryEntries).toEqual([]);
   });
 

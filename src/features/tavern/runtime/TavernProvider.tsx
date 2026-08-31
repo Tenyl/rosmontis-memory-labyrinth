@@ -21,6 +21,7 @@ import {
   deletePersona as deletePersonaDb,
   deletePreset as deletePresetDb,
   getCharacters,
+  getChat,
   getChats,
   getLorebooks,
   getPersonas,
@@ -38,6 +39,7 @@ import {
   type ChatMessage,
   type ChatPreset,
   type ChatSession,
+  type CreateChatOptions,
   type Lorebook,
   type MatchedEntry,
   type ParsedTags,
@@ -88,17 +90,17 @@ export interface TavernRuntimeValue {
   stream: TavernStreamState;
   matchedEntries: MatchedEntry[];
   reload: () => Promise<void>;
-  createChat: (name: string) => Promise<string>;
+  createChat: (name: string, options?: CreateChatOptions) => Promise<string>;
   selectChat: (id: string) => Promise<void>;
   renameChat: (id: string, name: string) => Promise<void>;
   removeChat: (id: string) => Promise<void>;
   clearChats: () => Promise<void>;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, chatId?: string) => Promise<void>;
   stopGeneration: () => void;
-  retryLastTurn: () => Promise<void>;
-  editAndRegenerate: (messageId: string, content: string) => Promise<void>;
-  deleteMessagesFrom: (messageId: string) => Promise<void>;
-  branchFromMessage: (messageId: string, name?: string) => Promise<string>;
+  retryLastTurn: (chatId?: string) => Promise<void>;
+  editAndRegenerate: (messageId: string, content: string, chatId?: string) => Promise<void>;
+  deleteMessagesFrom: (messageId: string, chatId?: string) => Promise<void>;
+  branchFromMessage: (messageId: string, name?: string, chatId?: string) => Promise<string>;
   branchChat: (chatId: string, name?: string) => Promise<string>;
   updateVariables: (variables: Record<string, unknown>) => Promise<void>;
   updateSettings: (settings: AppSettings) => Promise<void>;
@@ -219,8 +221,8 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
 
   useEffect(() => {
     if (!initialized) return;
-    activateTavernProjection(activeChat?.id ?? null);
-  }, [activeChat?.id, activateTavernProjection, initialized]);
+    activateTavernProjection(activeChat?.purpose === 'game-run' ? activeChat.id : null);
+  }, [activeChat?.id, activeChat?.purpose, activateTavernProjection, initialized]);
   const selectedTransport = useMemo<TavernTransport>(() => {
     if (transport) return transport;
     return settings?.api.apiKey.trim() ? new OpenAiTavernTransport() : new LocalTavernTransport();
@@ -231,7 +233,7 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     setSettingsState(next);
   }, []);
 
-  const createChat = useCallback(async (name: string) => {
+  const createChat = useCallback(async (name: string, options: CreateChatOptions = {}) => {
     if (!settings) throw new Error('酒馆设置尚未载入');
     const trimmedName = name.trim();
     if (!trimmedName) throw new Error('请输入会话名称');
@@ -240,23 +242,25 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       id: crypto.randomUUID(),
       name: trimmedName,
       messages: [],
-      characterName: activeCharacter?.name ?? settings.characterName,
-      userName: activePersona?.name ?? settings.userName,
-      characterId: activeCharacter?.id ?? settings.activeCharacterId,
-      personaId: activePersona?.id ?? settings.activePersonaId,
+      characterName: characters.find((item) => item.id === options.characterId)?.name ?? activeCharacter?.name ?? settings.characterName,
+      userName: personas.find((item) => item.id === options.personaId)?.name ?? activePersona?.name ?? settings.userName,
+      characterId: options.characterId ?? activeCharacter?.id ?? settings.activeCharacterId,
+      personaId: options.personaId ?? activePersona?.id ?? settings.activePersonaId,
       parentChatId: null,
       branchedFromMessageId: null,
-      presetId: activePreset?.id ?? settings.activePresetId,
-      lorebookIds: [...settings.activeLorebookIds],
+      purpose: options.purpose ?? 'game-run',
+      runId: options.runId ?? null,
+      presetId: options.presetId ?? activePreset?.id ?? settings.activePresetId,
+      lorebookIds: [...(options.lorebookIds ?? settings.activeLorebookIds)],
       variables: { ...(activePersona?.variables ?? {}) },
       createdAt: now,
       updatedAt: now,
     };
     await saveChat(chat);
-    await persistSettings({ ...settings, activeChatId: chat.id });
+    if (options.activate !== false) await persistSettings({ ...settings, activeChatId: chat.id });
     setChats((current) => [...current, chat]);
     return chat.id;
-  }, [activeCharacter, activePersona, activePreset, persistSettings, settings]);
+  }, [activeCharacter, activePersona, activePreset, characters, persistSettings, personas, settings]);
 
   const selectChat = useCallback(async (id: string) => {
     if (!settings || !chats.some((chat) => chat.id === id)) return;
@@ -294,7 +298,10 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     const userContent = content.trim();
     if (!userContent) throw new Error('请输入战术指令');
     const currentChat = sourceChat ?? activeChat;
-    if (!settings || !currentChat || !activeCharacter || !activePersona || !activePreset) {
+    const chatCharacter = characters.find((item) => item.id === currentChat?.characterId) ?? activeCharacter;
+    const chatPersona = personas.find((item) => item.id === currentChat?.personaId) ?? activePersona;
+    const chatPreset = presets.find((item) => item.id === currentChat?.presetId) ?? activePreset;
+    if (!settings || !currentChat || !chatCharacter || !chatPersona || !chatPreset) {
       throw new Error('当前会话的角色、身份或预设不完整');
     }
     if (status === 'assembling' || status === 'streaming') return;
@@ -329,10 +336,10 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       const assembled = assemblePrompt({
         userInput: userContent,
         history: chatWithUser.messages,
-        preset: activePreset,
+        preset: chatPreset,
         lorebooks: activeBooks,
-        character: activeCharacter,
-        persona: activePersona,
+        character: chatCharacter,
+        persona: chatPersona,
         variables: chatWithUser.variables,
         formatPrompt: settings.formatPromptTemplate,
       });
@@ -345,9 +352,9 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
         task: 'story',
         messages: assembled.messages,
         api: settings.api,
-        model: typeof activePreset.settings.openai_model === 'string' ? activePreset.settings.openai_model : settings.api.model,
-        temperature: numberSetting(activePreset.settings.temp_openai),
-        maxTokens: numberSetting(activePreset.settings.openai_max_tokens),
+        model: typeof chatPreset.settings.openai_model === 'string' ? chatPreset.settings.openai_model : settings.api.model,
+        temperature: numberSetting(chatPreset.settings.temp_openai),
+        maxTokens: numberSetting(chatPreset.settings.openai_max_tokens),
         stream: true,
         offlineContext: (() => {
           const game = useGameStore.getState();
@@ -393,14 +400,16 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       };
       await saveChat(completedChat);
       setChats((current) => current.map((chat) => chat.id === completedChat.id ? completedChat : chat));
-      applyTavernEvents(projectTavernTurn({
-        sessionId: completedChat.id,
-        messageId: assistantMessage.id,
-        summary: parsed.sum,
-        variables: nextVariables,
-        previousVariables: chatWithUser.variables,
-        matchedLorebookEntryIds: assistantMessage.metadata?.lorebookEntries,
-      }), completedChat.id);
+      if (completedChat.purpose === 'game-run') {
+        applyTavernEvents(projectTavernTurn({
+          sessionId: completedChat.id,
+          messageId: assistantMessage.id,
+          summary: parsed.sum,
+          variables: nextVariables,
+          previousVariables: chatWithUser.variables,
+          matchedLorebookEntryIds: assistantMessage.metadata?.lorebookEntries,
+        }), completedChat.id);
+      }
       setStatus('complete');
     } catch (sendError) {
       if (isAbortError(sendError)) {
@@ -413,9 +422,13 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
       streamBatcher.flushNow();
       if (abortRef.current === controller) abortRef.current = null;
     }
-  }, [activeCharacter, activeChat, activePersona, activePreset, applyTavernEvents, lorebooks, selectedTransport, settings, status]);
+  }, [activeCharacter, activeChat, activePersona, activePreset, applyTavernEvents, characters, lorebooks, personas, presets, selectedTransport, settings, status]);
 
-  const sendMessage = useCallback((content: string) => generateMessage(content), [generateMessage]);
+  const sendMessage = useCallback(async (content: string, chatId?: string) => {
+    const sourceChat = chatId ? chats.find((chat) => chat.id === chatId) ?? await getChat(chatId) : undefined;
+    if (chatId && !sourceChat) throw new Error('没有找到目标会话');
+    await generateMessage(content, sourceChat);
+  }, [chats, generateMessage]);
 
   const stopGeneration = useCallback(() => abortRef.current?.abort(), []);
 
@@ -426,34 +439,39 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     const next = { ...chat, messages, variables: { ...variables }, updatedAt: Date.now() };
     await saveChat(next);
     setChats((current) => current.map((item) => item.id === next.id ? next : item));
-    reconcileTavernProjection(next.id, next.messages.map((message) => message.id));
+    if (next.purpose === 'game-run') {
+      reconcileTavernProjection(next.id, next.messages.map((message) => message.id));
+    }
     return next;
   }, [reconcileTavernProjection]);
 
-  const retryLastTurn = useCallback(async () => {
-    if (!activeChat) return;
-    const reverseIndex = [...activeChat.messages].reverse().findIndex((message) => message.role === 'user');
-    const index = reverseIndex < 0 ? -1 : activeChat.messages.length - 1 - reverseIndex;
+  const retryLastTurn = useCallback(async (chatId?: string) => {
+    const targetChat = chatId ? chats.find((chat) => chat.id === chatId) ?? await getChat(chatId) : activeChat;
+    if (!targetChat) return;
+    const reverseIndex = [...targetChat.messages].reverse().findIndex((message) => message.role === 'user');
+    const index = reverseIndex < 0 ? -1 : targetChat.messages.length - 1 - reverseIndex;
     if (index < 0) return;
-    const content = activeChat.messages[index].content;
-    const truncated = await truncateAndPersist(activeChat, index);
+    const content = targetChat.messages[index].content;
+    const truncated = await truncateAndPersist(targetChat, index);
     await generateMessage(content, truncated);
-  }, [activeChat, generateMessage, truncateAndPersist]);
+  }, [activeChat, chats, generateMessage, truncateAndPersist]);
 
-  const editAndRegenerate = useCallback(async (messageId: string, content: string) => {
-    if (!activeChat) return;
-    const index = activeChat.messages.findIndex((message) => message.id === messageId && message.role === 'user');
+  const editAndRegenerate = useCallback(async (messageId: string, content: string, chatId?: string) => {
+    const targetChat = chatId ? chats.find((chat) => chat.id === chatId) ?? await getChat(chatId) : activeChat;
+    if (!targetChat) return;
+    const index = targetChat.messages.findIndex((message) => message.id === messageId && message.role === 'user');
     if (index < 0) return;
-    const truncated = await truncateAndPersist(activeChat, index);
+    const truncated = await truncateAndPersist(targetChat, index);
     await generateMessage(content, truncated);
-  }, [activeChat, generateMessage, truncateAndPersist]);
+  }, [activeChat, chats, generateMessage, truncateAndPersist]);
 
-  const deleteMessagesFrom = useCallback(async (messageId: string) => {
-    if (!activeChat) return;
-    const index = activeChat.messages.findIndex((message) => message.id === messageId);
+  const deleteMessagesFrom = useCallback(async (messageId: string, chatId?: string) => {
+    const targetChat = chatId ? chats.find((chat) => chat.id === chatId) ?? await getChat(chatId) : activeChat;
+    if (!targetChat) return;
+    const index = targetChat.messages.findIndex((message) => message.id === messageId);
     if (index < 0) return;
-    await truncateAndPersist(activeChat, index);
-  }, [activeChat, truncateAndPersist]);
+    await truncateAndPersist(targetChat, index);
+  }, [activeChat, chats, truncateAndPersist]);
 
   const createBranch = useCallback(async (sourceChat: ChatSession, messageId: string, name?: string) => {
     if (!settings) throw new Error('酒馆设置尚未载入');
@@ -475,14 +493,17 @@ export function TavernProvider({ children, transport }: TavernProviderProps) {
     await saveChat(branch);
     await persistSettings({ ...settings, activeChatId: branch.id });
     setChats((current) => [...current, branch]);
-    branchTavernProjection(sourceChat.id, branch.id, branch.messages.map((message) => message.id));
+    if (branch.purpose === 'game-run') {
+      branchTavernProjection(sourceChat.id, branch.id, branch.messages.map((message) => message.id));
+    }
     return branch.id;
   }, [branchTavernProjection, chats, persistSettings, settings]);
 
-  const branchFromMessage = useCallback(async (messageId: string, name?: string) => {
-    if (!activeChat) throw new Error('没有可分支的活跃会话');
-    return createBranch(activeChat, messageId, name);
-  }, [activeChat, createBranch]);
+  const branchFromMessage = useCallback(async (messageId: string, name?: string, chatId?: string) => {
+    const targetChat = chatId ? chats.find((chat) => chat.id === chatId) ?? await getChat(chatId) : activeChat;
+    if (!targetChat) throw new Error('没有可分支的活跃会话');
+    return createBranch(targetChat, messageId, name);
+  }, [activeChat, chats, createBranch]);
 
   const branchChat = useCallback(async (chatId: string, name?: string) => {
     const sourceChat = chats.find((chat) => chat.id === chatId);

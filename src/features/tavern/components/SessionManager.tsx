@@ -61,7 +61,7 @@ export function SessionManager() {
           return (
             <article key={chat.id} className={`tavern-session-card${active ? ' is-active' : ''}`}>
               <button id={`tavern-session-${chat.id}-load`} className="session-load" type="button" onClick={() => void selectChat(chat.id)} aria-current={active ? 'true' : undefined}>
-                <span className="session-index">{active ? 'LIVE' : chat.parentChatId ? 'BRANCH' : 'ARCHIVE'}</span>
+                <span className="session-index">{active ? 'LIVE' : chat.parentChatId ? 'BRANCH' : chat.purpose === 'character-chat' ? 'DIALOGUE' : 'ARCHIVE'}</span>
                 <span><strong>{chat.name}</strong><small>{chat.characterName} / {chat.userName}</small></span>
                 <span className="session-count"><b>{chat.messages.length}</b><small>MESSAGES</small></span>
               </button>

@@ -8,7 +8,7 @@ import type { DiaryEntry } from '../diary/types';
 import { DEFAULT_SETTINGS } from './types';
 
 const DB_NAME = 'SillyTavernWebDB';
-export const DB_VERSION = 5;
+export const DB_VERSION = 6;
 
 class AppDatabase extends Dexie {
   lorebooks!: Table<Lorebook>;
@@ -75,6 +75,22 @@ class AppDatabase extends Dexie {
       characters: 'id, name, updatedAt',
       personas: 'id, name, updatedAt',
       diaryEntries: 'id, &triggerKey, runId, floor, updatedAt',
+    });
+    this.version(6).stores({
+      lorebooks: 'id, name, updatedAt',
+      presets: 'id, name, updatedAt',
+      settings: 'key',
+      chats: 'id, name, purpose, runId, updatedAt, parentChatId',
+      characters: 'id, name, updatedAt',
+      personas: 'id, name, updatedAt',
+      diaryEntries: 'id, &triggerKey, runId, floor, updatedAt',
+    }).upgrade(async tx => {
+      const chats = await tx.table('chats').toCollection().toArray();
+      for (const chat of chats) {
+        if (chat.purpose !== 'character-chat') chat.purpose = 'game-run';
+        if (typeof chat.runId !== 'string') chat.runId = null;
+        await tx.table('chats').put(chat);
+      }
     });
   }
 }
@@ -201,12 +217,17 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 }
 
 export async function getChats(): Promise<ChatSession[]> {
-  return getDatabase().chats.toArray();
+  return (await getDatabase().chats.toArray()).map(normalizeChatSession);
 }
 
 export async function saveChat(chat: ChatSession): Promise<string> {
-  await getDatabase().chats.put(chat);
+  await getDatabase().chats.put(normalizeChatSession(chat));
   return chat.id;
+}
+
+export async function getChat(id: string): Promise<ChatSession | undefined> {
+  const chat = await getDatabase().chats.get(id);
+  return chat ? normalizeChatSession(chat) : undefined;
 }
 
 export async function deleteChat(id: string): Promise<void> {
@@ -250,4 +271,12 @@ export async function savePersona(persona: Persona): Promise<string> {
 
 export async function deletePersona(id: string): Promise<void> {
   await getDatabase().personas.delete(id);
+}
+
+function normalizeChatSession(chat: ChatSession): ChatSession {
+  return {
+    ...chat,
+    purpose: chat.purpose === 'character-chat' ? 'character-chat' : 'game-run',
+    runId: typeof chat.runId === 'string' ? chat.runId : null,
+  };
 }
