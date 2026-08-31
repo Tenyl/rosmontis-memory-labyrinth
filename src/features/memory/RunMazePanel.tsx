@@ -7,6 +7,7 @@ import {
   Store as Storefront,
 } from 'lucide-react';
 import { useEffect, useState, type CSSProperties } from 'react';
+import { NODE_TYPE_NAMES } from '../../game/terminology';
 import type {
   ExplorationCharges,
   ExplorationPowerAction,
@@ -30,17 +31,6 @@ interface RunMazePanelProps {
   onSpendScoutPoint?: (nodeId: string) => void;
   movementLocked?: boolean;
 }
-
-const NODE_TYPE_LABELS: Record<MazeNodeType, string> = {
-  combat: '战斗',
-  'emergency-combat': '紧急作战',
-  safehouse: '休息处 / 安全屋',
-  shop: '商店',
-  encounter: '不期而遇 / 奇境',
-  dilemma: '命运抉择',
-  unknown: '未知',
-  boss: 'Boss 房',
-};
 
 const NODE_STATE_LABELS: Record<MazeNodeState, string> = {
   hidden: '未侦测',
@@ -97,9 +87,9 @@ function RunMazeNodeButton({
 }) {
   const canSelect = !['hidden', 'corrupted'].includes(node.state);
   const revealedType = node.type === 'unknown' && node.revealed && node.hiddenType
-    ? NODE_TYPE_LABELS[node.hiddenType]
+    ? NODE_TYPE_NAMES[node.hiddenType]
     : null;
-  const typeLabel = NODE_TYPE_LABELS[node.type];
+  const typeLabel = NODE_TYPE_NAMES[node.type];
   const stateLabel = isCurrent ? NODE_STATE_LABELS.current : NODE_STATE_LABELS[node.state];
   const style = variant === 'graph' && position
     ? ({ left: `${position.x}%`, top: `${position.y}%` } satisfies CSSProperties)

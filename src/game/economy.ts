@@ -25,7 +25,7 @@ export function purchaseOffer(
   }
   getModule(offer.moduleId);
   if (state.economy.shopPurchases.includes(offer.id)) {
-    return rejected(state, '该商店报价已经结算。');
+    return rejected(state, '该认知黑市报价已经结算。');
   }
   if (state.modules.includes(offer.moduleId)) {
     return rejected(state, '该认知模块已装载。');

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { resolveAudioAsset } from '../../assets/assetRegistry';
 import type { BossPhase } from '../../game/bosses';
 import { getRosmontisMessage } from '../../game/rosmontisMessages';
+import { COMPANION_INTERACTION_NAME } from '../../game/terminology';
 import type { EncounterAction, GreatswordCombatState } from '../../game/types';
 
 interface CompanionInteractionBarProps {
@@ -31,7 +32,7 @@ export function CompanionInteractionBar({ rosmontis, bossPhase, onAction }: Comp
     <section className="companion-interaction-bar" aria-labelledby="companion-interaction-title">
       <div>
         <span>NEURAL TOUCH / COMPANION LINK</span>
-        <h2 id="companion-interaction-title">神经触碰 / 陪伴交互</h2>
+        <h2 id="companion-interaction-title">{COMPANION_INTERACTION_NAME}</h2>
         <p className="companion-feedback" role="status" aria-live="polite">{status}</p>
       </div>
       <div className="companion-actions">

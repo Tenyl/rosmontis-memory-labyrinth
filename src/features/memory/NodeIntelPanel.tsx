@@ -6,6 +6,7 @@ import {
   TriangleAlert as WarningDiamond,
   AudioWaveform as Waveform,
 } from 'lucide-react';
+import { NODE_TYPE_NAMES } from '../../game/terminology';
 
 import type {
   ExplorationCharges,
@@ -27,17 +28,6 @@ interface NodeIntelPanelProps {
   onSpendScoutPoint: (nodeId: string) => void;
 }
 
-const TYPE_LABELS: Record<MazeNodeType, string> = {
-  combat: '战斗',
-  'emergency-combat': '紧急作战',
-  safehouse: '休息处 / 安全屋',
-  shop: '商店',
-  encounter: '不期而遇 / 奇境',
-  dilemma: '命运抉择',
-  unknown: '未知',
-  boss: 'Boss 房',
-};
-
 const MODIFIER_LABELS: Record<string, string> = {
   'high-threat': '高威胁残响',
   'unstable-signal': '信号极不稳定',
@@ -58,7 +48,7 @@ export function NodeIntelPanel({
   const isCurrent = node.id === currentNodeId;
   const isReachable = node.state === 'reachable';
   const canScan = node.type === 'unknown' && !node.revealed && isReachable;
-  const heading = node.type === 'unknown' ? '未知信号' : TYPE_LABELS[node.type];
+  const heading = node.type === 'unknown' ? '未知信号' : NODE_TYPE_NAMES[node.type];
 
   return (
     <aside className="node-intel-panel" aria-labelledby="node-intel-title">
@@ -76,9 +66,9 @@ export function NodeIntelPanel({
       <div className="node-intel-body">
         <dl>
           <div><dt>节点状态</dt><dd>{isCurrent ? '当前节点' : isReachable ? '可抵达' : '路径未开放'}</dd></div>
-          <div><dt>公开类型</dt><dd>{TYPE_LABELS[node.type]}</dd></div>
+          <div><dt>公开类型</dt><dd>{NODE_TYPE_NAMES[node.type]}</dd></div>
           {node.type === 'unknown' && node.revealed && node.hiddenType ? (
-            <div className="is-revealed"><dt>侦测结果</dt><dd>真实类型：{TYPE_LABELS[node.hiddenType]}</dd></div>
+            <div className="is-revealed"><dt>侦测结果</dt><dd>真实类型：{NODE_TYPE_NAMES[node.hiddenType]}</dd></div>
           ) : null}
         </dl>
 

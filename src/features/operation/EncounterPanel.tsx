@@ -8,7 +8,9 @@ import {
   Store as Storefront,
 } from 'lucide-react';
 import { resolveImageAsset } from '../../assets/assetRegistry';
+import { GREATSWORD_CONFIG } from '../../game/greatswords';
 import { getModule } from '../../game/modules';
+import { NODE_TYPE_NAMES } from '../../game/terminology';
 import type { EncounterAction, GreatswordId, MemoryInventory, ModuleId, PendingEncounter } from '../../game/types';
 import { BossEncounter } from './BossEncounter';
 
@@ -33,10 +35,6 @@ const ENCOUNTER_COPY = {
   encounter: { code: 'ENCOUNTER', title: '奇境异常观测', description: '记忆碎片与巨剑准备状态会解锁额外处理方式。' },
   unknown: { code: 'UNKNOWN', title: '未知信号接触', description: '结果已由本地种子预先生成，进入后才会揭示。' },
   boss: { code: 'CORE', title: '记忆核心对峙', description: '先击穿防护，再用共鸣重建核心稳定。' },
-} as const;
-
-const HIDDEN_TYPE_LABELS = {
-  combat: '战斗', safehouse: '休息处 / 安全屋', shop: '商店', encounter: '不期而遇 / 奇境',
 } as const;
 
 function EncounterIcon({ kind }: { kind: PendingEncounter['kind'] }) {
@@ -111,7 +109,7 @@ export function EncounterPanel({
           <span>第 {encounter.round} / {encounter.maxRounds} 轮</span>
           <strong>结构完整度 {encounter.enemyIntegrity} / 80</strong>
           <span>胜利残响 +{encounter.rewardEchoes}</span>
-        </div><p className="encounter-card-guidance">请点击上方【立柱 / 破壁】或【门扉 / 守望】战术卡，也可以把可用卡片拖到本面板执行。</p></>
+        </div><p className="encounter-card-guidance">请点击上方【{GREATSWORD_CONFIG.breach.name}】或【{GREATSWORD_CONFIG.watch.name}】战术卡，也可以把可用卡片拖到本面板执行。</p></>
       )}
 
       {encounter.kind === 'shop' && (
@@ -167,7 +165,7 @@ export function EncounterPanel({
 
       {encounter.kind === 'unknown' && (
         <div className="encounter-unknown-state">
-          <strong>{encounter.resolved ? `真实类型：${HIDDEN_TYPE_LABELS[encounter.hiddenType]}` : '节点内容处于加密状态'}</strong>
+          <strong>{encounter.resolved ? `真实类型：${NODE_TYPE_NAMES[encounter.hiddenType]}` : '节点内容处于加密状态'}</strong>
           <span>{encounter.glitch ? '高过载干扰生效' : '信号干扰处于可控范围'}</span>
           {encounter.directEntryBonus > 0 && <span>直接进入补偿 +{encounter.directEntryBonus} 残响</span>}
         </div>
@@ -203,7 +201,7 @@ export function EncounterPanel({
       )}
 
       {encounter.kind === 'shop' && !encounter.resolved && (
-        <button id="btn-leave-encounter-shop" className="encounter-leave-button" type="button" onClick={() => onResolve('leave-shop')}>离开商店</button>
+        <button id="btn-leave-encounter-shop" className="encounter-leave-button" type="button" onClick={() => onResolve('leave-shop')}>离开认知黑市</button>
       )}
 
       {(encounter.kind === 'combat' || encounter.kind === 'boss') && !encounter.resolved && (

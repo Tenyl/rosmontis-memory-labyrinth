@@ -1,4 +1,5 @@
 import { clampVital } from './checks';
+import { FRAGMENT_KIND_NAMES } from './terminology';
 import type { MemoryFragment, MemoryFragmentKind } from './types';
 
 export interface FragmentEffectContext {
@@ -19,15 +20,15 @@ export const FRAGMENT_EFFECTS: Record<Exclude<MemoryFragmentKind, 'core'>, {
   description: string;
 }> = {
   emotion: {
-    label: '生活与温存 / 情感碎片',
+    label: FRAGMENT_KIND_NAMES.emotion,
     description: '恢复稳定性并降低过载；遗忘时留下悲伤阻抗。',
   },
   pain: {
-    label: '实验室与冰冷 / 痛苦碎片',
+    label: FRAGMENT_KIND_NAMES.pain,
     description: '提高巨剑伤害并累积过载；高过载时引发幻觉干扰。',
   },
   skill: {
-    label: '战术与本能 / 技能碎片',
+    label: FRAGMENT_KIND_NAMES.skill,
     description: '强化侦测能力并缩短巨剑冷却。',
   },
 };

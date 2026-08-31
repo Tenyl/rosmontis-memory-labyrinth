@@ -117,12 +117,12 @@ export async function clearPresetRun(
   const encountered = new Set<string>();
   const inspectedFloors = new Set<number>();
   const labels = [
-    ['shop', '商店'],
+    ['shop', '认知黑市'],
     ['wonder', '奇境'],
     ['unknown', '未知'],
-    ['combat', '战斗'],
-    ['rest', '休息处'],
-    ['boss', 'Boss 房'],
+    ['combat', '常规作战'],
+    ['rest', '安全屋'],
+    ['boss', '领袖之敌'],
   ] as const;
   for (let step = 0; step < 40; step += 1) {
     const victory = page.getByRole('dialog', { name: '潜入完成：记忆迷宫已逃离' });
@@ -156,8 +156,8 @@ export async function clearPresetRun(
     const preferred = labels
       .filter(([type]) => !encountered.has(type))
       .map(([, label]) => label);
-    if (overload >= 50) preferred.unshift('休息处');
-    await enterReachableNode(page, [...preferred, '休息处', '商店', '奇境', '未知', '战斗', 'Boss 房']);
+    if (overload >= 50) preferred.unshift('安全屋');
+    await enterReachableNode(page, [...preferred, '安全屋', '认知黑市', '奇境', '未知', '常规作战', '领袖之敌']);
   }
   throw new Error('预设 Run 未能在 40 个可见交互步骤内完成。');
 }

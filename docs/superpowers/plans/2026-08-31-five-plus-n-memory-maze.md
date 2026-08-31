@@ -243,7 +243,7 @@ expect([69, 70, 79, 80, 99, 100].map(getOverloadBand)).toEqual([
 
 - [ ] **Step 4: 实现统一过载函数和新巨剑配置**
 
-所有 UI/规则阈值改为调用 `getOverloadBand`；四柄剑词条统一为立柱/破壁、门扉/守望、探针/认知、哀鸣/共鸣。
+所有 UI/规则阈值改为调用 `getOverloadBand`；四柄剑词条统一为破壁、守望、认知、共鸣。
 
 - [ ] **Step 5: 运行测试和类型检查**
 

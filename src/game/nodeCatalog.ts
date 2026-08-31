@@ -1,4 +1,5 @@
 import type { MazeNodeType } from './types';
+import { NODE_TYPE_NAMES } from './terminology';
 
 export interface DilemmaChoiceDefinition {
   id: string;
@@ -20,25 +21,25 @@ export interface NodeDefinition {
 
 export const NODE_CATALOG: Record<MazeNodeType, NodeDefinition> = {
   combat: {
-    type: 'combat', label: '常规作战', category: 'combat', rewardTier: 'standard',
+    type: 'combat', label: NODE_TYPE_NAMES.combat, category: 'combat', rewardTier: 'standard',
     defaultModifiers: [], combat: { enemyIntegrity: 80, maxRounds: 3, rewardEchoes: 8 },
   },
   'emergency-combat': {
-    type: 'emergency-combat', label: '紧急作战', category: 'combat', rewardTier: 'high',
+    type: 'emergency-combat', label: NODE_TYPE_NAMES['emergency-combat'], category: 'combat', rewardTier: 'high',
     defaultModifiers: ['high-threat', 'overload-surge', 'reinforced-shield'],
     combat: { enemyIntegrity: 120, maxRounds: 4, rewardEchoes: 14 },
   },
   safehouse: {
-    type: 'safehouse', label: '休息处 / 安全屋', category: 'recovery', rewardTier: 'none', defaultModifiers: [],
+    type: 'safehouse', label: NODE_TYPE_NAMES.safehouse, category: 'recovery', rewardTier: 'none', defaultModifiers: [],
   },
   shop: {
-    type: 'shop', label: '认知黑市 / 商店', category: 'economy', rewardTier: 'none', defaultModifiers: [],
+    type: 'shop', label: NODE_TYPE_NAMES.shop, category: 'economy', rewardTier: 'none', defaultModifiers: [],
   },
   encounter: {
-    type: 'encounter', label: '不期而遇 / 奇境', category: 'event', rewardTier: 'standard', defaultModifiers: [],
+    type: 'encounter', label: NODE_TYPE_NAMES.encounter, category: 'event', rewardTier: 'standard', defaultModifiers: [],
   },
   dilemma: {
-    type: 'dilemma', label: '命运抉择', category: 'event', rewardTier: 'high',
+    type: 'dilemma', label: NODE_TYPE_NAMES.dilemma, category: 'event', rewardTier: 'high',
     defaultModifiers: ['memory-transmutation'],
     dilemmaChoices: [
       {
@@ -52,10 +53,10 @@ export const NODE_CATALOG: Record<MazeNodeType, NodeDefinition> = {
     ],
   },
   unknown: {
-    type: 'unknown', label: '未知', category: 'unknown', rewardTier: 'standard', defaultModifiers: [],
+    type: 'unknown', label: NODE_TYPE_NAMES.unknown, category: 'unknown', rewardTier: 'standard', defaultModifiers: [],
   },
   boss: {
-    type: 'boss', label: '领袖之敌 / Boss', category: 'boss', rewardTier: 'boss', defaultModifiers: ['two-phase-core'],
+    type: 'boss', label: NODE_TYPE_NAMES.boss, category: 'boss', rewardTier: 'boss', defaultModifiers: ['two-phase-core'],
   },
 };
 

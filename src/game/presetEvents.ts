@@ -63,8 +63,8 @@ const PRESET_EVENT_POOL: Record<MazeNodeType, PresetEventTemplate[]> = {
       title: '神经风暴封锁区',
       body: '高密度残响沿金属墙面反复折射，实体护盾正在持续增生。终端将这里标记为高威胁作战区。',
       choices: [
-        { id: 'emergency-breach', label: '以立柱强行破壁', description: '承受额外过载，快速击穿增生护盾。', effect: { sanityDelta: -5, overloadDelta: 16 } },
-        { id: 'emergency-watch', label: '展开门扉稳步推进', description: '牺牲速度换取稳定的防护窗口。', effect: { sanityDelta: 2, overloadDelta: 9 } },
+        { id: 'emergency-breach', label: '使用破壁强行击穿', description: '承受额外过载，快速击穿增生护盾。', effect: { sanityDelta: -5, overloadDelta: 16 } },
+        { id: 'emergency-watch', label: '使用守望稳步推进', description: '牺牲速度换取稳定的防护窗口。', effect: { sanityDelta: 2, overloadDelta: 9 } },
       ],
     },
   ],

@@ -37,19 +37,19 @@ test('renders all node types and exposes current, reachable, and hidden states w
   );
 
   expect(screen.getByRole('heading', { name: '迷宫拓扑图' })).toBeVisible();
-  for (const label of ['战斗', '不期而遇 / 奇境', '商店', '未知', '休息处 / 安全屋', 'Boss 房']) {
+  for (const label of ['常规作战', '奇境', '认知黑市', '未知', '安全屋', '领袖之敌']) {
     expect(screen.getAllByText(label)[0]).toBeVisible();
   }
   expect(container.querySelector('.run-maze-edges')).toHaveStyle({ pointerEvents: 'none' });
 
-  expect(screen.getByRole('button', { name: /战斗.*当前节点/ })).toHaveAttribute('aria-current', 'step');
+  expect(screen.getByRole('button', { name: /常规作战.*当前节点/ })).toHaveAttribute('aria-current', 'step');
   const reachable = screen.getByRole('button', { name: /奇境.*风险 A.*可抵达/ });
   expect(reachable).toBeEnabled();
   expect(reachable).toHaveAttribute('id', 'run-maze-node-node-reachable');
-  expect(screen.getByRole('button', { name: /休息处.*未侦测/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /安全屋.*未侦测/ })).toBeDisabled();
 
   await user.click(reachable);
-  expect(screen.getByRole('heading', { name: '不期而遇 / 奇境' })).toBeVisible();
+  expect(screen.getByRole('heading', { name: '奇境' })).toBeVisible();
   expect(onMove).not.toHaveBeenCalled();
   await user.click(screen.getByRole('button', { name: '进入节点' }));
   expect(onMove).toHaveBeenCalledOnce();
@@ -86,5 +86,5 @@ test('attaches novel briefs by node ID without changing graph order or movement'
   expect(buttons[0]).toHaveTextContent('无名站台');
   expect(buttons[1]).toHaveTextContent('倒流雨幕');
   expect(buttons[1]).toBeEnabled();
-  expect(buttons[4]).toHaveTextContent('休息处');
+  expect(buttons[4]).toHaveTextContent('安全屋');
 });

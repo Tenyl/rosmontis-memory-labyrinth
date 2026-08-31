@@ -42,7 +42,7 @@ test('keeps unknown results secret while exposing risk and keyboard actions', as
 
   expect(screen.getByRole('heading', { name: '未知信号' })).toBeVisible();
   expect(screen.getByText('风险 A')).toBeVisible();
-  expect(screen.queryByText('真实类型：战斗')).not.toBeInTheDocument();
+  expect(screen.queryByText('真实类型：常规作战')).not.toBeInTheDocument();
 
   await user.click(screen.getByRole('button', { name: '感知侦测' }));
   expect(onUseExplorationPower).toHaveBeenCalledWith({ swordId: 'perception', nodeId: unknownNode.id });
@@ -57,7 +57,7 @@ test('keeps unknown results secret while exposing risk and keyboard actions', as
 test('reveals the generated type only after a local scan', () => {
   renderIntel({ ...unknownNode, revealed: true });
 
-  expect(screen.getByText('真实类型：战斗')).toBeVisible();
+  expect(screen.getByText('真实类型：常规作战')).toBeVisible();
   expect(screen.queryByRole('button', { name: '感知侦测' })).not.toBeInTheDocument();
 });
 

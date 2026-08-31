@@ -40,7 +40,7 @@ test('renders combat progress and emits the selected local rule action', async (
   expect(screen.getByText('第 2 / 3 轮')).toBeVisible();
   expect(screen.queryByRole('button', { name: /破壁强攻/ })).not.toBeInTheDocument();
   expect(document.querySelector('#btn-encounter-combat-breach')).toBeNull();
-  expect(screen.getByText(/点击上方.*立柱.*门扉/)).toBeVisible();
+  expect(screen.getByText(/点击上方.*破壁.*守望/)).toBeVisible();
 });
 
 test('renders shop module offers, affordability and fragment sales', async () => {
@@ -49,7 +49,7 @@ test('renders shop module offers, affordability and fragment sales', async () =>
   const onSellFragment = vi.fn();
   const encounter: PendingEncounter = {
     kind: 'shop', nodeId: 'shop-1', resolved: false,
-    choices: [{ id: 'leave-shop', label: '离开商店', description: '结束交易。' }],
+    choices: [{ id: 'leave-shop', label: '离开认知黑市', description: '结束交易。' }],
     offers: [
       { id: 'offer-breach', kind: 'module', moduleId: 'breach-circuit', price: 10 },
       { id: 'offer-noise', kind: 'module', moduleId: 'white-noise', price: 14 },
@@ -143,7 +143,7 @@ test('reveals an unknown result only after local settlement', () => {
       canAdvanceFloor={false}
     />,
   );
-  expect(screen.getByText('真实类型：战斗')).toBeVisible();
+  expect(screen.getByText('真实类型：常规作战')).toBeVisible();
 });
 
 test('accepts a dragged tactical card as the same encounter action', () => {

@@ -1,5 +1,6 @@
 import { clampVital } from './checks';
 import { applyBerserkDamage, getOverloadBand } from './overload';
+import { GREATSWORD_NAMES } from './terminology';
 import type {
   GreatswordAction,
   GreatswordCombatState,
@@ -26,7 +27,7 @@ export interface GreatswordConfig {
 
 export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
   breach: {
-    name: '立柱 / 破壁',
+    name: GREATSWORD_NAMES.breach,
     tacticalRole: '破甲粉碎',
     description: '以质量投射粉碎护甲与认知障碍。',
     actionPointCost: 2,
@@ -37,7 +38,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     effect: { field: 'enemyIntegrity', delta: -30 },
   },
   watch: {
-    name: '门扉 / 守望',
+    name: GREATSWORD_NAMES.watch,
     tacticalRole: '实体屏障',
     description: '展开实体屏障，吸收伤害并保护稳定性。',
     actionPointCost: 1,
@@ -48,7 +49,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     effect: { field: 'guard', delta: 24 },
   },
   perception: {
-    name: '探针 / 认知',
+    name: GREATSWORD_NAMES.perception,
     tacticalRole: '神经扫描',
     description: '揭示未知节点并洞察敌方弱点。',
     actionPointCost: 1,
@@ -59,7 +60,7 @@ export const GREATSWORD_CONFIG: Record<GreatswordId, GreatswordConfig> = {
     effect: { field: 'insight', delta: 2 },
   },
   resonance: {
-    name: '哀鸣 / 共鸣',
+    name: GREATSWORD_NAMES.resonance,
     tacticalRole: '全域共振',
     description: '稳定深层核心并净化失控的情绪回声。',
     actionPointCost: 2,

@@ -6,6 +6,7 @@ import {
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import { getBossDefinition } from '../../game/bosses';
 import type { EncounterAction, PendingEncounter } from '../../game/types';
+import { GREATSWORD_CONFIG } from '../../game/greatswords';
 
 interface BossEncounterProps {
   encounter: Extract<PendingEncounter, { kind: 'boss' }>;
@@ -23,13 +24,13 @@ export function BossEncounter({ encounter, actionPoints, onAction }: BossEncount
 
   return (
     <div className={`boss-encounter is-${reconciliation ? 'reconciliation' : 'shield'}${encounter.resolved ? ' is-resolved' : ''}`}>
-      <img src={resolveImageAsset('bossNode')} alt="Boss 立绘资源占位图" />
+      <img src={resolveImageAsset('bossNode')} alt="领袖之敌立绘资源占位图" />
       <div className="boss-encounter-copy">
         <span>{definition.kind === 'closed-heart' ? 'FINAL COGNITION / CLOSED HEART' : 'FLOOR GATEKEEPER'}</span>
         <h3>{reconciliation ? '阶段二：拥抱与共鸣' : definition.phases === 2 ? '阶段一：破除心防' : definition.shieldLabel}</h3>
         <p>{reconciliation
-          ? '伤害型指令已锁定。请使用【哀鸣 / 共鸣】战术卡，或在她愿意回应时握住手，让和解逐步抵达 100。'
-          : '使用【立柱 / 破壁】战术卡击碎防护；守门残响清除后即可进入下一层。'}</p>
+          ? `伤害型指令已锁定。请使用【${GREATSWORD_CONFIG.resonance.name}】战术卡，或在她愿意回应时握住手，让和解逐步抵达 100。`
+          : `使用【${GREATSWORD_CONFIG.breach.name}】战术卡击碎防护；守门残响清除后即可进入下一层。`}</p>
       </div>
       <div className="boss-phase-meters">
         <div><span><ShieldChevron size={15} aria-hidden />心防完整度</span><strong>{encounter.enemyIntegrity} / 80</strong><i style={{ width: `${Math.min(100, encounter.enemyIntegrity / 80 * 100)}%` }} /></div>

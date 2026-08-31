@@ -15,10 +15,10 @@ test('executes a legal offline greatsword action through the Run store', async (
   const user = userEvent.setup();
   renderApp('/operation');
 
-  await user.click(await screen.findByRole('button', { name: /门扉.*守望.*实体屏障/ }));
+  await user.click(await screen.findByRole('button', { name: /守望.*实体屏障/ }));
 
   expect(useGameStore.getState().rosmontis).toMatchObject({ actionPoints: 3, overload: 5, guard: 24 });
-  expect(screen.getByText('门扉 / 守望已执行 · -1 AP · +5% 过载 · 冷却 1')).toBeVisible();
+  expect(screen.getByText('守望已执行 · -1 AP · +5% 过载 · 冷却 1')).toBeVisible();
 });
 
 test('settles the current node through its dedicated encounter choices', async () => {
@@ -57,7 +57,7 @@ test('uses a sword card as the only damage command in the fifth-floor boss encou
 
   expect(await screen.findByRole('heading', { name: '阶段一：破除心防' })).toBeVisible();
   expect(document.querySelector('#btn-encounter-boss-breach')).toBeNull();
-  await user.click(screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ }));
+  await user.click(screen.getByRole('button', { name: /破壁.*破甲粉碎/ }));
   expect(useGameStore.getState().pendingEncounter).toMatchObject({ kind: 'boss', enemyIntegrity: 50, phase: 'shield' });
   expect(screen.getByText('50 / 80')).toBeVisible();
 });

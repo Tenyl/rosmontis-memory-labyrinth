@@ -83,7 +83,7 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
       nodeId: node.id,
       resolved: false,
       offers: buildShopOffers(state, node),
-      choices: [{ id: 'leave-shop', label: '离开商店', description: '结束本次交易。' }],
+      choices: [{ id: 'leave-shop', label: '离开认知黑市', description: '结束本次交易。' }],
     };
   }
   if (node.type === 'encounter' || node.type === 'dilemma') {
@@ -252,9 +252,9 @@ export function resolveEncounterChoice(
 
   if (encounter.kind === 'shop') {
     if (choiceId === 'leave-shop') return completed(state, encounter);
-    if (!choiceId.startsWith('buy:')) return rejected(state, '商店操作无效。');
+    if (!choiceId.startsWith('buy:')) return rejected(state, '认知黑市操作无效。');
     const offer = encounter.offers.find((item) => item.id === choiceId.slice(4));
-    if (!offer) return rejected(state, '商店报价不存在。');
+    if (!offer) return rejected(state, '认知黑市报价不存在。');
     const purchase = purchaseOffer(state, offer);
     if (!purchase.accepted) return rejected(state, purchase.reason ?? '交易无法完成。');
     return {
@@ -328,7 +328,7 @@ export function resolveEncounterChoice(
       state.rosmontis.overload,
     );
     const boss = resolveBossAction(encounter, { type: 'breach', power: damage });
-    if (!boss.accepted) return rejected(state, boss.reason ?? '立柱无法触及这段记忆。');
+    if (!boss.accepted) return rejected(state, boss.reason ?? '破壁无法触及这段记忆。');
     const backlash = getOverloadBand(state.rosmontis.overload) === 'berserk' ? 8 : 0;
     const hallucination = fragmentEffects.hallucinating ? 3 : 0;
     const next = updateVitals(state, (encounter.glitch ? -3 : 0) - backlash - hallucination, encounter.glitch ? 5 : 2);
@@ -344,7 +344,7 @@ export function resolveEncounterChoice(
       events: [],
     };
   }
-  if (choiceId !== 'boss-resonate') return rejected(state, 'Boss 行动无效。');
+  if (choiceId !== 'boss-resonate') return rejected(state, '领袖之敌行动无效。');
   const stability = applyModuleEffect(state.modules, { type: 'resonance-stability', value: 25 });
   const boss = resolveBossAction(encounter, { type: 'resonance', power: stability });
   if (!boss.accepted) return rejected(state, boss.reason ?? '共鸣尚未抵达核心。');

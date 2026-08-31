@@ -30,14 +30,14 @@ test('离线预设迷宫完整通过五层并覆盖八类节点', async ({ page 
 
   const allNodeTypes = new Set([...floorTopologies.values()].flatMap((labels) => [...labels]));
   for (const label of [
-    '战斗',
+    '常规作战',
     '紧急作战',
-    '休息处 / 安全屋',
-    '商店',
-    '不期而遇 / 奇境',
+    '安全屋',
+    '认知黑市',
+    '奇境',
     '命运抉择',
     '未知',
-    'Boss 房',
+    '领袖之敌',
   ]) expect(allNodeTypes.has(label), `五层拓扑应包含“${label}”`).toBe(true);
   for (const kind of ['rest', 'combat', 'shop', 'wonder', 'unknown', 'boss']) {
     expect(encountered.has(kind), `可见路径应实际结算 ${kind} 遭遇`).toBe(true);

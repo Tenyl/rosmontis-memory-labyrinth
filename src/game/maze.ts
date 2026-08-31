@@ -215,7 +215,7 @@ export function validateMaze(graph: MazeGraph): { valid: boolean; issues: string
 
   const bosses = graph.nodes.filter((node) => node.type === 'boss');
   if (bosses.length !== 1 || bosses[0]?.id !== graph.coreNodeId) {
-    issues.push('每层必须以唯一 Boss 房结束。');
+    issues.push('每层必须以唯一领袖之敌节点结束。');
   }
 
   const types = new Set(graph.nodes.map((node) => node.type));
@@ -259,7 +259,7 @@ export function validateMaze(graph: MazeGraph): { valid: boolean; issues: string
   }
 
   if (!hasUnlockedPath(graph, graph.startNodeId, graph.coreNodeId)) {
-    issues.push('入口到 Boss 房缺少无需解锁的合法路线。');
+    issues.push('入口到领袖之敌节点缺少无需解锁的合法路线。');
   }
   if (nodeIdSet.has(graph.startNodeId) && getReachableNodeIds(graph, graph.startNodeId).size !== graph.nodes.length) {
     issues.push('存在无法从起点到达的节点。');

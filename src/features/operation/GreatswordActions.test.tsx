@@ -32,10 +32,10 @@ test('renders four configured tactical cards with AP, cooldown, and overload cos
     />,
   );
 
-  const breach = screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ });
-  const watch = screen.getByRole('button', { name: /门扉.*守望.*实体屏障/ });
-  const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
-  const resonance = screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ });
+  const breach = screen.getByRole('button', { name: /破壁.*破甲粉碎/ });
+  const watch = screen.getByRole('button', { name: /守望.*实体屏障/ });
+  const perception = screen.getByRole('button', { name: /认知.*神经扫描/ });
+  const resonance = screen.getByRole('button', { name: /共鸣.*全域共振/ });
 
   expect(breach).toHaveAttribute('id', 'btn-greatsword-breach');
   expect(watch).toHaveAttribute('id', 'btn-greatsword-watch');
@@ -68,10 +68,10 @@ test('disables node-incompatible and cooling swords while dispatching a legal co
     />,
   );
 
-  expect(screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /门扉.*守望.*实体屏障/ })).toBeDisabled();
-  expect(screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ })).toBeEnabled();
-  const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
+  expect(screen.getByRole('button', { name: /破壁.*破甲粉碎/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /守望.*实体屏障/ })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /共鸣.*全域共振/ })).toBeEnabled();
+  const perception = screen.getByRole('button', { name: /认知.*神经扫描/ });
   expect(perception).toBeEnabled();
 
   await user.click(perception);
@@ -96,7 +96,7 @@ test('reports the newest settled sword event without recalculating its values', 
     />,
   );
 
-  expect(screen.getByRole('status')).toHaveTextContent('探针 / 认知已执行 · -1 AP · +7% 过载 · 冷却 2');
+  expect(screen.getByRole('status')).toHaveTextContent('认知已执行 · -1 AP · +7% 过载 · 冷却 2');
 });
 
 test('disables precision scanning while overload is in the berserk band', () => {
@@ -111,7 +111,7 @@ test('disables precision scanning while overload is in the berserk band', () => 
     />,
   );
 
-  const perception = screen.getByRole('button', { name: /探针.*认知.*神经扫描/ });
+  const perception = screen.getByRole('button', { name: /认知.*神经扫描/ });
   expect(perception).toBeDisabled();
   expect(perception).toHaveAccessibleDescription('暴走时无法维持精细的神经扫描');
 });
@@ -130,9 +130,9 @@ test('locks damage cards after the closed heart enters reconciliation', () => {
       onAction={vi.fn()}
     />,
   );
-  const breach = screen.getByRole('button', { name: /立柱.*破壁.*破甲粉碎/ });
-  const resonance = screen.getByRole('button', { name: /哀鸣.*共鸣.*全域共振/ });
+  const breach = screen.getByRole('button', { name: /破壁.*破甲粉碎/ });
+  const resonance = screen.getByRole('button', { name: /共鸣.*全域共振/ });
   expect(breach).toBeDisabled();
-  expect(breach).toHaveAccessibleDescription(/仅允许哀鸣.*共鸣与安抚/);
+  expect(breach).toHaveAccessibleDescription(/仅允许共鸣与安抚/);
   expect(resonance).toBeEnabled();
 });
