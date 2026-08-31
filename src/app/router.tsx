@@ -11,6 +11,7 @@ const SettingsPage = lazy(() => import('../features/settings/SettingsPage'));
 const CompendiumPage = lazy(() => import('../features/compendium/CompendiumPage'));
 const DiaryPage = lazy(() => import('../features/diary/DiaryPage'));
 const RecordsPage = lazy(() => import('../features/records/RecordsPage'));
+const GamePage = lazy(() => import('../features/game/GamePage'));
 
 export function createAppRouter() {
   return createBrowserRouter([
@@ -28,6 +29,7 @@ export function createAppRouter() {
         { path: 'compendium', element: <CompendiumPage /> },
         { path: 'diary', element: <DiaryPage /> },
         { path: 'records', element: <RecordsPage /> },
+        { path: 'game', element: <GamePage /> },
         { path: '*', element: <Navigate to="/operation" replace /> },
       ],
     },

@@ -1,0 +1,13 @@
+.game-route { max-width: 1800px; }
+.rosmontis-presence { display: grid; gap: var(--space-3); margin-bottom: var(--space-4); }
+.game-stage { position: relative; min-width: 0; }
+.node-scene { display: grid; gap: var(--space-4); }
+.node-scene-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); padding: var(--space-6); border: 1px solid var(--color-line-subtle); border-left: 3px solid var(--color-memory-blue); background: linear-gradient(120deg,var(--color-memory-blue-soft),var(--color-background-elevated) 65%); box-shadow: var(--shadow-base); }
+.node-scene-header span { color: var(--color-memory-blue); font: 600 .6rem/1 var(--font-data); letter-spacing: .08em; }
+.node-scene-header h2 { margin: var(--space-3) 0 var(--space-2); font-size: clamp(1.25rem,3vw,2rem); }
+.node-scene-header p { max-width: 68ch; margin: 0; color: var(--color-text-secondary); font-size: .72rem; line-height: 1.7; }
+.node-scene-header>strong { color: var(--color-text-tertiary); font: 500 .62rem/1.4 var(--font-data); }
+.node-scene-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-5); padding: var(--space-5) var(--space-6); border: 1px solid var(--color-line-subtle); background: var(--color-background-elevated); }
+.node-scene-footer p { max-width: 72ch; margin: 0; color: var(--color-text-secondary); font-size: .7rem; line-height: 1.65; }
+.node-scene-footer button { flex: 0 0 auto; }
+@media (max-width: 767px) { .node-scene-header,.node-scene-footer { align-items: stretch; flex-direction: column; padding: var(--space-4); } .node-scene-footer button { justify-content: center; width: 100%; min-height: 44px; } }
