@@ -1,6 +1,7 @@
 import { clampVital } from './checks';
 import { purchaseOffer } from './economy';
 import { applyModuleEffect, MODULE_CATALOG } from './modules';
+import { getNodeDefinition } from './nodeCatalog';
 import type {
   EncounterChoice,
   EncounterRuleState,
@@ -34,6 +35,12 @@ const WONDER_CHOICES: EncounterChoice[] = [
   { id: 'wonder-resonate', label: '激活共鸣层', description: '消耗已经准备的共鸣状态。', requiresResonance: true },
 ];
 
+const DILEMMA_CHOICES: EncounterChoice[] = (getNodeDefinition('dilemma').dilemmaChoices ?? []).map((choice) => ({
+  id: choice.id,
+  label: choice.label,
+  description: `${choice.description} 代价：${choice.cost}；收益：${choice.reward}。`,
+}));
+
 function buildShopOffers(state: EncounterRuleState, node: MazeNode): ModuleShopOffer[] {
   const available = MODULE_CATALOG.filter((module) => !state.modules.includes(module.id));
   const offset = [...node.id].reduce((sum, character) => sum + character.charCodeAt(0), 0)
@@ -52,14 +59,15 @@ function buildShopOffers(state: EncounterRuleState, node: MazeNode): ModuleShopO
 
 function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncounter {
   if (node.type === 'combat' || node.type === 'emergency-combat') {
+    const combat = getNodeDefinition(node.type).combat!;
     return {
       kind: 'combat',
       nodeId: node.id,
       resolved: false,
       round: 1,
-      maxRounds: node.type === 'emergency-combat' ? 4 : node.risk === 'A' || node.risk === 'S' ? 3 : 2,
-      enemyIntegrity: node.type === 'emergency-combat' ? 120 : 80,
-      rewardEchoes: node.type === 'emergency-combat' ? 14 : 8,
+      maxRounds: node.type === 'combat' && node.risk === 'C' ? 2 : combat.maxRounds,
+      enemyIntegrity: combat.enemyIntegrity,
+      rewardEchoes: combat.rewardEchoes,
       choices: COMBAT_CHOICES,
     };
   }
@@ -76,7 +84,13 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
     };
   }
   if (node.type === 'encounter' || node.type === 'dilemma') {
-    return { kind: 'encounter', nodeId: node.id, resolved: false, choices: WONDER_CHOICES };
+    return {
+      kind: 'encounter',
+      variant: node.type === 'dilemma' ? 'dilemma' : 'standard',
+      nodeId: node.id,
+      resolved: false,
+      choices: node.type === 'dilemma' ? DILEMMA_CHOICES : WONDER_CHOICES,
+    };
   }
   if (node.type === 'unknown') {
     if (!node.hiddenType) throw new Error('未知节点缺少本地生成的真实类型。');
@@ -247,6 +261,14 @@ export function resolveEncounterChoice(
     }
     if (choice.requiresResonance && !state.routeEffects.resonanceActive) {
       return rejected(state, '需要先激活共鸣探索能力。');
+    }
+    if (encounter.variant === 'dilemma') {
+      if (choiceId === 'dilemma-release-pain') return completed(updateVitals(state, 8, -8), encounter);
+      if (choiceId === 'dilemma-keep-instinct') {
+        const granted = grantEchoes(updateVitals(state, -4, 14), 12);
+        return completed(granted.state, encounter, [granted.event]);
+      }
+      return rejected(state, '命运抉择选项无效。');
     }
     if (choiceId === 'wonder-anchor') return completed(updateVitals(state, 6, -4), encounter);
     const amount = choiceId === 'wonder-resonate' ? 8 : 4;

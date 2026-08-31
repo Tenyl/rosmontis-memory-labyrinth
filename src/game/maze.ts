@@ -1,5 +1,6 @@
 import { createSeededRandom, randomInt } from './random';
 import { getFloorDefinition } from './floors';
+import { getNodeDefinition } from './nodeCatalog';
 import type {
   HiddenMazeNodeType,
   MazeEdge,
@@ -65,12 +66,10 @@ function createColumnWidths(
 }
 
 function getNodeModifiers(type: MazeNodeType, risk: MazeRisk): string[] {
-  if (type === 'combat' && (risk === 'A' || risk === 'S')) return ['high-threat'];
-  if (type === 'emergency-combat') return ['high-threat', 'overload-surge', 'reinforced-shield'];
-  if (type === 'dilemma') return ['memory-transmutation'];
-  if (type === 'unknown' && risk === 'S') return ['unstable-signal'];
-  if (type === 'boss') return ['two-phase-core'];
-  return [];
+  const modifiers = [...getNodeDefinition(type).defaultModifiers];
+  if (type === 'combat' && (risk === 'A' || risk === 'S')) modifiers.push('high-threat');
+  if (type === 'unknown' && risk === 'S') modifiers.push('unstable-signal');
+  return modifiers;
 }
 
 export function generateMaze(input: GenerateMazeInput): MazeGraph {

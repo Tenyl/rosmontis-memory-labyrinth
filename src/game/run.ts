@@ -1,12 +1,13 @@
 import { clampVital } from './checks';
-import { createEncounter, resolveEncounterChoice } from './encounters';
-import { sellFragment } from './economy';
+import { createEncounter } from './encounters';
+import { resolveEncounterAction } from './encounterProtocol';
 import { spendScoutPoint, useExplorationPower } from './exploration';
 import { acquireFragment, resolveFragmentOverflow } from './fragments';
 import { resolveGreatswordAction } from './greatswords';
 import { generateMaze } from './maze';
 import type {
   GreatswordCombatState,
+  EncounterAction,
   MemoryFragment,
   ProgressionState,
   RoguelikeState,
@@ -126,18 +127,12 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
     return accepted(createEncounter(state, node), []);
   }
   if (action.type === 'resolve-encounter') return resolveCurrentEncounter(state, action.choiceId);
+  if (action.type === 'resolve-encounter-action') return resolveCurrentEncounterAction(state, action.action);
   if (action.type === 'purchase-offer') {
-    return resolveCurrentEncounter(state, `buy:${action.offerId}`);
+    return resolveCurrentEncounterAction(state, { type: 'buy', offerId: action.offerId });
   }
   if (action.type === 'sell-fragment') {
-    const resolution = sellFragment(state, action.fragmentId);
-    if (!resolution.accepted) return rejected(state, resolution.reason ?? '记忆碎片无法出售。');
-    return accepted({
-      ...state,
-      economy: resolution.state.economy,
-      modules: resolution.state.modules,
-      memoryInventory: resolution.state.memoryInventory,
-    }, resolution.events);
+    return resolveCurrentEncounterAction(state, { type: 'sell', fragmentId: action.fragmentId });
   }
   if (action.type === 'use-exploration-power') {
     const resolution = useExplorationPower({
@@ -227,7 +222,14 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
 }
 
 function resolveCurrentEncounter(state: RoguelikeState, choiceId: string): RunResolution {
-  const resolution = resolveEncounterChoice(state, choiceId);
+  return resolveCurrentEncounterAction(state, { type: 'choose', choiceId });
+}
+
+function resolveCurrentEncounterAction(
+  state: RoguelikeState,
+  action: EncounterAction,
+): RunResolution {
+  const resolution = resolveEncounterAction(state, action);
   if (!resolution.accepted) {
     return rejected(state, resolution.reason ?? '节点遭遇无法结算。');
   }

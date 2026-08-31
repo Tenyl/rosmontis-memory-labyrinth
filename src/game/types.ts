@@ -104,6 +104,7 @@ export type RuleEvent =
   | { type: 'fragment.replaced'; forgottenFragmentId: string; acquiredFragmentId: string }
   | { type: 'run.moved'; sourceNodeId: string; targetNodeId: string }
   | { type: 'node.completed'; nodeId: string }
+  | { type: 'encounter.action-resolved'; nodeId: string; actionType: EncounterAction['type'] }
   | { type: 'economy.echoes-changed'; delta: number; balance: number }
   | { type: 'module.acquired'; moduleId: ModuleId }
   | { type: 'fragment.sold'; fragmentId: string; echoes: number }
@@ -171,6 +172,13 @@ export interface EncounterChoice {
   requiresResonance?: boolean;
 }
 
+export type EncounterAction =
+  | { type: 'play-sword'; swordId: GreatswordId }
+  | { type: 'choose'; choiceId: string }
+  | { type: 'buy'; offerId: string }
+  | { type: 'sell'; fragmentId: string }
+  | { type: 'leave-shop' };
+
 interface EncounterBase {
   nodeId: string;
   resolved: boolean;
@@ -187,7 +195,7 @@ export type PendingEncounter =
     })
   | (EncounterBase & { kind: 'safehouse' })
   | (EncounterBase & { kind: 'shop'; offers: ModuleShopOffer[] })
-  | (EncounterBase & { kind: 'encounter' })
+  | (EncounterBase & { kind: 'encounter'; variant?: 'standard' | 'dilemma' })
   | (EncounterBase & {
       kind: 'unknown';
       hiddenType: HiddenMazeNodeType;
@@ -256,6 +264,7 @@ export type RunAction =
   | { type: 'move-to-node'; nodeId: string }
   | { type: 'begin-node' }
   | { type: 'resolve-encounter'; choiceId: string }
+  | { type: 'resolve-encounter-action'; action: EncounterAction }
   | { type: 'purchase-offer'; offerId: string }
   | { type: 'sell-fragment'; fragmentId: string }
   | { type: 'use-exploration-power'; action: ExplorationPowerAction }

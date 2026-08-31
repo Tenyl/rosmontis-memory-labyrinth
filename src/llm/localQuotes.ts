@@ -26,6 +26,8 @@ export function describeRuleEvent(event: RuleEvent): string {
       return '向新的迷宫节点移动';
     case 'node.completed':
       return '完成当前迷宫节点的解析';
+    case 'encounter.action-resolved':
+      return '完成当前遭遇中的一次行动';
     case 'economy.echoes-changed':
       return event.delta >= 0 ? '获得记忆残响' : '消耗记忆残响';
     case 'module.acquired':
@@ -61,6 +63,8 @@ export function selectLocalQuote(
       return { text: '我会沿着这条路继续。' };
     case 'node.completed':
       return { text: '我已经把这个节点记下了。' };
+    case 'encounter.action-resolved':
+      return { text: '这一步已经完成，我会等你的下一个指令。' };
     case 'economy.echoes-changed':
       return { text: '这些残响还能帮助我们继续。' };
     case 'module.acquired':
