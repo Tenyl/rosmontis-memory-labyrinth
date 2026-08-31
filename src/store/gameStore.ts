@@ -42,7 +42,7 @@ import { resolveD20Check } from '../game/checks';
 
 interface GameActions {
   dispatchRunAction: (action: RunAction) => RunResolution;
-  startRun: (seed: string, mode: RunMode, llmEnabled: boolean) => void;
+  startRun: (seed: string, mode: RunMode, llmEnabled: boolean, manualStart?: boolean) => void;
   moveToNode: (nodeId: string) => void;
   beginCurrentEncounter: () => void;
   resolveEncounterChoice: (choiceId: string) => void;
@@ -368,9 +368,9 @@ export const useGameStore = create<GameStore>()(
         }
         return resolution;
       },
-      startRun: (seed, mode, llmEnabled) =>
+      startRun: (seed, mode, llmEnabled, manualStart = false) =>
         set((state) => {
-          const next = createRun({ seed, mode, progression: state.progression, llmEnabled });
+          const next = createRun({ seed, mode, progression: state.progression, llmEnabled, manualStart });
           return {
             ...applyRoguelikeState(state, next, []),
             ruleLog: [],

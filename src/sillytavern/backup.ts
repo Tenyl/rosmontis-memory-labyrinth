@@ -2,6 +2,7 @@ import {
   DB_VERSION,
   exportAllData,
   importAllData,
+  initializeDatabase,
   type FullBackup,
 } from './database';
 import type { AppSettings } from './types';
@@ -25,6 +26,7 @@ function sanitizeSettings(settings: AppSettings): AppSettings {
 }
 
 export async function exportTavernBackup(): Promise<TavernBackup> {
+  await initializeDatabase();
   const full = await exportAllData();
   const settings = full.settings[0];
   if (!settings) throw new Error('当前浏览器中没有可导出的酒馆设置');

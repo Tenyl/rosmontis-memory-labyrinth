@@ -11,6 +11,24 @@ const reward: MemoryFragment = {
 };
 
 describe('run creation and mode availability', () => {
+  test('manual start waits at the completed anchor and exposes at least two first-node choices', () => {
+    const state = createRun({
+      seed: 'manual-entry',
+      mode: 'preset',
+      progression: freshProgression,
+      llmEnabled: false,
+      manualStart: true,
+    });
+
+    const anchor = state.maze.nodes.find((node) => node.id === state.maze.startNodeId);
+    const firstChoices = state.maze.nodes.filter((node) => node.state === 'reachable');
+
+    expect(anchor?.state).toBe('completed');
+    expect(state.pendingEncounter).toBeNull();
+    expect(firstChoices.length).toBeGreaterThanOrEqual(2);
+    expect(firstChoices.every((node) => node.depth === 1)).toBe(true);
+  });
+
   test('creates a replayable preset run at the generated start node', () => {
     const input = { seed: 'RUN-001', mode: 'preset' as const, progression: freshProgression, llmEnabled: false };
     const run = createRun(input);

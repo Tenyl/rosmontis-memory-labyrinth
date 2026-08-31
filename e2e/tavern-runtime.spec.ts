@@ -12,9 +12,9 @@ test('新会话可完成本地回合、刷新恢复并建立来源分支', async
   await page.locator('#nav-game-open').click();
   await page.getByRole('button', { name: '让迷迭香读取记忆回声' }).click();
   await page.getByRole('button', { name: '发送战术指令' }).click();
-  await expect(page.getByRole('button', { name: '选择：在温室边缘短暂休息' })).toBeVisible();
-  await page.getByRole('button', { name: '选择：在温室边缘短暂休息' }).click();
-  await expect(page.locator('#operation-command-input')).toHaveValue('在温室边缘短暂休息');
+  await expect(page.getByRole('button', { name: '选择：检查门牌背面的刻痕' })).toBeVisible();
+  await page.getByRole('button', { name: '选择：检查门牌背面的刻痕' }).click();
+  await expect(page.locator('#operation-command-input')).toHaveValue('检查门牌背面的刻痕');
   await page.getByRole('button', { name: '发送战术指令' }).click();
   await expect(page.getByText('回合完成').last()).toBeVisible();
 

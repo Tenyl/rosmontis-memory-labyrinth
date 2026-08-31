@@ -74,6 +74,7 @@ test('keeps hidden and completed nodes unavailable and exposes state without rel
   expect(screen.getByRole('button', { name: /安全屋.*未侦测/ })).toBeDisabled();
   expect(screen.getByRole('button', { name: /领袖之敌.*已完成/ })).toBeDisabled();
   expect(container.querySelectorAll('.maze-route-path')).toHaveLength(4);
+  expect(container.querySelectorAll('.maze-depth-plane')).toHaveLength(3);
   expect(container.querySelector('.maze-route-path.is-locked')).toBeInTheDocument();
 });
 

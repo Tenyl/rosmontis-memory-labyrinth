@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearPresetRun, settleVisibleEncounter } from './helpers/run';
+import { clearPresetRun, enterReachableNode, settleVisibleEncounter } from './helpers/run';
 import { configureMockApi, installStructuredLlmMock, type MockLlmRequest } from './helpers/mockLlm';
 
 test.setTimeout(240_000);
@@ -20,14 +20,16 @@ test('LLM 返回越权蓝图时保留本地拓扑与 Run 进度', async ({ page 
   await victory.getByRole('button', { name: '重新开始预设迷宫' }).click();
   await configureMockApi(page);
 
-  await expect(page.locator('#run-mode-novel')).toBeEnabled();
-  await page.locator('#run-mode-novel').check();
-  await page.locator('#run-seed-input').fill('PLAYWRIGHT-FALLBACK-01');
-  await page.locator('#btn-start-new-run').click();
+  await page.locator('#global-brand-home').click();
+  await page.getByRole('button', { name: '开始游戏' }).click();
+  await expect(page.locator('#title-mode-novel')).toBeEnabled();
+  await page.locator('#title-mode-novel').check();
+  await page.getByRole('button', { name: /存档槽 2/ }).click();
 
   await expect(page.getByText('小说蓝图已切换至本地叙事')).toBeVisible();
   await expect(page.locator('.run-status-mission')).toContainText('小说剧情');
   await expect(page.locator('.run-status-mission')).toContainText('第 1 / 5 层');
+  await enterReachableNode(page);
   await settleVisibleEncounter(page);
   await page.locator('#game-return-to-maze').click();
   await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();

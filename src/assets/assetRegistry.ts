@@ -6,6 +6,7 @@ export const gameAssets = {
   images: {
     rosmontisPortrait: characterBlank,
     combatNode: nodeBlank,
+    enemyEcho: nodeBlank,
     restNode: nodeBlank,
     shopNode: nodeBlank,
     wonderNode: nodeBlank,
@@ -21,6 +22,9 @@ export const gameAssets = {
     bossBgm: null,
     nodeOpenSfx: null,
     comfortSfx: null,
+    swordImpactSfx: null,
+    enemyAttackSfx: null,
+    settlementSfx: null,
   },
 } as const;
 

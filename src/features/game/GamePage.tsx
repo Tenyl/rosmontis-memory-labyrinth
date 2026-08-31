@@ -12,6 +12,7 @@ import { NodeTransitionLayer } from './NodeTransitionLayer';
 import { NodeScene } from './NodeScene';
 import { RosmontisPresence } from './RosmontisPresence';
 import { gameSceneReducer, restoreGameSceneState } from './sceneState';
+import { createSaveSlot, getActiveSaveSlotId } from '../../game/saveSlots';
 import '../operation/operation.css';
 import './game.css';
 
@@ -42,9 +43,7 @@ export default function GamePage() {
   const advanceRunFloor = useGameStore((state) => state.advanceRunFloor);
   const continueToMindsea = useGameStore((state) => state.continueToMindsea);
   const resolveFragmentChoice = useGameStore((state) => state.resolveFragmentChoice);
-  const startRun = useGameStore((state) => state.startRun);
   const resetRun = useGameStore((state) => state.resetRun);
-  const stabilizeMemoryCore = useGameStore((state) => state.stabilizeMemoryCore);
   const [scene, dispatchScene] = useReducer(gameSceneReducer, pendingEncounter, restoreGameSceneState);
   const pendingFocus = useRef<{ kind: 'map' | 'node'; nodeId: string } | null>(null);
   const currentNode = maze.nodes.find((node) => node.id === run.currentNodeId) ?? maze.nodes[0];
@@ -54,8 +53,13 @@ export default function GamePage() {
   const llmEnabled = Boolean(runtime.settings?.api.apiKey.trim());
 
   useEffect(() => {
-    if (run.phase === 'exploring' && !pendingEncounter) beginCurrentEncounter();
-  }, [beginCurrentEncounter, pendingEncounter, run.currentNodeId, run.phase]);
+    if (run.phase === 'exploring' && !pendingEncounter && currentNode.state !== 'completed') beginCurrentEncounter();
+  }, [beginCurrentEncounter, currentNode.state, pendingEncounter, run.currentNodeId, run.phase]);
+
+  useEffect(() => {
+    const slotId = getActiveSaveSlotId(localStorage);
+    if (slotId) createSaveSlot(slotId, useGameStore.getState(), localStorage);
+  }, [economy, inventory, maze, modules, pendingEncounter, rosmontis, run]);
 
   useEffect(() => {
     if (pendingEncounter && !pendingEncounter.resolved && scene.phase !== 'entering-node' && scene.phase !== 'node') {
@@ -130,31 +134,29 @@ export default function GamePage() {
 
       <RunLifecycleDialog
         run={run}
-        progression={progression}
         llmEnabled={llmEnabled}
-        currentNodeIsCore={currentNode.type === 'boss'}
-        coreStability={rosmontis.coreStability}
-        onStart={startRun}
         onReset={resetRun}
-        onStabilize={stabilizeMemoryCore}
         onContinueMindsea={() => continueToMindsea(llmEnabled)}
       />
       <NovelRunDirector />
-      <GameHud
-        run={run}
-        rosmontis={rosmontis}
-        progression={progression}
-        echoes={economy.echoes}
-        scoutPoints={economy.scoutPoints}
-        moduleCount={modules.length}
-      />
-      <RosmontisPresence
-        rosmontis={rosmontis}
-        bossPhase={pendingEncounter?.kind === 'boss' ? pendingEncounter.phase : null}
-        onAction={resolveEncounterAction}
-      />
+      <div className="game-play-layout">
+        <aside className="game-status-rail" aria-label="当前状态">
+          <GameHud
+            run={run}
+            rosmontis={rosmontis}
+            progression={progression}
+            echoes={economy.echoes}
+            scoutPoints={economy.scoutPoints}
+            moduleCount={modules.length}
+          />
+          <RosmontisPresence
+            rosmontis={rosmontis}
+            bossPhase={pendingEncounter?.kind === 'boss' ? pendingEncounter.phase : null}
+            onAction={resolveEncounterAction}
+          />
+        </aside>
 
-      <section id="game-stage" className="game-stage" role="region" aria-label="记忆迷宫" data-scene-phase={scene.phase}>
+        <section id="game-stage" className="game-stage" role="region" aria-label="记忆迷宫" data-scene-phase={scene.phase}>
         {showMap ? (
           <>
             <MazeStage
@@ -191,7 +193,7 @@ export default function GamePage() {
             onResolve={resolveEncounterChoice}
             onAction={resolveEncounterAction}
             onSellFragment={sellRunFragment}
-            onAdvanceFloor={advanceRunFloor}
+            onAdvanceFloor={() => { advanceRunFloor(); returnToMaze(); }}
             onReturnToMaze={returnToMaze}
           />
         )}
@@ -206,7 +208,8 @@ export default function GamePage() {
             onReturnFinished={finishReturn}
           />
         ) : null}
-      </section>
+        </section>
+      </div>
 
       <FragmentOverflowDialog inventory={inventory} onResolve={resolveFragmentChoice} />
     </section>

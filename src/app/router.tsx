@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from './AppShell';
 
 const GamePage = lazy(() => import('../features/game/GamePage'));
+const TitlePage = lazy(() => import('../features/title/TitlePage'));
 const CompendiumPage = lazy(() => import('../features/compendium/CompendiumPage'));
 const DiaryPage = lazy(() => import('../features/diary/DiaryPage'));
 const RecordsPage = lazy(() => import('../features/records/RecordsPage'));
@@ -14,7 +15,7 @@ export function createAppRouter() {
       path: '/',
       element: <AppShell />,
       children: [
-        { index: true, element: <Navigate to="/game" replace /> },
+        { index: true, element: <TitlePage /> },
         { path: 'game', element: <GamePage /> },
         { path: 'compendium', element: <CompendiumPage /> },
         { path: 'diary', element: <DiaryPage /> },
@@ -25,7 +26,7 @@ export function createAppRouter() {
         { path: 'operators', element: <Navigate to="/game" replace /> },
         { path: 'archive', element: <Navigate to="/compendium" replace /> },
         { path: 'log', element: <Navigate to="/records" replace /> },
-        { path: '*', element: <Navigate to="/game" replace /> },
+        { path: '*', element: <Navigate to="/" replace /> },
       ],
     },
   ]);

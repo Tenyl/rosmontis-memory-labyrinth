@@ -252,6 +252,9 @@ export function MazeStage({
               updateScale(camera.scale + (event.deltaY < 0 ? 0.1 : -0.1));
             }}
           >
+            <div className="maze-depth-plane is-far" aria-hidden />
+            <div className="maze-depth-plane is-mid" aria-hidden />
+            <div className="maze-depth-plane is-near" aria-hidden />
             <div
               className="maze-camera"
               style={{ transform: `translate3d(${camera.x}px, ${camera.y}px, 0) scale(${camera.scale})` }}

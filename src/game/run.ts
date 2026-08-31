@@ -25,6 +25,7 @@ interface CreateRunInput {
   floor?: number;
   maxFloor?: number;
   targetNodeCount?: number;
+  manualStart?: boolean;
 }
 
 const MAX_ACTION_POINTS = 4;
@@ -111,7 +112,16 @@ export function createRun(input: CreateRunInput): RoguelikeState {
     pendingEncounter: null,
     pendingDiaryDrafts: [],
   };
-  return createEncounter(state, maze.nodes[0]);
+  if (!input.manualStart) return createEncounter(state, maze.nodes[0]);
+  return {
+    ...state,
+    maze: {
+      ...maze,
+      nodes: maze.nodes.map((node) => node.id === maze.startNodeId
+        ? { ...node, state: 'completed' as const }
+        : node),
+    },
+  };
 }
 
 export function reduceRunAction(state: RoguelikeState, action: RunAction): RunResolution {

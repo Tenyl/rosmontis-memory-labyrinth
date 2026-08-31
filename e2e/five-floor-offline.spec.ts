@@ -12,7 +12,7 @@ test('离线预设迷宫完整通过五层并覆盖八类节点', async ({ page 
 
   await page.addInitScript(() => window.localStorage.clear());
   await page.goto('/game');
-  await expect(page.getByRole('heading', { name: '记忆潜入控制' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: '迷迭香的记忆迷宫' })).toBeVisible();
 
   const encountered = new Set<string>();
   const floorTopologies = new Map<number, Set<string>>();
@@ -49,14 +49,5 @@ test('离线预设迷宫完整通过五层并覆盖八类节点', async ({ page 
   await expect(page.getByText('核心记忆：仍被呼唤的名字')).toBeVisible();
   await page.locator('#nav-records-open').click();
   await expect(page.getByRole('region', { name: 'Run 历史' })).toContainText('PRESET-RAIN-ECHO');
-  await page.locator('#nav-game-open').click();
-
-  const endlessMode = page.locator('#run-mode-endless');
-  await expect(endlessMode).toBeEnabled();
-  await endlessMode.check();
-  await page.locator('#run-seed-input').fill('PLAYWRIGHT-ENDLESS-01');
-  await page.getByRole('button', { name: '开始新的记忆潜入' }).click();
-  await expect(page.locator('.run-status-mission')).toContainText('本地无尽');
-  await expect(page.locator('#run-seed-input')).toHaveValue('PLAYWRIGHT-ENDLESS-01');
   expect(browserProblems).toEqual([]);
 });

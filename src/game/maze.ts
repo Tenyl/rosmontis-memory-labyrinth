@@ -48,8 +48,8 @@ function createColumnWidths(
   targetNodeCount: number,
   initialState: SeededRandomState,
 ): { widths: number[]; randomState: SeededRandomState } {
-  const widths = Array.from({ length: MIDDLE_COLUMN_COUNT }, () => 1);
-  let remaining = targetNodeCount - 2 - MIDDLE_COLUMN_COUNT;
+  const widths = Array.from({ length: MIDDLE_COLUMN_COUNT }, (_, index) => index === 0 ? 2 : 1);
+  let remaining = targetNodeCount - 3 - MIDDLE_COLUMN_COUNT;
   let randomState = initialState;
 
   while (remaining > 0) {

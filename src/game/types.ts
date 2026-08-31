@@ -199,6 +199,12 @@ interface EncounterBase {
   nodeId: string;
   resolved: boolean;
   choices: EncounterChoice[];
+  entrySnapshot?: {
+    sanity: number;
+    overload: number;
+    echoes: number;
+    fragments: number;
+  };
 }
 
 export type PendingEncounter =
@@ -207,6 +213,9 @@ export type PendingEncounter =
       round: number;
       maxRounds: number;
       enemyIntegrity: number;
+      enemyMaxIntegrity?: number;
+      enemyStagger?: number;
+      enemyMaxStagger?: number;
       rewardEchoes: number;
     })
   | (EncounterBase & { kind: 'safehouse' })

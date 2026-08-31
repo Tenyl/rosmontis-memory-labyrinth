@@ -61,6 +61,12 @@ function buildShopOffers(state: EncounterRuleState, node: MazeNode): ModuleShopO
 }
 
 function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncounter {
+  const entrySnapshot = {
+    sanity: state.rosmontis.sanity,
+    overload: state.rosmontis.overload,
+    echoes: state.economy.echoes,
+    fragments: state.memoryInventory.fragments.length + state.memoryInventory.coreFragments.length,
+  };
   if (node.type === 'combat' || node.type === 'emergency-combat') {
     const combat = getNodeDefinition(node.type).combat!;
     return {
@@ -70,12 +76,16 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
       round: 1,
       maxRounds: node.type === 'combat' && node.risk === 'C' ? 2 : combat.maxRounds,
       enemyIntegrity: combat.enemyIntegrity,
+      enemyMaxIntegrity: combat.enemyIntegrity,
+      enemyStagger: node.type === 'emergency-combat' ? 60 : 40,
+      enemyMaxStagger: node.type === 'emergency-combat' ? 60 : 40,
       rewardEchoes: combat.rewardEchoes,
       choices: COMBAT_CHOICES,
+      entrySnapshot,
     };
   }
   if (node.type === 'safehouse') {
-    return { kind: 'safehouse', nodeId: node.id, resolved: false, choices: REST_CHOICES };
+    return { kind: 'safehouse', nodeId: node.id, resolved: false, choices: REST_CHOICES, entrySnapshot };
   }
   if (node.type === 'shop') {
     return {
@@ -84,6 +94,7 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
       resolved: false,
       offers: buildShopOffers(state, node),
       choices: [{ id: 'leave-shop', label: '离开认知黑市', description: '结束本次交易。' }],
+      entrySnapshot,
     };
   }
   if (node.type === 'encounter' || node.type === 'dilemma') {
@@ -93,6 +104,7 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
       nodeId: node.id,
       resolved: false,
       choices: node.type === 'dilemma' ? DILEMMA_CHOICES : WONDER_CHOICES,
+      entrySnapshot,
     };
   }
   if (node.type === 'unknown') {
@@ -105,6 +117,7 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
       glitch: state.rosmontis.overload >= 70,
       directEntryBonus: node.revealed ? 0 : 2,
       choices: [{ id: 'unknown-enter', label: '进入未知信号', description: '揭示并结算预先生成的节点结果。' }],
+      entrySnapshot,
     };
   }
   return {
@@ -120,6 +133,7 @@ function encounterFor(state: EncounterRuleState, node: MazeNode): PendingEncount
       { id: 'boss-breach', label: '击穿核心防护', description: '使用破壁回路削减防护完整度。' },
       { id: 'boss-resonate', label: '稳定核心共鸣', description: '在防护解除后重建核心稳定。' },
     ],
+    entrySnapshot,
   };
 }
 
@@ -188,7 +202,7 @@ export function resolveEncounterChoice(
         state: {
           ...state,
           rosmontis: { ...state.rosmontis, guard: state.rosmontis.guard + 24 },
-          pendingEncounter: { ...encounter, round: encounter.round + 1 },
+          pendingEncounter: encounter,
         },
         events: [],
       };
@@ -206,11 +220,11 @@ export function resolveEncounterChoice(
       state.rosmontis.overload,
     );
     const enemyIntegrity = Math.max(0, encounter.enemyIntegrity - damage);
-    const guarded = state.routeEffects.nextNodeGuarded || state.rosmontis.guard > 0;
     const backlash = getOverloadBand(state.rosmontis.overload) === 'berserk' ? 8 : 0;
     const hallucination = fragmentEffects.hallucinating ? 3 : 0;
-    const afterCounter = updateVitals(state, (guarded ? 0 : -4) - backlash - hallucination, 6);
-    const nextEncounter = { ...encounter, enemyIntegrity, round: encounter.round + 1 };
+    const afterCounter = updateVitals(state, -backlash - hallucination, 0);
+    const enemyStagger = Math.max(0, (encounter.enemyStagger ?? 40) - 20);
+    const nextEncounter = { ...encounter, enemyIntegrity, enemyStagger };
     if (enemyIntegrity > 0) {
       return {
         accepted: true,

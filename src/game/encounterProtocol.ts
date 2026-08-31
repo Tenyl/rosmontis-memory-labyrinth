@@ -3,6 +3,7 @@ import { resolveEncounterChoice } from './encounters';
 import { resolveGreatswordAction } from './greatswords';
 import { resolveComfortAction } from './overload';
 import { resolveBossAction } from './bosses';
+import { getCombatIntent } from './combatIntents';
 import type { EncounterAction, EncounterRuleState, GreatswordId, GreatswordTarget, PendingEncounter, RuleEvent } from './types';
 
 export type { EncounterAction } from './types';
@@ -54,16 +55,32 @@ export function resolveEncounterAction(
   if (action.type === 'recover') {
     const hasCooldown = Object.values(state.rosmontis.greatswords).some(({ cooldown }) => cooldown > 0);
     if (!hasCooldown && state.rosmontis.actionPoints >= 4) return rejected(state, '战术资源已经处于可用状态。');
+    const intent = encounter.kind === 'combat'
+      ? getCombatIntent(encounter.round, (encounter.enemyMaxIntegrity ?? 80) > 80)
+      : null;
+    const interrupted = encounter.kind === 'combat'
+      && intent?.interruptible
+      && (encounter.enemyStagger ?? 1) <= 0;
+    const incomingDamage = interrupted ? 0 : (intent?.damage ?? 0);
+    const turnBarrier = encounter.kind === 'combat' ? 8 : 0;
+    const availableGuard = state.rosmontis.guard + turnBarrier;
+    const absorbed = Math.min(availableGuard, incomingDamage);
+    const nextRosmontis = {
+      ...state.rosmontis,
+      actionPoints: 4,
+      sanity: Math.max(0, state.rosmontis.sanity - (incomingDamage - absorbed)),
+      overload: Math.min(100, Math.max(0, state.rosmontis.overload - 2 + (interrupted ? 0 : (intent?.overload ?? 0)))),
+      guard: Math.max(0, availableGuard - absorbed),
+      greatswords: Object.fromEntries(Object.entries(state.rosmontis.greatswords).map(([id, sword]) => [id, { cooldown: Math.max(0, sword.cooldown - 1) }])) as typeof state.rosmontis.greatswords,
+    };
     return {
       accepted: true,
       state: {
         ...state,
-        rosmontis: {
-          ...state.rosmontis,
-          actionPoints: 4,
-          overload: Math.max(0, state.rosmontis.overload - 2),
-          greatswords: Object.fromEntries(Object.entries(state.rosmontis.greatswords).map(([id, sword]) => [id, { cooldown: Math.max(0, sword.cooldown - 1) }])) as typeof state.rosmontis.greatswords,
-        },
+        rosmontis: nextRosmontis,
+        pendingEncounter: encounter.kind === 'combat'
+          ? { ...encounter, round: encounter.round + 1, enemyStagger: interrupted ? encounter.enemyMaxStagger : encounter.enemyStagger }
+          : encounter,
       },
       events: [actionEvent(encounter.nodeId, action.type)],
       animation: null,
@@ -103,7 +120,7 @@ export function resolveEncounterAction(
     if (action.swordId === 'watch' && encounter.kind === 'combat') {
       return {
         accepted: true,
-        state: { ...workingState, pendingEncounter: { ...encounter, round: encounter.round + 1 } },
+        state: { ...workingState, pendingEncounter: encounter },
         events: [...swordEvents, actionEvent(encounter.nodeId, action.type)],
         animation: 'watch',
       };

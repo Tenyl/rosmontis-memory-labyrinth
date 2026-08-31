@@ -1,15 +1,22 @@
 import { expect, type Page } from '@playwright/test';
 
 async function encounterResolved(page: Page) {
-  return page.locator('.encounter-panel > header > strong.is-complete').isVisible().catch(() => false);
+  return page.locator('.node-settlement, .encounter-panel > header > strong.is-complete').first().isVisible().catch(() => false);
 }
 
 async function settleWithTacticalCards(page: Page, kind: 'combat' | 'boss') {
   for (let turn = 0; turn < 30; turn += 1) {
     if (await encounterResolved(page)) return;
+    const overload = Number(await page.locator('#meter-run-overload').getAttribute('aria-valuenow'));
+    if (overload >= 65) {
+      const holdHand = page.locator('#btn-companion-hold-hand');
+      const touchForehead = page.locator('#btn-companion-touch-forehead');
+      if (await holdHand.isEnabled().catch(() => false)) { await holdHand.click(); continue; }
+      if (await touchForehead.isEnabled().catch(() => false)) { await touchForehead.click(); continue; }
+    }
     const preferred = kind === 'boss'
       ? ['#btn-greatsword-breach', '#btn-greatsword-resonance', '#btn-boss-hold-hand']
-      : ['#btn-greatsword-breach'];
+      : ['#btn-greatsword-breach', '#btn-greatsword-watch'];
     let acted = false;
     for (const selector of preferred) {
       const button = page.locator(selector);
@@ -84,7 +91,7 @@ async function comfortBeforeTravel(page: Page) {
 
 export async function advanceFloorIfAvailable(page: Page): Promise<boolean> {
   await resolveOverflow(page);
-  const advance = page.locator('#btn-advance-run-floor');
+  const advance = page.locator('#node-settlement-advance-floor, #btn-advance-run-floor').first();
   if (!await advance.isVisible().catch(() => false)) return false;
   await advance.click();
   await expect(page.locator('.encounter-panel')).toBeVisible();

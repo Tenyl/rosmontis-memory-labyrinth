@@ -6,6 +6,10 @@ import {
   Skull,
   Sparkles as Sparkle,
   Store as Storefront,
+  BrainCircuit,
+  ShieldAlert,
+  Swords,
+  Zap,
 } from 'lucide-react';
 import { resolveImageAsset } from '../../assets/assetRegistry';
 import { GREATSWORD_CONFIG } from '../../game/greatswords';
@@ -13,6 +17,7 @@ import { getModule } from '../../game/modules';
 import { NODE_TYPE_NAMES } from '../../game/terminology';
 import type { EncounterAction, GreatswordId, MemoryInventory, ModuleId, PendingEncounter } from '../../game/types';
 import { BossEncounter } from './BossEncounter';
+import { getCombatIntent, type CombatIntentType } from '../../game/combatIntents';
 
 interface EncounterPanelProps {
   encounter: PendingEncounter | null;
@@ -45,6 +50,45 @@ function EncounterIcon({ kind }: { kind: PendingEncounter['kind'] }) {
   if (kind === 'encounter') return <Sparkle {...props} />;
   if (kind === 'boss') return <Skull {...props} />;
   return <Question {...props} />;
+}
+
+function IntentIcon({ type }: { type: CombatIntentType }) {
+  const props = { size: 22, 'aria-hidden': true } as const;
+  if (type === 'assault') return <Swords {...props} />;
+  if (type === 'charge') return <Zap {...props} />;
+  if (type === 'erosion') return <BrainCircuit {...props} />;
+  return <ShieldAlert {...props} />;
+}
+
+function CombatArena({ encounter }: { encounter: Extract<PendingEncounter, { kind: 'combat' }> }) {
+  const emergency = (encounter.enemyMaxIntegrity ?? 80) > 80;
+  const intent = getCombatIntent(encounter.round, emergency);
+  const maxIntegrity = encounter.enemyMaxIntegrity ?? 80;
+  const stagger = encounter.enemyStagger ?? 40;
+  const maxStagger = encounter.enemyMaxStagger ?? 40;
+  const intentValue = intent.damage > 0 ? `${intent.damage} 伤害` : intent.overload > 0 ? `+${intent.overload}% 过载` : `+${intent.guard} 壁障`;
+
+  return (
+    <section className="combat-arena" aria-label="意识战场">
+      <div className="combat-depth-grid" aria-hidden />
+      <article className="enemy-intent-board" data-intent={intent.type}>
+        <span>ENEMY INTENT / 下一行动</span>
+        <div><IntentIcon type={intent.type} /><strong>{intent.label}</strong><b>{intentValue}</b></div>
+        <p>{intent.description}</p>
+        {intent.interruptible && <em>可用立柱削减硬直并打断</em>}
+      </article>
+      <div className="enemy-echo-stage" key={`${encounter.round}-${encounter.enemyIntegrity}`} data-intent={intent.type}>
+        <div className="enemy-target-reticle" aria-hidden />
+        <img src={resolveImageAsset('enemyEcho')} alt="敌方残响实体资源占位图" />
+        <strong>{emergency ? '高危残响聚合体' : '残响实体'}</strong>
+      </div>
+      <div className="enemy-bars">
+        <span className="sr-only">结构完整度 {encounter.enemyIntegrity} / {maxIntegrity}</span>
+        <div><span>结构完整度</span><strong>{encounter.enemyIntegrity} / {maxIntegrity}</strong><i><b style={{ width: `${encounter.enemyIntegrity / maxIntegrity * 100}%` }} /></i></div>
+        <div><span>硬直抗性</span><strong>{stagger} / {maxStagger}</strong><i className="is-stagger"><b style={{ width: `${stagger / maxStagger * 100}%` }} /></i></div>
+      </div>
+    </section>
+  );
 }
 
 function choiceRequirement(
@@ -105,9 +149,9 @@ export function EncounterPanel({
       </header>
 
       {encounter.kind === 'combat' && (
-        <><div className="encounter-telemetry" aria-label="战斗状态">
+        <><CombatArena encounter={encounter} /><div className="encounter-telemetry" aria-label="战斗状态">
           <span>第 {encounter.round} / {encounter.maxRounds} 轮</span>
-          <strong>结构完整度 {encounter.enemyIntegrity} / 80</strong>
+          <strong>AP 指令链等待输入</strong>
           <span>胜利残响 +{encounter.rewardEchoes}</span>
         </div><p className="encounter-card-guidance">请点击上方【{GREATSWORD_CONFIG.breach.name}】或【{GREATSWORD_CONFIG.watch.name}】战术卡，也可以把可用卡片拖到本面板执行。</p></>
       )}

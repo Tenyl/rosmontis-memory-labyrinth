@@ -33,6 +33,7 @@ export function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const overloadBand = getOverloadBand(overload);
+  const isTitleScreen = location.pathname === '/';
   const connectionLabel = tavern.transportMode === 'remote' ? '远程连接' : '本地模拟';
 
   useEffect(() => {
@@ -86,8 +87,8 @@ export function AppShell() {
       <div className="overload-sensory-layer" aria-hidden="true" />
       <a id="global-skip-to-content" className="skip-link" href="#main-content">跳至主内容</a>
 
-      <header className="app-topbar">
-        <NavLink id="global-brand-home" className="app-brand" to="/game" onClick={() => setMenuOpen(false)}>
+      {!isTitleScreen ? <header className="app-topbar">
+        <NavLink id="global-brand-home" className="app-brand" to="/" onClick={() => setMenuOpen(false)}>
           <span aria-hidden="true">R</span>
           <strong>迷迭香的记忆迷宫</strong>
         </NavLink>
@@ -128,15 +129,15 @@ export function AppShell() {
             <Keyboard size={20} aria-hidden />
           </button>
         </div>
-      </header>
+      </header> : null}
 
       <div className="terminal-workspace">
         <main id="main-content" className="terminal-main" tabIndex={-1}>
           <Suspense fallback={<RouteLoading />}><Outlet /></Suspense>
         </main>
-        <footer id="global-fanwork-disclaimer" className="fanwork-disclaimer">
+        {!isTitleScreen ? <footer id="global-fanwork-disclaimer" className="fanwork-disclaimer">
           本项目为基于《明日方舟》世界观的非营利性同人衍生作品，角色及设定版权归上海鹰角网络科技有限公司所有。
-        </footer>
+        </footer> : null}
       </div>
 
       <NotificationCenter />

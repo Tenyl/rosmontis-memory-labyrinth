@@ -64,6 +64,17 @@ export function GreatswordActions({
   onAction,
 }: GreatswordActionsProps) {
   const latestEvent = [...ruleLog].reverse().find((event) => event.type === 'greatsword.used');
+  const swordSequence = ruleLog
+    .filter((event): event is Extract<RuleEvent, { type: 'greatsword.used' }> => event.type === 'greatsword.used')
+    .slice(-2)
+    .map((event) => event.swordId);
+  const nextCombo = swordSequence.at(-1) === 'perception'
+    ? { swordId: 'breach' as const, label: '精准贯穿' }
+    : swordSequence.at(-1) === 'watch'
+      ? { swordId: 'resonance' as const, label: '念力震爆' }
+      : swordSequence.at(-1) === 'breach'
+        ? { swordId: 'watch' as const, label: '阵线压制' }
+        : null;
 
   return (
     <section className="greatsword-actions" aria-labelledby="greatsword-actions-title">
@@ -75,7 +86,20 @@ export function GreatswordActions({
         <p>{rosmontis.actionPoints} AP 可用 · 当前过载 {rosmontis.overload}%</p>
       </header>
 
-      <div className="greatsword-action-grid">
+      <div className="tactical-command-rail" aria-label="战术指令资源">
+        <div className="ap-indicator" role="meter" aria-label={`行动点 ${rosmontis.actionPoints} / 4`} aria-valuemin={0} aria-valuemax={4} aria-valuenow={rosmontis.actionPoints}>
+          <span>AP</span>
+          {[0, 1, 2, 3].map((point) => <i key={point} className={point < rosmontis.actionPoints ? 'is-ready' : ''} />)}
+          <strong>{rosmontis.actionPoints}/4</strong>
+        </div>
+        <div className="combo-prompt" aria-live="polite">
+          {nextCombo
+            ? <>连携就绪：点击 <strong>{GREATSWORD_CONFIG[nextCombo.swordId].name}</strong> 触发「{nextCombo.label}」</>
+            : '释放第一柄巨剑，系统会高亮可衔接的战术。'}
+        </div>
+      </div>
+
+      <div className={`greatsword-action-grid${getOverloadBand(rosmontis.overload) === 'berserk' ? ' is-berserk' : ''}`}>
         {SWORD_IDS.map((swordId) => {
           const config = GREATSWORD_CONFIG[swordId];
           const presentation = GREATSWORD_CONFIG[swordId];
@@ -85,7 +109,7 @@ export function GreatswordActions({
               id={`btn-greatsword-${swordId}`}
               key={swordId}
               type="button"
-              className={`greatsword-action-card is-${swordId}`}
+              className={`greatsword-action-card is-${swordId}${nextCombo?.swordId === swordId ? ' is-combo-ready' : ''}`}
               aria-label={`${presentation.name} · ${presentation.tacticalRole}`}
               aria-describedby={`greatsword-${swordId}-availability`}
               disabled={disabledReason !== null}

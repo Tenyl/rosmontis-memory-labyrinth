@@ -27,7 +27,7 @@ test('routes a breach sword card directly into the active combat encounter', () 
   const result = resolveEncounterAction(before, { type: 'play-sword', swordId: 'breach' });
 
   expect(result.accepted).toBe(true);
-  expect(result.state.pendingEncounter).toMatchObject({ kind: 'combat', enemyIntegrity: 50 });
+  expect(result.state.pendingEncounter).toMatchObject({ kind: 'combat', enemyIntegrity: 50, round: 1 });
   expect(result.animation).toBe('breach');
 });
 
@@ -73,7 +73,7 @@ test('berserk doubles breach damage, applies backlash, and blocks precision scan
   const scanned = resolveEncounterAction(encounter, { type: 'play-sword', swordId: 'perception' });
 
   expect(breached.state.pendingEncounter).toMatchObject({ kind: 'combat', enemyIntegrity: 20 });
-  expect(breached.state.rosmontis.sanity).toBe(88);
+  expect(breached.state.rosmontis.sanity).toBe(92);
   expect(scanned.accepted).toBe(false);
   expect(scanned.state).toBe(encounter);
 });
@@ -85,4 +85,22 @@ test('routes companion comfort through the encounter protocol', () => {
   expect(result.accepted).toBe(true);
   expect(result.state.rosmontis).toMatchObject({ actionPoints: 2, overload: 67 });
   expect(result.animation).toBe('comfort');
+});
+
+test('executes the disclosed enemy intent when the player ends a combat round', () => {
+  const before = atNode('combat');
+  const spent = {
+    ...before,
+    rosmontis: {
+      ...before.rosmontis,
+      actionPoints: 0,
+      greatswords: { ...before.rosmontis.greatswords, breach: { cooldown: 1 } },
+    },
+  };
+
+  const result = resolveEncounterAction(spent, { type: 'recover' });
+
+  expect(result.accepted).toBe(true);
+  expect(result.state.rosmontis).toMatchObject({ actionPoints: 4, sanity: 94 });
+  expect(result.state.pendingEncounter).toMatchObject({ kind: 'combat', round: 2 });
 });
