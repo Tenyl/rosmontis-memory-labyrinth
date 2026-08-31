@@ -5,9 +5,9 @@ import { FragmentOverflowDialog } from '../operation/FragmentOverflowDialog';
 import { NovelRunDirector } from '../operation/NovelRunDirector';
 import { RunLifecycleDialog } from '../operation/RunLifecycleDialog';
 import { NovelMazeBrief } from '../memory/NovelMazeBrief';
-import { RunMazePanel } from '../memory/RunMazePanel';
 import { useTavern } from '../tavern/runtime/useTavern';
 import { GameHud } from './GameHud';
+import { MazeStage } from './MazeStage';
 import { NodeScene } from './NodeScene';
 import { RosmontisPresence } from './RosmontisPresence';
 import { gameSceneReducer, restoreGameSceneState } from './sceneState';
@@ -31,6 +31,7 @@ export default function GamePage() {
   const novel = useGameStore((state) => state.llmDirector.novel);
   const viewMode = useGameStore((state) => state.memoryMap.viewMode);
   const moveToNode = useGameStore((state) => state.moveToNode);
+  const setMemoryView = useGameStore((state) => state.setMemoryView);
   const useExplorationPower = useGameStore((state) => state.useExplorationPower);
   const spendScoutPoint = useGameStore((state) => state.spendScoutPoint);
   const beginCurrentEncounter = useGameStore((state) => state.beginCurrentEncounter);
@@ -107,14 +108,18 @@ export default function GamePage() {
       <section id="game-stage" className="game-stage" role="region" aria-label="记忆迷宫" data-scene-phase={scene.phase}>
         {showMap ? (
           <>
-            <RunMazePanel
+            <MazeStage
               maze={maze}
               currentNodeId={run.currentNodeId}
               viewMode={viewMode}
-              onMove={moveToNode}
+              camera={scene.camera}
+              onCameraChange={(camera) => dispatchScene({ type: 'set-camera', camera })}
+              onViewModeChange={setMemoryView}
+              onRequestEnter={moveToNode}
               explorationCharges={explorationCharges}
               scoutPoints={economy.scoutPoints}
               movementLocked={Boolean(pendingEncounter && !pendingEncounter.resolved)}
+              currentEncounterUnresolved={Boolean(pendingEncounter && !pendingEncounter.resolved)}
               onUseExplorationPower={useExplorationPower}
               onSpendScoutPoint={spendScoutPoint}
               nodeBriefs={run.mode === 'novel' ? novel?.content.nodeBriefs : undefined}
