@@ -4,10 +4,11 @@
 
 import Dexie, { Table } from 'dexie';
 import type { Lorebook, ChatPreset, AppSettings, ChatSession, CharacterCard, Persona } from './types';
+import type { DiaryEntry } from '../diary/types';
 import { DEFAULT_SETTINGS } from './types';
 
 const DB_NAME = 'SillyTavernWebDB';
-export const DB_VERSION = 4;
+export const DB_VERSION = 5;
 
 class AppDatabase extends Dexie {
   lorebooks!: Table<Lorebook>;
@@ -16,6 +17,7 @@ class AppDatabase extends Dexie {
   chats!: Table<ChatSession>;
   characters!: Table<CharacterCard>;
   personas!: Table<Persona>;
+  diaryEntries!: Table<DiaryEntry>;
 
   constructor() {
     super(DB_NAME);
@@ -65,6 +67,15 @@ class AppDatabase extends Dexie {
         await tx.table('settings').put(item);
       }
     });
+    this.version(5).stores({
+      lorebooks: 'id, name, updatedAt',
+      presets: 'id, name, updatedAt',
+      settings: 'key',
+      chats: 'id, name, updatedAt, parentChatId',
+      characters: 'id, name, updatedAt',
+      personas: 'id, name, updatedAt',
+      diaryEntries: 'id, &triggerKey, runId, floor, updatedAt',
+    });
   }
 }
 
@@ -104,17 +115,19 @@ export interface FullBackup {
   chats: ChatSession[];
   characters: CharacterCard[];
   personas: Persona[];
+  diaryEntries: DiaryEntry[];
 }
 
 export async function exportAllData(): Promise<FullBackup> {
   const db = getDatabase();
-  const [lorebooks, presets, settings, chats, characters, personas] = await Promise.all([
+  const [lorebooks, presets, settings, chats, characters, personas, diaryEntries] = await Promise.all([
     db.lorebooks.toArray(),
     db.presets.toArray(),
     db.settings.toArray(),
     db.chats.toArray(),
     db.characters.toArray(),
     db.personas.toArray(),
+    db.diaryEntries.toArray(),
   ]);
   return {
     version: DB_VERSION,
@@ -125,6 +138,7 @@ export async function exportAllData(): Promise<FullBackup> {
     chats,
     characters,
     personas,
+    diaryEntries,
   };
 }
 
@@ -133,19 +147,21 @@ export async function importAllData(backup: FullBackup): Promise<void> {
     throw new Error('备份格式无效');
   }
   const db = getDatabase();
-  await db.transaction('rw', [db.lorebooks, db.presets, db.settings, db.chats, db.characters, db.personas], async () => {
+  await db.transaction('rw', [db.lorebooks, db.presets, db.settings, db.chats, db.characters, db.personas, db.diaryEntries], async () => {
     await db.lorebooks.clear();
     await db.presets.clear();
     await db.settings.clear();
     await db.chats.clear();
     await db.characters.clear();
     await db.personas.clear();
+    await db.diaryEntries.clear();
     if (Array.isArray(backup.lorebooks)) await db.lorebooks.bulkPut(backup.lorebooks);
     if (Array.isArray(backup.presets)) await db.presets.bulkPut(backup.presets);
     if (Array.isArray(backup.settings)) await db.settings.bulkPut(backup.settings);
     if (Array.isArray(backup.chats)) await db.chats.bulkPut(backup.chats);
     if (Array.isArray(backup.characters)) await db.characters.bulkPut(backup.characters);
     if (Array.isArray(backup.personas)) await db.personas.bulkPut(backup.personas);
+    if (Array.isArray(backup.diaryEntries)) await db.diaryEntries.bulkPut(backup.diaryEntries);
   });
 }
 

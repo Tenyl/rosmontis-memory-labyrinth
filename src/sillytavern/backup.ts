@@ -39,6 +39,7 @@ export async function exportTavernBackup(): Promise<TavernBackup> {
     chats: full.chats,
     characters: full.characters,
     personas: full.personas,
+    diaryEntries: full.diaryEntries,
   };
 }
 
@@ -54,6 +55,7 @@ export async function importTavernBackup(input: unknown): Promise<void> {
     chats: backup.chats,
     characters: backup.characters,
     personas: backup.personas,
+    diaryEntries: backup.diaryEntries,
   });
 }
 
@@ -63,22 +65,23 @@ export function parseTavernBackup(input: unknown): TavernBackup {
   }
 
   const backup = input as Partial<TavernBackup>;
-  if (backup.kind !== 'rhodes-tavern-backup' || backup.version !== DB_VERSION || !backup.settings) {
-    throw new Error(`备份版本不受支持：需要版本 ${DB_VERSION}`);
+  if (backup.kind !== 'rhodes-tavern-backup' || ![4, DB_VERSION].includes(backup.version ?? -1) || !backup.settings) {
+    throw new Error(`备份版本不受支持：需要版本 4 或 ${DB_VERSION}`);
   }
   if (
     !Array.isArray(backup.lorebooks) ||
     !Array.isArray(backup.presets) ||
     !Array.isArray(backup.chats) ||
     !Array.isArray(backup.characters) ||
-    !Array.isArray(backup.personas)
+    !Array.isArray(backup.personas) ||
+    (backup.version === DB_VERSION && !Array.isArray(backup.diaryEntries))
   ) {
     throw new Error('备份内容不完整');
   }
 
   return {
     kind: 'rhodes-tavern-backup',
-    version: backup.version,
+    version: DB_VERSION,
     exportedAt: backup.exportedAt ?? Date.now(),
     lorebooks: backup.lorebooks,
     presets: backup.presets,
@@ -86,5 +89,6 @@ export function parseTavernBackup(input: unknown): TavernBackup {
     chats: backup.chats,
     characters: backup.characters,
     personas: backup.personas,
+    diaryEntries: backup.diaryEntries ?? [],
   };
 }

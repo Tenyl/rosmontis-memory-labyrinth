@@ -144,6 +144,8 @@ export interface DiaryDraft {
   body: string;
   source: 'local' | 'remote';
   createdAt: string;
+  runId?: string;
+  floor?: number;
 }
 
 export interface MemoryInventory {

@@ -39,6 +39,8 @@ import type {
   UiPreferences,
 } from '../types/game';
 import { migrateGameState } from './gameStateMigration';
+import { createLocalDiaryDraft } from '../diary/localDiary';
+import { getFloorDefinition } from '../game/floors';
 
 interface GameActions {
   dispatchRunAction: (action: RunAction) => RunResolution;
@@ -56,6 +58,7 @@ interface GameActions {
   applyRunVitals: (sanityDelta: number, overloadDelta: number) => void;
   stabilizeMemoryCore: () => void;
   resolveFragmentChoice: (choice: FragmentOverflowChoice) => void;
+  acknowledgeDiaryDraft: (draftId: string) => void;
   resetRun: () => void;
   beginDirectorRequest: (kind: GameContentTask, triggerKey: string) => string;
   acceptDirectorEvent: (token: string, triggerKey: string, content: IndependentEventContent, source: DirectorContentSource) => void;
@@ -122,6 +125,7 @@ function applyRoguelikeState(
   const operator = state.operators.byId.rosmontis;
   const memoryCompendium = updateMemoryCompendium(state.memoryCompendium, next, events);
   const runHistory = updateRunHistory(state.runHistory, next, events);
+  const pendingDiaryDrafts = updatePendingDiaryDrafts(state, next, events);
   return {
     run: next.run,
     maze: next.maze,
@@ -134,7 +138,7 @@ function applyRoguelikeState(
     explorationCharges: next.explorationCharges,
     routeEffects: next.routeEffects,
     pendingEncounter: next.pendingEncounter,
-    pendingDiaryDrafts: next.pendingDiaryDrafts,
+    pendingDiaryDrafts,
     ruleLog: [...state.ruleLog, ...events],
     memoryCompendium,
     runHistory,
@@ -153,6 +157,32 @@ function applyRoguelikeState(
       formation: '单人认知潜入',
     },
   };
+}
+
+function updatePendingDiaryDrafts(state: GameStore, next: RoguelikeState, events: RuleEvent[]) {
+  const snapshot = {
+    runId: state.run.id,
+    floor: state.run.floor,
+    sanity: next.rosmontis.sanity,
+    overload: next.rosmontis.overload,
+  };
+  const generated = [] as import('../game/types').DiaryDraft[];
+  const completedNodeIds = events.flatMap((event) => event.type === 'node.completed' ? [event.nodeId] : []);
+  completedNodeIds.forEach((nodeId) => {
+    const node = state.maze.nodes.find((item) => item.id === nodeId);
+    if (node?.type === 'boss') {
+      generated.push(createLocalDiaryDraft({ type: 'boss-completed', nodeId, bossTitle: getFloorDefinition(state.run.floor).title }, snapshot));
+    }
+  });
+  if (next.run.floor > state.run.floor || events.some((event) => event.type === 'run.ended' && event.result === 'victory')) {
+    generated.push(createLocalDiaryDraft({ type: 'floor-completed', floor: state.run.floor, floorTitle: getFloorDefinition(state.run.floor).title }, snapshot));
+  }
+  const contextual = [...state.pendingDiaryDrafts, ...next.pendingDiaryDrafts, ...generated].map((draft) => ({
+    ...draft,
+    runId: draft.runId ?? state.run.id,
+    floor: draft.floor ?? state.run.floor,
+  }));
+  return contextual.filter((draft, index, drafts) => drafts.findIndex((item) => item.triggerKey === draft.triggerKey) === index);
 }
 
 function updateMemoryCompendium(
@@ -479,6 +509,7 @@ export const useGameStore = create<GameStore>()(
       },
       stabilizeMemoryCore: () => { get().dispatchRunAction({ type: 'stabilize-core' }); },
       resolveFragmentChoice: (choice) => { get().dispatchRunAction({ type: 'resolve-fragment-overflow', choice }); },
+      acknowledgeDiaryDraft: (draftId) => set((state) => ({ pendingDiaryDrafts: state.pendingDiaryDrafts.filter((draft) => draft.id !== draftId) })),
       resetRun: () =>
         set((state) => {
           const next = createRun({

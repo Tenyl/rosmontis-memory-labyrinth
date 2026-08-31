@@ -1,4 +1,4 @@
-import { Archive, Books, Brain, Graph, PuzzlePiece } from '@phosphor-icons/react';
+import { Archive, Books, Brain, Graph, Notebook, PuzzlePiece } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
@@ -9,6 +9,7 @@ import { ArchiveGrid } from './ArchiveGrid';
 import { ArchiveRelationGraph } from './ArchiveRelationGraph';
 import { ReasoningBoard } from './ReasoningBoard';
 import { LorebookManager } from '../tavern/lorebooks/LorebookManager';
+import { DiaryPanel } from '../diary/DiaryPanel';
 import './archive.css';
 
 export default function ArchivePage() {
@@ -24,7 +25,7 @@ export default function ArchivePage() {
   const [selectedRecord, setSelectedRecord] = useState<ArchiveRecord | null>(null);
   const [relationSelection, setRelationSelection] = useState<string[]>([]);
   const memoryCompendium = useGameStore((state) => state.memoryCompendium);
-  const [workspace, setWorkspace] = useState<'compendium' | 'archive' | 'lorebooks'>('compendium');
+  const [workspace, setWorkspace] = useState<'compendium' | 'diary' | 'archive' | 'lorebooks'>('compendium');
 
   const counts = {
     全部: archive.records.length,
@@ -56,6 +57,7 @@ export default function ArchivePage() {
 
       <div className="archive-view-tabs" role="tablist" aria-label="档案工作区视图">
         <button id="archive-view-compendium" type="button" role="tab" aria-label="记忆图鉴" aria-selected={workspace === 'compendium'} className={workspace === 'compendium' ? 'is-active' : ''} onClick={() => setWorkspace('compendium')}><PuzzlePiece size={17} aria-hidden />记忆图鉴<small aria-hidden="true">{memoryCompendium.length}</small></button>
+        <button id="archive-view-diary" type="button" role="tab" aria-label="迷迭香手记" aria-selected={workspace === 'diary'} className={workspace === 'diary' ? 'is-active' : ''} onClick={() => setWorkspace('diary')}><Notebook size={17} aria-hidden />迷迭香手记<small aria-hidden="true">LOG</small></button>
         <button id="archive-view-records" type="button" role="tab" aria-label="叙事档案" aria-selected={workspace === 'archive' && archive.view === 'records'} className={workspace === 'archive' && archive.view === 'records' ? 'is-active' : ''} onClick={() => { setWorkspace('archive'); setArchiveView('records'); }}><Archive size={17} aria-hidden />叙事档案<small aria-hidden="true">{archive.records.length}</small></button>
         <button id="archive-view-relations" type="button" role="tab" aria-label="关系图" aria-selected={workspace === 'archive' && archive.view === 'relations'} className={workspace === 'archive' && archive.view === 'relations' ? 'is-active' : ''} onClick={() => { setWorkspace('archive'); setArchiveView('relations'); }}><Graph size={17} aria-hidden />关系图<small aria-hidden="true">{archive.links.length}</small></button>
         <button id="archive-view-reasoning" type="button" role="tab" aria-label="推理台" aria-selected={workspace === 'archive' && archive.view === 'reasoning'} className={workspace === 'archive' && archive.view === 'reasoning' ? 'is-active' : ''} onClick={() => { setWorkspace('archive'); setArchiveView('reasoning'); }}><Brain size={17} aria-hidden />推理台<small aria-hidden="true">{archive.records.filter((record) => record.pinned).length}</small></button>
@@ -63,6 +65,7 @@ export default function ArchivePage() {
       </div>
 
       {workspace === 'compendium' ? <MemoryCompendium entries={memoryCompendium} /> : null}
+      {workspace === 'diary' ? <DiaryPanel /> : null}
       {workspace === 'archive' && archive.view === 'records' ? <><ArchiveFilters query={archive.query} kind={archive.kindFilter} sort={archive.sort} counts={counts} onQuery={setArchiveQuery} onKind={setArchiveKindFilter} onSort={setArchiveSort} /><ArchiveGrid records={visibleRecords} onOpen={openRecord} onTogglePin={toggleArchivePin} /></> : null}
       {workspace === 'archive' && archive.view === 'relations' ? <ArchiveRelationGraph records={archive.records} links={archive.links} selectedIds={relationSelection} onToggleSelect={toggleRelationSelection} onCreateLink={() => { if (relationSelection.length === 2) linkArchiveRecords(relationSelection[0], relationSelection[1]); setRelationSelection([]); }} /> : null}
       {workspace === 'archive' && archive.view === 'reasoning' ? <ReasoningBoard records={archive.records} /> : null}

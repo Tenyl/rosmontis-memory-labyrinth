@@ -276,6 +276,16 @@ test('stabilizes the current memory core and persists first-clear progression', 
     result: 'victory',
     finalSanity: 100,
   });
+  expect(state.pendingDiaryDrafts).toContainEqual(expect.objectContaining({
+    triggerKey: `floor-completed:${state.run.id}:3`,
+    runId: state.run.id,
+    floor: 3,
+  }));
+  useGameStore.getState().resetRun();
+  expect(useGameStore.getState().pendingDiaryDrafts.some((draft) => draft.id === state.pendingDiaryDrafts.at(-1)!.id)).toBe(true);
+  const draftId = state.pendingDiaryDrafts.at(-1)!.id;
+  useGameStore.getState().acknowledgeDiaryDraft(draftId);
+  expect(useGameStore.getState().pendingDiaryDrafts.some((draft) => draft.id === draftId)).toBe(false);
 });
 
 test('adds recovered fragments to the permanent memory compendium', () => {

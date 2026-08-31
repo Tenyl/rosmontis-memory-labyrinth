@@ -1,0 +1,29 @@
+.diary-panel { overflow: hidden; border: 1px solid var(--color-line-subtle); background: linear-gradient(145deg,rgba(18,24,30,.9),rgba(8,12,16,.98)); }
+.diary-panel>header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); padding: var(--space-6); border-bottom: 1px solid var(--color-line-subtle); }
+.diary-panel>header h2 { margin: var(--space-3) 0 0; font-size: 1.05rem; }
+.diary-panel>header p { max-width: 60ch; margin: 0; color: var(--color-text-tertiary); font-size: .68rem; line-height: 1.7; }
+.diary-empty,.diary-page-prompt { display: grid; min-height: 360px; place-items: center; align-content: center; padding: var(--space-8); text-align: center; }
+.diary-empty svg,.diary-page-prompt svg { color: var(--color-memory-blue); }
+.diary-empty strong,.diary-page-prompt strong { margin-top: var(--space-4); font-size: .86rem; }
+.diary-empty p,.diary-page-prompt p { max-width: 55ch; margin: var(--space-2) 0 0; color: var(--color-text-tertiary); font-size: .66rem; line-height: 1.7; }
+.diary-empty.is-error svg { color: var(--color-danger-red); }
+.diary-workspace { display: grid; min-height: 620px; grid-template-columns: minmax(220px,.38fr) minmax(0,1fr); }
+.diary-workspace>nav { display: grid; align-content: start; gap: 1px; overflow-y: auto; border-right: 1px solid var(--color-line-subtle); background: var(--color-line-subtle); }
+.diary-workspace>nav button { display: grid; min-width: 0; gap: var(--space-2); padding: var(--space-4); border: 0; background: var(--color-surface-primary); color: var(--color-text-primary); cursor: pointer; text-align: left; }
+.diary-workspace>nav button:hover,.diary-workspace>nav button.is-active { background: var(--color-memory-blue-soft); }
+.diary-workspace>nav span,.diary-workspace>nav small { color: var(--color-text-tertiary); font: 500 .56rem/1.2 var(--font-data); }
+.diary-workspace>nav button.is-active span { color: var(--color-memory-blue); }
+.diary-workspace>nav strong { overflow: hidden; font-size: .7rem; text-overflow: ellipsis; white-space: nowrap; }
+.diary-page { min-width: 0; padding: var(--space-7); background: linear-gradient(120deg,rgba(142,215,247,.025),transparent 48%); }
+.diary-page>img { display: block; width: 100%; height: 180px; border: 1px solid var(--color-line-subtle); object-fit: cover; opacity: .72; }
+.diary-page-source { display: flex; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-4); color: var(--color-text-tertiary); font: 500 .58rem/1.3 var(--font-data); }
+.diary-page-source span { color: var(--color-memory-blue); }
+.diary-page h3 { margin: var(--space-5) 0 var(--space-4); font-size: 1.25rem; }
+.diary-page>p { min-height: 95px; margin: 0 0 var(--space-6); color: var(--color-text-secondary); font-size: .76rem; line-height: 2; }
+.diary-page label span { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-3); color: var(--color-memory-blue); font-size: .68rem; }
+.diary-page textarea { box-sizing: border-box; width: 100%; resize: vertical; border: 1px solid var(--color-line-strong); border-left: 2px solid var(--color-memory-blue); outline: none; background: rgba(0,0,0,.22); color: var(--color-text-primary); padding: var(--space-4); font: inherit; font-size: .7rem; line-height: 1.7; }
+.diary-page textarea:focus { border-color: var(--color-memory-blue); }
+.diary-page>footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); margin-top: var(--space-3); }
+.diary-page>footer small { color: var(--color-text-tertiary); font-size: .58rem; }
+.diary-page>footer button { display: flex; min-height: 40px; align-items: center; gap: var(--space-2); padding: 0 var(--space-4); border: 1px solid var(--color-memory-blue); background: var(--color-memory-blue-soft); color: var(--color-memory-blue); cursor: pointer; }
+@media (max-width: 760px) { .diary-panel>header { display: grid; } .diary-workspace { grid-template-columns: 1fr; } .diary-workspace>nav { max-height: 240px; border-right: 0; border-bottom: 1px solid var(--color-line-subtle); } .diary-page { padding: var(--space-5); } }
