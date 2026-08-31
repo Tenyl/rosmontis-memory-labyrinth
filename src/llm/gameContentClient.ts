@@ -2,7 +2,7 @@ import type { TavernTransport } from '../features/tavern/runtime/tavern-transpor
 import type { ApiSettings } from '../sillytavern';
 import type { GamePromptMessage } from './gamePrompts';
 
-export type GameContentTask = 'event' | 'quote' | 'novel';
+export type GameContentTask = 'event' | 'quote' | 'novel' | 'diary' | 'mindsea';
 export type GameContentRequestErrorCode = 'configuration' | 'transport' | 'invalid-response' | 'aborted';
 
 const safeMessages: Record<GameContentRequestErrorCode, string> = {

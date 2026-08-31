@@ -37,6 +37,15 @@ describe('run creation and mode availability', () => {
 });
 
 describe('run reducer', () => {
+  test('continues a fifth-floor victory into the LLM-gated boundless mindsea', () => {
+    const before = createRun({ seed: 'MINDSEA-CONTINUE', mode: 'preset', progression: { firstClear: true, completedRuns: 1 }, llmEnabled: true, floor: 5 });
+    before.run = { ...before.run, phase: 'victory', result: 'victory' };
+    expect(reduceRunAction(before, { type: 'continue-to-mindsea', llmEnabled: false }).accepted).toBe(false);
+    const result = reduceRunAction(before, { type: 'continue-to-mindsea', llmEnabled: true });
+    expect(result.state.run).toMatchObject({ floor: 6, maxFloor: 6, mode: 'novel', phase: 'exploring', result: null });
+    expect(result.state.maze.nodes.at(-1)?.type).toBe('boss');
+    expect(result.state.memoryInventory).toEqual(before.memoryInventory);
+  });
   test('blocks movement until the current encounter is resolved', () => {
     const before = createRun({ seed: 'encounter-gate', mode: 'preset', progression: freshProgression, llmEnabled: false });
     const target = before.maze.edges.find((edge) => !edge.locked && edge.sourceId === before.run.currentNodeId)!.targetId;

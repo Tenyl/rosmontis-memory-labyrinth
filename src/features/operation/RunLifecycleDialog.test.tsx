@@ -27,6 +27,7 @@ function renderLifecycle({
   const onStart = vi.fn();
   const onReset = vi.fn();
   const onStabilize = vi.fn();
+  const onContinueMindsea = vi.fn();
   render(
     <RunLifecycleDialog
       run={run}
@@ -37,9 +38,10 @@ function renderLifecycle({
       onStart={onStart}
       onReset={onReset}
       onStabilize={onStabilize}
+      onContinueMindsea={onContinueMindsea}
     />,
   );
-  return { onStart, onReset, onStabilize };
+  return { onStart, onReset, onStabilize, onContinueMindsea };
 }
 
 test('keeps preset available while explaining locked endless and novel modes', () => {
@@ -110,4 +112,15 @@ test.each([
   if (phase === 'victory') expect(screen.getByText('本地无尽模式已解锁。')).toBeVisible();
   await user.click(screen.getByRole('button', { name: '重新开始预设迷宫' }));
   expect(onReset).toHaveBeenCalledOnce();
+});
+
+test('offers the boundless mindsea only after victory with an LLM connection', async () => {
+  const user = userEvent.setup();
+  const { onContinueMindsea } = renderLifecycle({
+    run: { ...exploringRun, floor: 5, maxFloor: 5, phase: 'victory', result: 'victory' },
+    progression: { firstClear: true, completedRuns: 1 },
+    llmEnabled: true,
+  });
+  await user.click(screen.getByRole('button', { name: '进入无垠心海' }));
+  expect(onContinueMindsea).toHaveBeenCalledOnce();
 });

@@ -1,4 +1,4 @@
-import { ArrowClockwise, CheckCircle, Play, WarningDiamond } from '@phosphor-icons/react';
+import { ArrowClockwise, ArrowRight, CheckCircle, Play, WarningDiamond } from '@phosphor-icons/react';
 import { useState } from 'react';
 import { Dialog } from '../../components/Dialog';
 import { getAvailableModes } from '../../game/run';
@@ -13,6 +13,7 @@ interface RunLifecycleDialogProps {
   onStart: (seed: string, mode: RunMode, llmEnabled: boolean) => void;
   onReset: () => void;
   onStabilize: () => void;
+  onContinueMindsea?: () => void;
 }
 
 const MODE_PRESENTATION: Record<RunMode, { name: string; description: string }> = {
@@ -30,6 +31,7 @@ export function RunLifecycleDialog({
   onStart,
   onReset,
   onStabilize,
+  onContinueMindsea,
 }: RunLifecycleDialogProps) {
   const availableModes = getAvailableModes(progression, llmEnabled);
   const [seed, setSeed] = useState(run.seed);
@@ -134,14 +136,14 @@ export function RunLifecycleDialog({
         dismissible={false}
         danger={!victory}
         footer={(
-          <button
+          <div className="run-terminal-actions"><button
             id="btn-restart-preset-run"
             className="terminal-button is-primary"
             type="button"
             onClick={onReset}
           >
             <ArrowClockwise size={17} aria-hidden />重新开始预设迷宫
-          </button>
+          </button>{victory && llmEnabled && onContinueMindsea ? <button id="btn-continue-mindsea" className="terminal-button is-secondary" type="button" onClick={onContinueMindsea}>进入无垠心海 <ArrowRight size={17} aria-hidden /></button> : null}</div>
         )}
       >
         <div className={`run-terminal-summary is-${victory ? 'victory' : 'defeat'}`}>

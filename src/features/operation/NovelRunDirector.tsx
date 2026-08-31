@@ -6,6 +6,7 @@ import {
 } from '../../llm/gameContentClient';
 import { buildNovelPrompt } from '../../llm/gamePrompts';
 import { createLocalNovelBlueprint } from '../../llm/localNovelBlueprint';
+import { createFallbackMindseaBlueprint } from '../../llm/mindseaBlueprint';
 import type { ApiSettings } from '../../sillytavern';
 import { useGameStore } from '../../store/gameStore';
 import { OpenAiTavernTransport } from '../tavern/runtime/openai-tavern-transport';
@@ -34,7 +35,7 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
 
   useEffect(() => {
     if (run.mode !== 'novel') return;
-    const triggerKey = `${run.id}:novel-blueprint`;
+    const triggerKey = `${run.id}:novel-blueprint:${run.floor}`;
     const initial = useGameStore.getState();
     if (initial.llmDirector.handledTriggers.includes(triggerKey)) return;
     const expectedNodes = nodes.map(({ id, type }) => ({ id, type }));
@@ -45,7 +46,7 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
       initial.acceptNovelBlueprint(
         token,
         triggerKey,
-        createLocalNovelBlueprint(run.seed, run.floor, nodes),
+        createFallbackBlueprint(run.seed, run.floor, nodes, initial.memoryInventory.fragments.map((fragment) => fragment.name)),
         'local-fallback',
       );
       return;
@@ -92,7 +93,7 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
       latest.acceptNovelBlueprint(
         token,
         triggerKey,
-        createLocalNovelBlueprint(run.seed, run.floor, nodes),
+        createFallbackBlueprint(run.seed, run.floor, nodes, latest.memoryInventory.fragments.map((fragment) => fragment.name)),
         'local-fallback',
       );
       latest.addNotification({
@@ -110,6 +111,11 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
   }, [api, nodes, run.floor, run.id, run.mode, run.seed, transport]);
 
   return null;
+}
+
+function createFallbackBlueprint(seed: string, floor: number, nodes: Parameters<typeof createLocalNovelBlueprint>[2], fragments: string[]) {
+  const local = createLocalNovelBlueprint(seed, floor, nodes);
+  return floor >= 6 ? { ...local, ...createFallbackMindseaBlueprint(seed, floor, fragments) } : local;
 }
 
 function releaseRequest(triggerKey: string, active: ActiveNovelRequest) {

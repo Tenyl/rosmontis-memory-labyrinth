@@ -70,8 +70,8 @@ describe('LLM independent event director', () => {
     prepareBlankNovelNode();
     const stream = vi.fn(async function* () {
       yield '{"title":"逆流雨幕","situation":"雨滴正在带走倒影。","choices":[';
-      yield '{"id":"scan-rain","label":"读取雨声","description":"确认记忆残留。","intent":"scan"},';
-      yield '{"id":"hold-line","label":"守住边界","description":"拒绝异常靠近。","intent":"guard"}]}';
+      yield '{"id":"scan-rain","label":"读取雨声","description":"确认记忆残留。","intent":"scan","check":{"attribute":"perception","threshold":12}},';
+      yield '{"id":"hold-line","label":"守住边界","description":"拒绝异常靠近。","intent":"guard","check":{"attribute":"stability","threshold":10}}]}';
     });
     const user = userEvent.setup();
     const view = renderDirector({ mode: 'remote', stream });
@@ -94,7 +94,8 @@ describe('LLM independent event director', () => {
     );
     await user.click(screen.getByRole('button', { name: '选择事件行动：读取雨声' }));
 
-    expect(useGameStore.getState().rosmontis).toMatchObject({ sanity: 99, overload: 7 });
+    expect(useGameStore.getState().ruleLog.some((entry) => entry.type === 'check.resolved' && entry.difficulty === 12)).toBe(true);
+    expect(useGameStore.getState().rosmontis.overload).toBeGreaterThan(0);
     expect(useGameStore.getState().llmDirector.event?.resolvedChoiceId).toBe('scan-rain');
     expect(stream).toHaveBeenCalledTimes(1);
   });

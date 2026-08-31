@@ -42,6 +42,7 @@ import type {
 import { migrateGameState } from './gameStateMigration';
 import { createLocalDiaryDraft } from '../diary/localDiary';
 import { getFloorDefinition } from '../game/floors';
+import { resolveD20Check } from '../game/checks';
 
 interface GameActions {
   dispatchRunAction: (action: RunAction) => RunResolution;
@@ -55,6 +56,7 @@ interface GameActions {
   useExplorationPower: (action: ExplorationPowerAction) => void;
   spendScoutPoint: (nodeId: string) => void;
   advanceRunFloor: () => void;
+  continueToMindsea: (llmEnabled: boolean) => void;
   useGreatsword: (action: GreatswordAction) => void;
   completeCurrentNode: (fragment?: MemoryFragment) => void;
   applyRunVitals: (sanityDelta: number, overloadDelta: number) => void;
@@ -505,6 +507,7 @@ export const useGameStore = create<GameStore>()(
       useExplorationPower: (action) => { get().dispatchRunAction({ type: 'use-exploration-power', action }); },
       spendScoutPoint: (nodeId) => { get().dispatchRunAction({ type: 'spend-scout-point', nodeId }); },
       advanceRunFloor: () => { get().dispatchRunAction({ type: 'advance-floor' }); },
+      continueToMindsea: (llmEnabled) => { get().dispatchRunAction({ type: 'continue-to-mindsea', llmEnabled }); },
       useGreatsword: (action) => { get().dispatchRunAction({ type: 'use-greatsword', action }); },
       completeCurrentNode: (fragment) => { get().dispatchRunAction({ type: 'complete-node', fragment }); },
       applyRunVitals: (sanityDelta, overloadDelta) => {
@@ -565,11 +568,23 @@ export const useGameStore = create<GameStore>()(
           if (!event || event.resolvedChoiceId) return state;
           const choice = event.content.choices.find((item) => item.id === choiceId);
           if (!choice) return state;
-          const effect = resolveIntentEffect(choice.intent, state.rosmontis);
+          const check = choice.check ? resolveD20Check({
+            attribute: choice.check.attribute,
+            modifier: choice.check.attribute === 'perception'
+              ? state.rosmontis.insight
+              : Math.floor((state.rosmontis.sanity - 50) / 10),
+            difficulty: choice.check.threshold,
+          }, state.randomState) : null;
+          const effect = check && !check.result.passed
+            ? { sanityDelta: -2, overloadDelta: 4 }
+            : resolveIntentEffect(choice.intent, state.rosmontis);
           const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'apply-vitals', ...effect });
           if (!resolution.accepted) return state;
           return {
-            ...applyRoguelikeState(state, resolution.state, resolution.events),
+            ...applyRoguelikeState(state, {
+              ...resolution.state,
+              randomState: check?.randomState ?? resolution.state.randomState,
+            }, [...(check?.events ?? []), ...resolution.events]),
             llmDirector: {
               ...state.llmDirector,
               event: { ...event, resolvedChoiceId: choiceId },

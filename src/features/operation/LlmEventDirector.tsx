@@ -3,7 +3,7 @@ import { createSeededRandom, nextRandom } from '../../game/random';
 import { selectPresetEvent } from '../../game/presetEvents';
 import type { MazeNode, RunState } from '../../game/types';
 import type { IndependentEventContent } from '../../llm/gameContent';
-import { parseIndependentEvent } from '../../llm/gameContent';
+import { parseEventV2 } from '../../llm/schemas/eventV2';
 import {
   GameContentRequestError,
   requestStructuredGameContent,
@@ -78,7 +78,7 @@ export function LlmEventDirector({ apiOverride, transportOverride }: LlmEventDir
         overload: state.rosmontis.overload,
         fragmentNames,
       }),
-      parse: parseIndependentEvent,
+      parse: parseEventV2,
       signal: active.controller.signal,
     }).then((content) => {
       const latest = useGameStore.getState();
@@ -140,6 +140,7 @@ export function LlmEventDirector({ apiOverride, transportOverride }: LlmEventDir
           >
             <span>{choice.label}</span>
             <small>{choice.description}</small>
+            {choice.check ? <small>D20 {choice.check.attribute} · 阈值 {choice.check.threshold}</small> : null}
           </button>
         ))}
       </div>
@@ -173,6 +174,7 @@ function createFallbackEvent(
     label: choice.label,
     description: choice.description,
     intent: fallbackIntents[index] ?? 'press-on',
+    check: { attribute: index === 0 ? 'perception' : 'stability', threshold: index === 0 ? 12 : 10 },
   }));
   if (choices.length < 3) {
     choices.push({
@@ -180,6 +182,7 @@ function createFallbackEvent(
       label: '稳定认知边界',
       description: '不直接读取异常内容，先建立可撤回的安全锚点。',
       intent: 'guard',
+      check: { attribute: 'will', threshold: 10 },
     });
   }
   return {

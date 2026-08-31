@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import { buildEventPrompt, buildNovelPrompt, buildQuotePrompt } from './gamePrompts';
 
 describe('task-specific LLM game prompts', () => {
-  test('event prompt carries only narrative context and forbids numeric authority', () => {
+  test('event prompt carries narrative context and only whitelisted local D20 proposals', () => {
     const messages = buildEventPrompt({
       seed: 'RAIN-09',
       floor: 2,
@@ -17,8 +17,17 @@ describe('task-specific LLM game prompts', () => {
     expect(prompt).toContain('2 至 3');
     expect(prompt).toContain('guard | scan | press-on | recover | resonate');
     expect(prompt).toContain('逆流的雨声');
-    expect(prompt).toMatch(/不得.*数值|禁止.*数值/);
+    expect(prompt).toContain('stability、perception、will');
+    expect(prompt).toContain('8、10、12、14、16、18');
+    expect(prompt).toContain('创伤疗愈期');
     expect(prompt).not.toContain('apiKey');
+  });
+
+  test('switches to the healed companion persona from floor six onward', () => {
+    const prompt = buildNovelPrompt({ seed: 'SEA', floor: 6, sanity: 80, overload: 10, fragmentNames: ['甲板晚风'], nodes: [{ id: 'sea-a', type: 'safehouse' }] }).map((message) => message.content).join('\n');
+    expect(prompt).toContain('无垠心海');
+    expect(prompt).toContain('已经释怀');
+    expect(prompt).toContain('甲板晚风');
   });
 
   test('quote prompt requires Rosmontis first person and no more than 30 characters', () => {

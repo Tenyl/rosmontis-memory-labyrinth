@@ -115,6 +115,7 @@ export function createRun(input: CreateRunInput): RoguelikeState {
 }
 
 export function reduceRunAction(state: RoguelikeState, action: RunAction): RunResolution {
+  if (action.type === 'continue-to-mindsea') return continueToMindsea(state, action.llmEnabled);
   if (state.run.phase === 'fragment-overflow' && action.type !== 'resolve-fragment-overflow') {
     return rejected(state, '必须先处理记忆碎片溢出。');
   }
@@ -224,6 +225,24 @@ export function reduceRunAction(state: RoguelikeState, action: RunAction): RunRe
       completedRuns: state.progression.completedRuns + 1,
     },
   }, [{ type: 'run.ended', result: 'victory' }]);
+}
+
+function continueToMindsea(state: RoguelikeState, llmEnabled: boolean): RunResolution {
+  if (!llmEnabled) return rejected(state, '需要先接入 LLM，才能进入无垠心海。');
+  if (state.run.phase !== 'victory' || state.run.floor < 5 || !state.progression.firstClear) return rejected(state, '必须先完成第五层的心智和解。');
+  const floor = state.run.floor + 1;
+  const maze = generateMaze({ seed: state.run.seed, mode: 'novel', floor, maxFloor: floor, targetNodeCount: state.maze.nodes.length });
+  const next: RoguelikeState = {
+    ...state,
+    run: { ...state.run, mode: 'novel', phase: 'exploring', result: null, floor, maxFloor: floor, currentNodeId: maze.startNodeId, turn: state.run.turn + 1 },
+    maze,
+    rosmontis: { ...refreshNodeResources(state.rosmontis, state.memoryInventory.fragments), guard: 0, enemyIntegrity: 100, coreStability: 0 },
+    explorationCharges: { breach: 1, watch: 1, perception: 1, resonance: 1 },
+    routeEffects: { nextNodeGuarded: false, shopDiscount: 0, bossGlitchSuppressed: false, resonanceActive: false, freeScoutUsed: false },
+    pendingEncounter: null,
+    randomState: maze.randomState,
+  };
+  return accepted(createEncounter(next, maze.nodes[0]), []);
 }
 
 function resolveCurrentEncounter(state: RoguelikeState, choiceId: string): RunResolution {

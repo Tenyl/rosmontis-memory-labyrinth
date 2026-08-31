@@ -35,6 +35,7 @@ export default function OperationPage() {
   const resolveEncounterChoice = useGameStore((state) => state.resolveEncounterChoice);
   const sellRunFragment = useGameStore((state) => state.sellRunFragment);
   const advanceRunFloor = useGameStore((state) => state.advanceRunFloor);
+  const continueToMindsea = useGameStore((state) => state.continueToMindsea);
   const resolveFragmentChoice = useGameStore((state) => state.resolveFragmentChoice);
   const startRun = useGameStore((state) => state.startRun);
   const resetRun = useGameStore((state) => state.resetRun);
@@ -65,6 +66,7 @@ export default function OperationPage() {
         onStart={startRun}
         onReset={resetRun}
         onStabilize={stabilizeMemoryCore}
+        onContinueMindsea={() => continueToMindsea(llmEnabled)}
       />
 
       <NovelRunDirector />

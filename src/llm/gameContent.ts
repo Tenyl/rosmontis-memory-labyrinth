@@ -8,6 +8,7 @@ export interface IndependentEventChoice {
   label: string;
   description: string;
   intent: DirectorIntent;
+  check?: { attribute: 'stability' | 'perception' | 'will'; threshold: 8 | 10 | 12 | 14 | 16 | 18 };
 }
 
 export interface IndependentEventContent {

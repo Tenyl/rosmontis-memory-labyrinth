@@ -48,7 +48,7 @@ const idleRequest = (): DirectorRequestSlot => ({ status: 'idle', token: null, e
 export function createLlmDirectorState(runId: string): LlmDirectorState {
   return {
     runId,
-    requests: { event: idleRequest(), quote: idleRequest(), novel: idleRequest() },
+    requests: { event: idleRequest(), quote: idleRequest(), novel: idleRequest(), diary: idleRequest(), mindsea: idleRequest() },
     handledTriggers: [],
     event: null,
     quote: null,
