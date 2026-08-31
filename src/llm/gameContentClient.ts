@@ -3,12 +3,13 @@ import type { ApiSettings } from '../sillytavern';
 import type { GamePromptMessage } from './gamePrompts';
 
 export type GameContentTask = 'event' | 'quote' | 'novel' | 'diary' | 'mindsea';
-export type GameContentRequestErrorCode = 'configuration' | 'transport' | 'invalid-response' | 'aborted';
+export type GameContentRequestErrorCode = 'configuration' | 'transport' | 'invalid-response' | 'timeout' | 'aborted';
 
 const safeMessages: Record<GameContentRequestErrorCode, string> = {
   configuration: '远程模型配置不完整。',
   transport: '远程模型请求失败，请稍后重试。',
   'invalid-response': '远程模型返回了无法使用的结构化内容。',
+  timeout: '远程模型请求超时，已切换至本地内容。',
   aborted: '远程模型请求已取消。',
 };
 
@@ -44,6 +45,14 @@ export async function requestStructuredGameContent<T>({
     throw new GameContentRequestError('configuration');
   }
 
+  const requestController = new AbortController();
+  let timedOut = false;
+  const forwardAbort = () => requestController.abort(signal.reason);
+  signal.addEventListener('abort', forwardAbort, { once: true });
+  const timeoutId = globalThis.setTimeout(() => {
+    timedOut = true;
+    requestController.abort(new DOMException('request timed out', 'TimeoutError'));
+  }, Math.max(1, api.timeout));
   const chunks: string[] = [];
   try {
     for await (const chunk of transport.stream({
@@ -53,14 +62,19 @@ export async function requestStructuredGameContent<T>({
       api,
       model: api.model,
       stream: true,
-    }, signal)) {
+    }, requestController.signal)) {
       chunks.push(chunk);
     }
   } catch (error) {
+    if (timedOut) throw new GameContentRequestError('timeout');
     if (signal.aborted || isAbortError(error)) throw new GameContentRequestError('aborted');
     throw new GameContentRequestError('transport');
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+    signal.removeEventListener('abort', forwardAbort);
   }
 
+  if (timedOut) throw new GameContentRequestError('timeout');
   if (signal.aborted) throw new GameContentRequestError('aborted');
   try {
     const json = extractJson(chunks.join(''));

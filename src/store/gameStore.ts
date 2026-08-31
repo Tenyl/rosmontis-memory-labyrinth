@@ -16,6 +16,7 @@ import type {
 import {
   acceptForRun,
   beginDirectorRequest as beginDirectorRequestState,
+  completeDirectorRequest as completeDirectorRequestState,
   createLlmDirectorState,
   failDirectorRequest as failDirectorRequestState,
   markDirectorTriggerHandled as markDirectorTriggerHandledState,
@@ -65,9 +66,10 @@ interface GameActions {
   acknowledgeDiaryDraft: (draftId: string) => void;
   resetRun: () => void;
   beginDirectorRequest: (kind: GameContentTask, triggerKey: string) => string;
+  completeDirectorRequest: (kind: GameContentTask, token: string) => void;
   acceptDirectorEvent: (token: string, triggerKey: string, content: IndependentEventContent, source: DirectorContentSource) => void;
   acceptDirectorQuote: (token: string, triggerKey: string, content: TemporaryQuoteContent, source: DirectorContentSource) => void;
-  acceptNovelBlueprint: (token: string, triggerKey: string, content: NovelBlueprintContent, source: DirectorContentSource) => void;
+  acceptNovelBlueprint: (token: string, triggerKey: string, content: NovelBlueprintContent, source: DirectorContentSource, task?: 'novel' | 'mindsea') => void;
   failDirectorRequest: (kind: GameContentTask, token: string, errorCode: GameContentRequestErrorCode) => void;
   markDirectorTriggerHandled: (triggerKey: string) => void;
   resolveDirectorChoice: (choiceId: string) => void;
@@ -535,6 +537,10 @@ export const useGameStore = create<GameStore>()(
         set({ llmDirector: result.state });
         return result.token;
       },
+      completeDirectorRequest: (kind, token) =>
+        set((state) => ({
+          llmDirector: completeDirectorRequestState(state.llmDirector, state.run.id, kind, token),
+        })),
       acceptDirectorEvent: (token, triggerKey, content, source) =>
         set((state) => ({
           llmDirector: acceptForRun(state.llmDirector, state.run.id, 'event', token, (director) => ({
@@ -549,9 +555,9 @@ export const useGameStore = create<GameStore>()(
             quote: { triggerKey, content, source },
           })),
         })),
-      acceptNovelBlueprint: (token, triggerKey, content, source) =>
+      acceptNovelBlueprint: (token, triggerKey, content, source, task = 'novel') =>
         set((state) => ({
-          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'novel', token, (director) => ({
+          llmDirector: acceptForRun(state.llmDirector, state.run.id, task, token, (director) => ({
             ...director,
             novel: { triggerKey, content, source },
           })),

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { buildEventPrompt, buildNovelPrompt, buildQuotePrompt } from './gamePrompts';
+import { buildDiaryPrompt, buildEventPrompt, buildNovelPrompt, buildQuotePrompt } from './gamePrompts';
 
 describe('task-specific LLM game prompts', () => {
   test('event prompt carries narrative context and only whitelisted local D20 proposals', () => {
@@ -63,5 +63,23 @@ describe('task-specific LLM game prompts', () => {
     expect(prompt).toMatch(/hiddenType.*只读|隐藏结果.*只读/);
     expect(prompt).toMatch(/奖励、价格.*只读|价格、奖励.*只读/);
     expect(prompt).toContain('nodeBriefs');
+  });
+
+  test('diary prompt keeps the local trigger as read-only context and requests first-person prose only', () => {
+    const prompt = buildDiaryPrompt({
+      triggerKey: 'floor-completed:run-a:2',
+      floor: 2,
+      sanity: 56,
+      overload: 73,
+      localTitle: '第二层也会成为过去',
+      localBody: '我离开了雨声。',
+      fragmentNames: ['甲板晚风'],
+    }).map((message) => message.content).join('\n');
+
+    expect(prompt).toContain('第一人称');
+    expect(prompt).toContain('floor-completed:run-a:2');
+    expect(prompt).toContain('甲板晚风');
+    expect(prompt).toContain('{"title"');
+    expect(prompt).not.toContain('doctorNote');
   });
 });

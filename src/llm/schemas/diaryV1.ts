@@ -3,6 +3,8 @@ export function parseDiaryV1(value: unknown): DiaryV1 {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('手记 V1 必须是对象。');
   const record = value as Record<string, unknown>;
   if (['reward', 'damage', 'threshold', 'effect', 'sanityDelta', 'overloadDelta', 'nodes', 'edges'].some((key) => Object.hasOwn(record, key))) throw new TypeError('手记不得携带数值或本地规则字段。');
+  const unexpected = Object.keys(record).filter((key) => key !== 'title' && key !== 'body');
+  if (unexpected.length) throw new TypeError(`手记包含未经允许的字段：${unexpected.join('、')}。`);
   const title = read(record.title, 64); const body = read(record.body, 600);
   if (!body.includes('我')) throw new TypeError('手记必须使用迷迭香第一人称。');
   return { title, body };

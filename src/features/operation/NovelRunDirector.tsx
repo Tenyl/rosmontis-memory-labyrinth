@@ -7,6 +7,7 @@ import {
 import { buildNovelPrompt } from '../../llm/gamePrompts';
 import { createLocalNovelBlueprint } from '../../llm/localNovelBlueprint';
 import { createFallbackMindseaBlueprint } from '../../llm/mindseaBlueprint';
+import { parseMindseaFloorV1 } from '../../llm/schemas/mindseaFloorV1';
 import type { ApiSettings } from '../../sillytavern';
 import { useGameStore } from '../../store/gameStore';
 import { OpenAiTavernTransport } from '../tavern/runtime/openai-tavern-transport';
@@ -41,13 +42,18 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
     const expectedNodes = nodes.map(({ id, type }) => ({ id, type }));
 
     if (!api?.apiKey.trim()) {
-      const token = initial.beginDirectorRequest('novel', triggerKey);
+      const task = run.floor >= 6 ? 'mindsea' : 'novel';
+      const token = initial.beginDirectorRequest(task, triggerKey);
       initial.markDirectorTriggerHandled(triggerKey);
       initial.acceptNovelBlueprint(
         token,
         triggerKey,
-        createFallbackBlueprint(run.seed, run.floor, nodes, initial.memoryInventory.fragments.map((fragment) => fragment.name)),
+        createFallbackBlueprint(run.seed, run.floor, nodes, [
+          ...initial.memoryInventory.fragments,
+          ...initial.memoryInventory.coreFragments,
+        ].map((fragment) => fragment.name)),
         'local-fallback',
+        task,
       );
       return;
     }
@@ -60,7 +66,8 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
 
     const active: ActiveNovelRequest = { controller: new AbortController(), consumers: 1 };
     activeRequests.set(triggerKey, active);
-    const token = initial.beginDirectorRequest('novel', triggerKey);
+    const task = run.floor >= 6 ? 'mindsea' : 'novel';
+    const token = initial.beginDirectorRequest(task, triggerKey);
     const fragmentNames = [
       ...initial.memoryInventory.fragments,
       ...initial.memoryInventory.coreFragments,
@@ -69,7 +76,7 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
     void requestStructuredGameContent({
       transport,
       api,
-      task: 'novel',
+      task,
       messages: buildNovelPrompt({
         seed: run.seed,
         floor: run.floor,
@@ -78,13 +85,15 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
         fragmentNames,
         nodes: expectedNodes,
       }),
-      parse: (value) => parseNovelBlueprint(value, expectedNodes),
+      parse: (value) => run.floor >= 6
+        ? parseMindseaFloorV1(value, expectedNodes)
+        : parseNovelBlueprint(value, expectedNodes),
       signal: active.controller.signal,
     }).then((content) => {
       const latest = useGameStore.getState();
       if (latest.run.id !== run.id) return;
       latest.markDirectorTriggerHandled(triggerKey);
-      latest.acceptNovelBlueprint(token, triggerKey, content, 'remote');
+      latest.acceptNovelBlueprint(token, triggerKey, content, 'remote', task);
     }).catch((error: unknown) => {
       if (isAborted(error, active.controller.signal)) return;
       const latest = useGameStore.getState();
@@ -93,8 +102,12 @@ export function NovelRunDirector({ apiOverride, transportOverride }: NovelRunDir
       latest.acceptNovelBlueprint(
         token,
         triggerKey,
-        createFallbackBlueprint(run.seed, run.floor, nodes, latest.memoryInventory.fragments.map((fragment) => fragment.name)),
+        createFallbackBlueprint(run.seed, run.floor, nodes, [
+          ...latest.memoryInventory.fragments,
+          ...latest.memoryInventory.coreFragments,
+        ].map((fragment) => fragment.name)),
         'local-fallback',
+        task,
       );
       latest.addNotification({
         id: 'notification-llm-novel-fallback',
@@ -137,6 +150,7 @@ function directorFailureLabel(error: unknown) {
     configuration: '远程模型配置不完整',
     transport: '远程模型连接失败',
     'invalid-response': '远程蓝图未通过节点一致性校验',
+    timeout: '远程蓝图请求超时',
     aborted: '远程蓝图请求已取消',
   };
   return labels[error.code];

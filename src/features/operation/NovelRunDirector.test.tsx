@@ -121,4 +121,22 @@ describe('novel Run director', () => {
     await waitFor(() => expect(useGameStore.getState().llmDirector.novel?.source).toBe('local-fallback'));
     expect(stream).not.toHaveBeenCalled();
   });
+
+  test('uses the dedicated mindsea task for floor six and beyond', async () => {
+    setMode('novel');
+    act(() => {
+      useGameStore.setState((state) => ({
+        run: { ...state.run, floor: 6, maxFloor: 6 },
+        maze: { ...state.maze, floor: 6 },
+      }));
+    });
+    const stream = vi.fn(async function* () { yield validBlueprintJson(); });
+    renderDirector({ mode: 'remote', stream });
+
+    await waitFor(() => expect(useGameStore.getState().llmDirector.novel?.source).toBe('remote'));
+    expect(stream).toHaveBeenCalledWith(
+      expect.objectContaining({ gameTask: 'mindsea' }),
+      expect.any(AbortSignal),
+    );
+  });
 });

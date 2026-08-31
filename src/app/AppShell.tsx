@@ -18,7 +18,7 @@ import { selectSession, selectUnreadArchiveCount } from '../store/selectors';
 import { NotificationCenter } from '../components/NotificationCenter';
 import { ShortcutDialog } from '../components/ShortcutDialog';
 import { useTavern } from '../features/tavern/runtime/useTavern';
-import { DiaryPersistenceCoordinator } from '../features/diary/DiaryPersistenceCoordinator';
+import { DiaryDirector } from '../features/diary/DiaryDirector';
 import './app-shell.css';
 import '../components/components.css';
 
@@ -94,7 +94,7 @@ export function AppShell() {
 
   return (
     <div className="terminal-shell">
-      <DiaryPersistenceCoordinator />
+      <DiaryDirector />
       <a id="global-skip-to-content" className="skip-link" href="#main-content">跳至主内容</a>
       <aside className="terminal-sidebar" aria-label="终端主导航">
         <div className="terminal-brand">

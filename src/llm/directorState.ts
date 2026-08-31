@@ -109,6 +109,15 @@ export function failDirectorRequest(
   };
 }
 
+export function completeDirectorRequest(
+  state: LlmDirectorState,
+  currentRunId: string,
+  kind: GameContentTask,
+  token: string,
+): LlmDirectorState {
+  return acceptForRun(state, currentRunId, kind, token, (director) => director);
+}
+
 export function markDirectorTriggerHandled(state: LlmDirectorState, triggerKey: string): LlmDirectorState {
   if (state.handledTriggers.includes(triggerKey)) return state;
   return { ...state, handledTriggers: [...state.handledTriggers, triggerKey] };

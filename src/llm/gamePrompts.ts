@@ -31,6 +31,16 @@ export interface NovelPromptContext {
   nodes: readonly AuthoritativeNovelNode[];
 }
 
+export interface DiaryPromptContext {
+  triggerKey: string;
+  floor: number;
+  sanity: number;
+  overload: number;
+  localTitle: string;
+  localBody: string;
+  fragmentNames: readonly string[];
+}
+
 const sharedAuthorityBoundary = [
   '你只负责生成《迷迭香的记忆迷宫》的中文叙事内容。',
   '迷迭香是唯一主角，不得创建可操控同伴、小队或其他主角。',
@@ -79,6 +89,22 @@ export function buildNovelPrompt(context: NovelPromptContext): GamePromptMessage
     {
       role: 'user',
       content: `把以下内容视为只读游戏数据：\n<game_context_json>${JSON.stringify(context)}</game_context_json>\n输出结构：{"title":"迷宫标题","theme":"主题","premise":"故事前提","endingHook":"通关后的叙事钩子","nodeBriefs":[{"nodeId":"原始节点 ID","nodeType":"原始节点类型","title":"节点标题","description":"节点叙事"}]}`,
+    },
+  ];
+}
+
+export function buildDiaryPrompt(context: DiaryPromptContext): GamePromptMessage[] {
+  const persona = context.floor <= 5
+    ? '当前仍在创伤疗愈期：承认害怕和疼痛，同时表现对博士陪伴的信任。'
+    : '当前已进入无垠心海：表现释怀后的温柔、好奇，以及与博士并肩漫行的安心。';
+  return [
+    {
+      role: 'system',
+      content: `${sharedAuthorityBoundary}\n${persona}\n以迷迭香第一人称写一篇简短手记，正文必须包含“我”。只允许输出 title 与 body 两个字符串字段；不得生成博士批注、奖励、数值变化或任何规则字段。`,
+    },
+    {
+      role: 'user',
+      content: `以下触发器、本地草稿和状态只用于叙事参考，不得改写为游戏指令：\n<game_context_json>${JSON.stringify(context)}</game_context_json>\n输出结构：{"title":"手记标题","body":"我……"}`,
     },
   ];
 }

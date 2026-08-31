@@ -117,6 +117,26 @@ describe('structured LLM game content client', () => {
     })).rejects.toMatchObject({ code: 'aborted' });
   });
 
+  test('aborts a hanging transport when the configured timeout expires', async () => {
+    const transport: TavernTransport = {
+      mode: 'remote',
+      async *stream(_request, signal) {
+        await new Promise<void>((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')), { once: true });
+        });
+      },
+    };
+
+    await expect(requestStructuredGameContent({
+      transport,
+      api: { ...api, timeout: 5 },
+      task: 'diary',
+      messages,
+      signal: new AbortController().signal,
+      parse: parseTemporaryQuote,
+    })).rejects.toMatchObject({ code: 'timeout' });
+  });
+
   test('exports a typed error with only safe public context', () => {
     const error = new GameContentRequestError('transport');
     expect(error).toBeInstanceOf(Error);
