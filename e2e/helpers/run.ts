@@ -38,11 +38,14 @@ export async function resolveOverflow(page: Page, waitForPotential = false) {
 }
 
 export async function settleVisibleEncounter(page: Page): Promise<string> {
-  await expect(page.getByRole('heading', { level: 1, name: '作战主控台' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: '迷迭香的记忆迷宫' })).toBeVisible();
   const panel = page.locator('.encounter-panel');
   await expect(panel).toBeVisible();
-  const rawKind = (await panel.getAttribute('class'))?.match(/is-(combat|safehouse|shop|encounter|unknown|boss)/)?.[1] ?? 'unknown';
-  const kind = rawKind === 'safehouse' ? 'rest' : rawKind === 'encounter' ? 'wonder' : rawKind;
+  const panelClass = await panel.getAttribute('class') ?? '';
+  const rawKind = panelClass.includes('is-emergency-combat')
+    ? 'combat'
+    : panelClass.match(/is-(combat|safehouse|shop|encounter|dilemma|unknown|boss)/)?.[1] ?? 'unknown';
+  const kind = rawKind === 'safehouse' ? 'rest' : rawKind === 'encounter' || rawKind === 'dilemma' ? 'wonder' : rawKind;
 
   if (kind === 'combat') {
     await comfortBeforeTravel(page);
@@ -90,8 +93,12 @@ export async function advanceFloorIfAvailable(page: Page): Promise<boolean> {
 
 export async function enterReachableNode(page: Page, preferredLabels: readonly string[] = []) {
   await resolveOverflow(page);
-  await page.locator('#nav-memory-open').click();
-  await expect(page.getByRole('heading', { level: 1, name: '意识战场' })).toBeVisible();
+  const returnButton = page.locator('#game-return-to-maze');
+  if (await returnButton.isVisible().catch(() => false)) {
+    await expect(returnButton).toBeEnabled();
+    await returnButton.click();
+  }
+  await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();
   const reachable = page.locator('button[data-node-state="reachable"]');
   await expect(reachable.first()).toBeVisible();
 
@@ -104,9 +111,8 @@ export async function enterReachableNode(page: Page, preferredLabels: readonly s
     }
   }
   await selected.click();
-  await page.locator('button[id^="btn-enter-node-"]').click();
-  await page.locator('#nav-operation-open').click();
-  await expect(page.getByRole('heading', { level: 1, name: '作战主控台' })).toBeVisible();
+  await expect(page.locator('[data-scene-phase="node"]')).toBeVisible();
+  await expect(page).toHaveURL(/\/game$/);
 }
 
 export async function clearPresetRun(
@@ -128,20 +134,6 @@ export async function clearPresetRun(
     const victory = page.getByRole('dialog', { name: '潜入完成：记忆迷宫已逃离' });
     if (await victory.isVisible().catch(() => false)) return;
 
-    if (onFloorTopology) {
-      const floorText = await page.locator('.run-status-mission').innerText();
-      const floor = Number(floorText.match(/第\s*(\d+)\s*\/\s*\d+\s*层/)?.[1] ?? 0);
-      if (floor > 0 && !inspectedFloors.has(floor)) {
-        inspectedFloors.add(floor);
-        await page.locator('#nav-memory-open').click();
-        await expect(page.getByRole('heading', { level: 1, name: '意识战场' })).toBeVisible();
-        const labels = await page.locator('button[id^="run-maze-node-"] strong').allTextContents();
-        onFloorTopology(floor, labels.map((label) => label.trim()));
-        await page.locator('#nav-operation-open').click();
-        await expect(page.getByRole('heading', { level: 1, name: '作战主控台' })).toBeVisible();
-      }
-    }
-
     const kind = await settleVisibleEncounter(page);
     encountered.add(kind);
     onEncounter?.(kind);
@@ -151,6 +143,17 @@ export async function clearPresetRun(
     await comfortBeforeTravel(page);
     await resolveOverflow(page);
     if (await defeat.isVisible().catch(() => false)) throw new Error('陪伴交互后 Run 意外进入失败状态。');
+    if (onFloorTopology) {
+      const floorText = await page.locator('.run-status-mission').innerText();
+      const floor = Number(floorText.match(/第\s*(\d+)\s*\/\s*\d+\s*层/)?.[1] ?? 0);
+      if (floor > 0 && !inspectedFloors.has(floor)) {
+        inspectedFloors.add(floor);
+        await page.locator('#game-return-to-maze').click();
+        await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();
+        const nodeLabels = await page.locator('button[id^="game-maze-node-"] strong').allTextContents();
+        onFloorTopology(floor, nodeLabels.map((label) => label.trim()));
+      }
+    }
     if (await advanceFloorIfAvailable(page)) continue;
     const overload = Number(await page.locator('#meter-run-overload').getAttribute('aria-valuenow'));
     const preferred = labels

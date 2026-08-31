@@ -35,13 +35,9 @@ async function expectFieldsOnSameRow(
 }
 
 test('单主角编排隐藏角色管理且世界书与预设支持 SillyTavern JSON 导入导出', async ({ page }) => {
-  await page.goto('/operation');
-  await page.locator('#global-tavern-open').click();
-  await expect(page.getByRole('dialog', { name: '酒馆编排中枢' })).toBeVisible();
-
+  await page.goto('/settings');
+  await page.getByRole('tab', { name: '内容资料' }).click();
   await expect(page.locator('#tavern-tab-characters')).toHaveCount(0);
-
-  await page.locator('#tavern-tab-lorebooks').click();
   await page.locator('#lorebook-import-input').setInputFiles({
     name: 'cold-ward.json',
     mimeType: 'application/json',
@@ -55,8 +51,8 @@ test('单主角编排隐藏角色管理且世界书与预设支持 SillyTavern J
   expect(lorebookDownload.suggestedFilename()).toBe('低温病区索引.json');
   expect((await downloadJson(lorebookDownload)).name).toBe('低温病区索引');
 
-  await page.locator('#tavern-tab-presets').click();
-  await page.locator('#preset-import-input').setInputFiles({
+  await page.getByRole('tab', { name: '生成预设' }).click();
+  await page.locator('#settings-preset-import-input').setInputFiles({
     name: 'clinical.json',
     mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify({ name: '临床叙事预设', temp_openai: 0.55, openai_max_context: 8192 })),
@@ -96,8 +92,8 @@ test('系统设置页的预设编辑器逐项分行并保持在弹窗宽度内',
 
 test('记忆图鉴页的世界书编辑器逐项分行并保持在弹窗宽度内', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/archive');
-  await page.getByRole('tab', { name: '世界书' }).click();
+  await page.goto('/settings');
+  await page.getByRole('tab', { name: '内容资料' }).click();
   await page.locator('button[id^="lorebook-edit-"]').first().click();
   const lorebookDialog = page.getByRole('dialog', { name: '世界书编辑器' });
   await expect(lorebookDialog).toBeVisible();

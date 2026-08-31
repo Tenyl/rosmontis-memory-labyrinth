@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createSeededRandom } from '../../game/random';
 import type { MazeGraph } from '../../game/types';
@@ -53,6 +53,18 @@ test('enters a reachable node directly from the graph without a second confirmat
   expect(onRequestEnter).toHaveBeenCalledOnce();
   expect(onRequestEnter).toHaveBeenCalledWith('node-reachable');
   expect(screen.queryByRole('button', { name: '进入节点' })).not.toBeInTheDocument();
+});
+
+test('does not let the map drag layer capture pointer presses from a node', () => {
+  const { container } = render(<MazeStage {...defaultProps} />);
+  const viewport = container.querySelector<HTMLElement>('.maze-viewport');
+  const reachable = screen.getByRole('button', { name: /奇境.*风险 A.*可抵达/ });
+  const setPointerCapture = vi.fn();
+  Object.defineProperty(viewport, 'setPointerCapture', { value: setPointerCapture });
+
+  fireEvent.pointerDown(reachable, { button: 0, pointerId: 7, clientX: 120, clientY: 80 });
+
+  expect(setPointerCapture).not.toHaveBeenCalled();
 });
 
 test('keeps hidden and completed nodes unavailable and exposes state without relying on color', () => {

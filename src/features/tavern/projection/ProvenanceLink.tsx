@@ -35,7 +35,7 @@ export function ProvenanceLink({ sessionId, messageId, matchedLorebookEntryIds, 
     <Link
       id={id}
       className="tavern-provenance"
-      to={`/operation?session=${encodeURIComponent(sessionId)}&message=${encodeURIComponent(messageId)}`}
+      to={`/game?session=${encodeURIComponent(sessionId)}&message=${encodeURIComponent(messageId)}`}
       aria-label={`打开来自会话${session.name}的来源回合`}
     >
       <ClockCounterClockwise size={14} aria-hidden />来自会话 / 回合<span>{session.name} · {messageId.slice(-6).toUpperCase()}{matchedLorebookEntryIds?.length ? ` · 世界书证据 ${matchedLorebookEntryIds.length}` : ''}</span>

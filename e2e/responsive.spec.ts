@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { settleVisibleEncounter } from './helpers/run';
 
 const viewports = [
   { name: 'mobile', width: 375, height: 812 },
@@ -8,11 +9,10 @@ const viewports = [
 ] as const;
 
 const routes = [
-  ['/operation', '作战主控台'],
-  ['/memory', '意识战场'],
-  ['/operators', '迷迭香状态'],
-  ['/archive', '记忆图鉴'],
-  ['/log', '行动记录'],
+  ['/game', '迷迭香的记忆迷宫'],
+  ['/compendium', '记忆图鉴'],
+  ['/diary', '迷迭香手记'],
+  ['/records', '探索记录'],
   ['/settings', '系统设置'],
 ] as const;
 
@@ -35,40 +35,68 @@ for (const viewport of viewports) {
   });
 }
 
-test('375 像素意识战场默认切换为战术列表', async ({ page }) => {
+test('375 像素下顶部菜单、地图列表和节点动作均可操作', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/memory');
+  await page.goto('/game');
+  await settleVisibleEncounter(page);
+  await page.locator('#game-return-to-maze').click();
+  await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();
+
+  await page.locator('#game-maze-view-switch-list').click();
   await expect(page.getByRole('heading', { name: '节点战术列表' })).toBeVisible();
-  await expect(page.locator('#memory-view-switch-list')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.maze-context-actions .terminal-button').first()).toBeVisible();
+
+  await page.getByRole('button', { name: '展开顶部菜单' }).click();
+  await expect(page.getByRole('link', { name: '系统设置' })).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
 });
-test('减少动效偏好通过设置页实时应用到根节点', async ({ page }) => {
+
+test('系统减少动效时节点转场在 200ms 内完成且没有无限动画', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/settings');
-  await page.getByRole('tab', { name: '视觉与辅助' }).click();
-  await page.getByRole('radio', { name: '减少动效' }).click();
-  await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduced');
-  await expect(page.locator('.route-page')).toHaveCSS('animation-name', 'none');
+  await page.goto('/game');
+  await settleVisibleEncounter(page);
+  await page.locator('#game-return-to-maze').click();
+  await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();
+
+  const reachable = page.locator('[data-node-state="reachable"]').first();
+  await page.evaluate(() => {
+    const stage = document.querySelector('#game-stage');
+    const timing = { started: 0, duration: 0 };
+    (window as typeof window & { __nodeTransitionTiming?: typeof timing }).__nodeTransitionTiming = timing;
+    new MutationObserver(() => {
+      const phase = stage?.getAttribute('data-scene-phase');
+      if (phase === 'entering-node' && timing.started === 0) timing.started = performance.now();
+      if (phase === 'node' && timing.started > 0) timing.duration = performance.now() - timing.started;
+    }).observe(stage!, { attributes: true, attributeFilter: ['data-scene-phase'] });
+  });
+  await reachable.click();
+  const transition = page.locator('.node-transition-layer');
+  await expect(transition).toBeVisible();
+  const infiniteAnimations = await transition.evaluate((element) => (
+    element.getAnimations({ subtree: true }).filter((animation) => animation.effect?.getTiming().iterations === Infinity).length
+  ));
+  expect(infiniteAnimations).toBe(0);
+  await expect(page.locator('[data-scene-phase="node"]')).toBeVisible();
+  const duration = await page.evaluate(() => (
+    (window as typeof window & { __nodeTransitionTiming?: { duration: number } }).__nodeTransitionTiming?.duration ?? Infinity
+  ));
+  expect(duration).toBeLessThan(200);
 });
 
 for (const viewport of viewports) {
-  test(`${viewport.name} 酒馆编排保持在视口内并满足移动触控尺寸`, async ({ page }) => {
+  test(`${viewport.name} 设置管理工作区保持在视口内`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await page.goto('/operation');
-    await page.locator('#global-tavern-open').click();
-    const dialog = page.getByRole('dialog', { name: '酒馆编排中枢' });
-    await expect(dialog).toBeVisible();
-    await dialog.evaluate(async (element) => {
-      await Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => undefined)));
-    });
-    const box = await dialog.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.x).toBeGreaterThanOrEqual(0);
-    expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width + 1);
-    if (viewport.width <= 767) {
-      const closeBox = await page.locator('#tavern-orchestrator-dialog-close').boundingBox();
-      expect(closeBox!.width).toBeGreaterThanOrEqual(44);
-      expect(closeBox!.height).toBeGreaterThanOrEqual(44);
+    await page.goto('/settings');
+    if (viewport.width <= 900) {
+      await page.getByRole('button', { name: '展开顶部菜单' }).click();
+      await expect(page.getByRole('navigation', { name: '顶部菜单' })).toBeVisible();
     }
+    await page.getByRole('tab', { name: '内容资料' }).click();
+    await expect(page.getByRole('heading', { name: '世界书索引' })).toBeVisible();
+    const panel = page.locator('#settings-panel-content');
+    await expect.poll(async () => panel.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(true);
   });
 }

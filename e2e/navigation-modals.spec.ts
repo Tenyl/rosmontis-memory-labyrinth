@@ -1,8 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
+import { settleVisibleEncounter } from './helpers/run';
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => window.localStorage.clear());
 });
+
 async function closesWithEscapeAndRestoresFocus(page: Page, triggerId: string, dialogName: string) {
   const trigger = page.locator(`#${triggerId}`);
   await trigger.click();
@@ -13,67 +15,40 @@ async function closesWithEscapeAndRestoresFocus(page: Page, triggerId: string, d
 }
 
 test('快捷键说明弹层支持 Escape 并恢复焦点', async ({ page }) => {
-  await page.goto('/operation');
+  await page.goto('/game');
   await closesWithEscapeAndRestoresFocus(page, 'global-shortcuts-open', '终端快捷键');
 });
 
-test('意识战场仅允许沿生成拓扑进入可抵达节点', async ({ page }) => {
-  await page.goto('/memory');
-  await page.locator('[id^="run-maze-node-"][data-node-state="reachable"]').first().click();
-  await expect(page.getByRole('button', { name: '迷迭香请求先完成眼前的残响' })).toBeDisabled();
+test('迷宫只允许沿生成拓扑进入可抵达节点', async ({ page }) => {
+  await page.goto('/game');
+  await settleVisibleEncounter(page);
+  await page.locator('#game-return-to-maze').click();
+  await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();
 
-  await page.locator('#nav-operation-open').click();
-  await page.locator('#btn-encounter-rest-stabilize').click();
-  await page.locator('#nav-memory-open').click();
-  const currentNode = page.locator('[id^="run-maze-node-"][aria-current="step"]');
-  const reachableNode = page.locator('[id^="run-maze-node-"][data-node-state="reachable"]').first();
-  const hiddenNode = page.locator('[id^="run-maze-node-"][data-node-state="hidden"]').first();
-
+  const currentNode = page.locator('[id^="game-maze-node-"][aria-current="step"]');
+  const reachableNode = page.locator('[id^="game-maze-node-"][data-node-state="reachable"]').first();
+  const hiddenNode = page.locator('[id^="game-maze-node-"][data-node-state="hidden"]').first();
   await expect(currentNode).toHaveCount(1);
   await expect(reachableNode).toBeEnabled();
   await expect(hiddenNode).toBeDisabled();
 
   const previousNodeId = await currentNode.getAttribute('id');
   const targetNodeId = await reachableNode.getAttribute('id');
-  expect(previousNodeId).not.toBeNull();
-  expect(targetNodeId).not.toBeNull();
+  await reachableNode.click();
+  await expect(page.locator('[data-scene-phase="node"]')).toBeVisible();
+  await settleVisibleEncounter(page);
+  await page.locator('#game-return-to-maze').click();
 
-  await page.locator(`#${targetNodeId}`).click();
-  await page.locator('button[id^="btn-enter-node-"]').click();
   await expect(page.locator(`#${targetNodeId}`)).toHaveAttribute('aria-current', 'step');
   await expect(page.locator(`#${previousNodeId}`)).not.toHaveAttribute('aria-current', 'step');
 });
 
-test('迷迭香状态页使用可替换空白立绘且没有随行档案入口', async ({ page }) => {
-  await page.goto('/operators');
-  await expect(page.getByRole('heading', { level: 1, name: '迷迭香状态' })).toBeVisible();
-  const portrait = page.getByRole('img', { name: '迷迭香立绘占位' });
-  await expect(portrait).toHaveJSProperty('complete', true);
-  expect(await portrait.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
+test('统一游戏页使用可替换空白立绘且没有随行档案入口', async ({ page }) => {
+  await page.goto('/game');
+  const portraits = page.getByRole('img', { name: '迷迭香人物立绘占位图' });
+  await expect(portraits.first()).toHaveJSProperty('complete', true);
+  expect(await portraits.first().evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0);
   await expect(page.locator('[id^="operator-dossier-open-"]')).toHaveCount(0);
-});
-
-test('档案详情与未保存批注确认保持嵌套层级', async ({ page }) => {
-  await page.goto('/archive');
-  await page.getByRole('tab', { name: '叙事档案' }).click();
-  const trigger = page.locator('#archive-detail-open-archive-wet-record');
-  await trigger.click();
-  await expect(page.getByRole('dialog', { name: '潮湿的儿童病历' })).toBeVisible();
-  await page.locator('#archive-note-input').fill('追踪雨水样本与广播频谱的重合区间。');
-  await page.locator('#archive-detail-close-confirm').click();
-  await expect(page.getByRole('dialog', { name: '批注尚未保存' })).toBeVisible();
-  await page.keyboard.press('Escape');
-  await expect(page.getByRole('dialog', { name: '批注尚未保存' })).toBeHidden();
-  await expect(page.getByRole('dialog', { name: '潮湿的儿童病历' })).toBeVisible();
-  await page.locator('#archive-detail-close-confirm').click();
-  await page.locator('#archive-unsaved-discard').click();
-  await expect(trigger).toBeFocused();
-});
-
-test('行动记录剧情回溯支持键盘关闭', async ({ page }) => {
-  await page.goto('/log');
-  await page.getByRole('tab', { name: '战术时间线' }).click();
-  await closesWithEscapeAndRestoresFocus(page, 'log-replay-open-log-check', '剧情回溯');
 });
 
 test('设置恢复确认弹层支持键盘关闭', async ({ page }) => {

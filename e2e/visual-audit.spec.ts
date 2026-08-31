@@ -8,11 +8,10 @@ const viewports = [
 ] as const;
 
 const routes = [
-  ['/operation', '作战主控台'],
-  ['/memory', '意识战场'],
-  ['/operators', '迷迭香状态'],
-  ['/archive', '记忆图鉴'],
-  ['/log', '行动记录'],
+  ['/game', '迷迭香的记忆迷宫'],
+  ['/compendium', '记忆图鉴'],
+  ['/diary', '迷迭香手记'],
+  ['/records', '探索记录'],
   ['/settings', '系统设置'],
 ] as const;
 
@@ -46,27 +45,13 @@ test('生成四组视口的完整视觉验收联络表', async ({ page }, testIn
       captures.push({ label: `${title} · ${route}`, dataUrl: `data:image/png;base64,${image.toString('base64')}` });
     }
 
-    await page.goto('/operation');
-    await page.locator('#global-tavern-open').click();
-    const orchestrator = page.getByRole('dialog', { name: '酒馆编排中枢' });
-    await expect(orchestrator).toBeVisible();
-    await orchestrator.evaluate(async (element) => {
-      await Promise.all(element.getAnimations().map((animation) => animation.finished.catch(() => undefined)));
-    });
-    const orchestratorImage = await page.screenshot({
-      animations: 'disabled',
-      path: testInfo.outputPath(`${viewport.name}-orchestrator.png`),
-      type: 'png',
-    });
-    captures.push({ label: '酒馆编排中枢', dataUrl: `data:image/png;base64,${orchestratorImage.toString('base64')}` });
-
     await page.setViewportSize({ width: 1160, height: 820 });
     await page.setContent(`<!doctype html><html lang="zh-CN"><meta charset="utf-8"><style>
       *{box-sizing:border-box}body{margin:0;padding:24px;background:#05080c;color:#e6edf3;font-family:"Microsoft YaHei UI",sans-serif}
       h1{margin:0 0 18px;font-size:22px;letter-spacing:.06em}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
       figure{margin:0;padding:10px;border:1px solid #304552;background:#0b1117}img{display:block;width:100%;height:210px;object-fit:contain;background:#020407}
       figcaption{padding-top:8px;color:#9cb3c0;font-size:13px}.meta{color:#72d8ff;font:12px Consolas,monospace}
-    </style><body><h1>罗德岛意识战术终端 · <span class="meta">${viewport.width}×${viewport.height}</span></h1><div class="grid">${captures.map((capture) => `<figure><img alt="" src="${capture.dataUrl}"><figcaption>${capture.label}</figcaption></figure>`).join('')}</div></body></html>`);
+    </style><body><h1>迷迭香的记忆迷宫 · <span class="meta">${viewport.width}×${viewport.height}</span></h1><div class="grid">${captures.map((capture) => `<figure><img alt="" src="${capture.dataUrl}"><figcaption>${capture.label}</figcaption></figure>`).join('')}</div></body></html>`);
     await page.screenshot({ path: testInfo.outputPath(`${viewport.name}-contact-sheet.png`), fullPage: true, type: 'png' });
   }
 

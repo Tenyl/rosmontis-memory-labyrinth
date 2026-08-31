@@ -11,7 +11,7 @@ test('离线预设迷宫完整通过五层并覆盖八类节点', async ({ page 
   page.on('pageerror', (error) => browserProblems.push(error.message));
 
   await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/operation');
+  await page.goto('/game');
   await expect(page.getByRole('heading', { name: '记忆潜入控制' })).toBeVisible();
 
   const encountered = new Set<string>();
@@ -44,12 +44,12 @@ test('离线预设迷宫完整通过五层并覆盖八类节点', async ({ page 
   }
 
   await victory.getByRole('button', { name: '重新开始预设迷宫' }).click();
-  await page.locator('#nav-archive-open').click();
+  await page.locator('#nav-compendium-open').click();
   await expect(page.getByRole('heading', { name: '记忆图鉴' })).toBeVisible();
   await expect(page.getByText('核心记忆：仍被呼唤的名字')).toBeVisible();
-  await page.locator('#nav-log-open').click();
+  await page.locator('#nav-records-open').click();
   await expect(page.getByRole('region', { name: 'Run 历史' })).toContainText('PRESET-RAIN-ECHO');
-  await page.locator('#nav-operation-open').click();
+  await page.locator('#nav-game-open').click();
 
   const endlessMode = page.locator('#run-mode-endless');
   await expect(endlessMode).toBeEnabled();

@@ -18,7 +18,7 @@ export default defineConfig({
   ],
   webServer: {
     command: 'vite --host 127.0.0.1 --port 4617',
-    url: 'http://127.0.0.1:4617/operation',
+    url: 'http://127.0.0.1:4617/game',
     reuseExistingServer: true,
     timeout: 120_000,
   },

@@ -141,6 +141,7 @@ export function MazeStage({
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
+    if (event.target instanceof Element && event.target.closest('button, a, input, select, textarea')) return;
     drag.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, camera };
     event.currentTarget.setPointerCapture?.(event.pointerId);
   };

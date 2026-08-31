@@ -16,7 +16,7 @@ export async function configureMockApi(page: Page) {
   await page.locator('#settings-api-key').fill('sk-playwright-only');
   await page.locator('#settings-api-save').click();
   await expect(page.getByText('接口配置已保存')).toBeVisible();
-  await page.locator('#nav-operation-open').click();
+  await page.locator('#nav-game-open').click();
 }
 
 export function installStructuredLlmMock(
