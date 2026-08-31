@@ -262,6 +262,7 @@ export interface UiState {
   sidebarCollapsed: boolean;
   activeDialog: string | null;
   notifications: NotificationItem[];
+  migrationNotice: 'three-to-five-floors' | null;
   preferences: UiPreferences;
 }
 
@@ -289,6 +290,15 @@ export interface RunHistoryRecord {
   recordedAt: string;
 }
 
+export interface PendingDiaryDraft {
+  id: string;
+  triggerKey: string;
+  title: string;
+  body: string;
+  source: 'local' | 'remote';
+  createdAt: string;
+}
+
 export interface GameDataState {
   run: RunState;
   maze: MazeGraph;
@@ -305,6 +315,7 @@ export interface GameDataState {
   llmDirector: LlmDirectorState;
   memoryCompendium: MemoryCompendiumEntry[];
   runHistory: RunHistoryRecord[];
+  pendingDiaryDrafts: PendingDiaryDraft[];
   session: SessionState;
   narrative: NarrativeState;
   memoryMap: MemoryMapState;

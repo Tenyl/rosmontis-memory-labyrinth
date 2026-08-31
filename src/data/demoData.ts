@@ -5,7 +5,12 @@ import type {
   Operator,
 } from '../types/game';
 import { createRun } from '../game/run';
-import { createLlmDirectorState } from '../llm/directorState';
+import { createDiarySlice } from '../store/slices/diarySlice';
+import { createInventorySlice } from '../store/slices/inventorySlice';
+import { createLlmDirectorSlice } from '../store/slices/llmDirectorSlice';
+import { createMazeSlice } from '../store/slices/mazeSlice';
+import { createRosmontisSlice } from '../store/slices/rosmontisSlice';
+import { createRunSlice } from '../store/slices/runSlice';
 
 const surfaceNodes: MemoryNode[] = [
   {
@@ -202,21 +207,12 @@ export function buildDemoState(): GameDataState {
     llmEnabled: false,
   });
   return {
-    run: roguelike.run,
-    maze: roguelike.maze,
-    rosmontis: roguelike.rosmontis,
-    memoryInventory: roguelike.memoryInventory,
-    progression: roguelike.progression,
-    ruleLog: [],
-    randomState: roguelike.randomState,
-    economy: roguelike.economy,
-    modules: roguelike.modules,
-    explorationCharges: roguelike.explorationCharges,
-    routeEffects: roguelike.routeEffects,
-    pendingEncounter: roguelike.pendingEncounter,
-    llmDirector: createLlmDirectorState(roguelike.run.id),
-    memoryCompendium: [],
-    runHistory: [],
+    ...createRunSlice(roguelike),
+    ...createMazeSlice(roguelike),
+    ...createRosmontisSlice(roguelike),
+    ...createInventorySlice(roguelike),
+    ...createDiarySlice(),
+    ...createLlmDirectorSlice(roguelike.run.id),
     session: {
       operationCode: '雨幕回声',
       chapter: '第一章 / 失温病历',
@@ -306,6 +302,7 @@ export function buildDemoState(): GameDataState {
       sidebarCollapsed: false,
       activeDialog: null,
       notifications: [],
+      migrationNotice: null,
       preferences: {
         density: 'standard',
         textSpeed: 'standard',

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { buildDemoState, deepMemoryClue, deepMemoryNode } from '../data/demoData';
-import { createRun, reduceRunAction } from '../game/run';
+import { createRun, reduceRunAction, type RunResolution } from '../game/run';
 import type {
   FragmentOverflowChoice,
   GreatswordAction,
@@ -9,6 +9,7 @@ import type {
   MemoryFragment,
   RoguelikeState,
   RuleEvent,
+  RunAction,
   RunMode,
 } from '../game/types';
 import {
@@ -40,6 +41,7 @@ import type {
 import { migrateGameState } from './gameStateMigration';
 
 interface GameActions {
+  dispatchRunAction: (action: RunAction) => RunResolution;
   startRun: (seed: string, mode: RunMode, llmEnabled: boolean) => void;
   moveToNode: (nodeId: string) => void;
   beginCurrentEncounter: () => void;
@@ -246,6 +248,7 @@ function buildPersistedState(state: GameStore): GameDataState {
     llmDirector: state.llmDirector,
     memoryCompendium: state.memoryCompendium,
     runHistory: state.runHistory,
+    pendingDiaryDrafts: state.pendingDiaryDrafts,
     session: state.session,
     narrative: state.narrative,
     memoryMap: state.memoryMap,
@@ -442,6 +445,14 @@ export const useGameStore = create<GameStore>()(
   persist(
     (set, get) => ({
       ...buildDemoState(),
+      dispatchRunAction: (action) => {
+        const state = get();
+        const resolution = reduceRunAction(selectRoguelikeState(state), action);
+        if (resolution.accepted) {
+          set(applyRoguelikeState(state, resolution.state, resolution.events));
+        }
+        return resolution;
+      },
       startRun: (seed, mode, llmEnabled) =>
         set((state) => {
           const next = createRun({ seed, mode, progression: state.progression, llmEnabled });
@@ -451,75 +462,21 @@ export const useGameStore = create<GameStore>()(
             llmDirector: createLlmDirectorState(next.run.id),
           };
         }),
-      moveToNode: (nodeId) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'move-to-node', nodeId });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      beginCurrentEncounter: () =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'begin-node' });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      resolveEncounterChoice: (choiceId) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'resolve-encounter', choiceId });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      purchaseShopOffer: (offerId) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'purchase-offer', offerId });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      sellRunFragment: (fragmentId) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'sell-fragment', fragmentId });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      useExplorationPower: (action) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'use-exploration-power', action });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      spendScoutPoint: (nodeId) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'spend-scout-point', nodeId });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      advanceRunFloor: () =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'advance-floor' });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      useGreatsword: (action) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'use-greatsword', action });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      completeCurrentNode: (fragment) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'complete-node', fragment });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      applyRunVitals: (sanityDelta, overloadDelta) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), {
-            type: 'apply-vitals',
-            sanityDelta,
-            overloadDelta,
-          });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      stabilizeMemoryCore: () =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'stabilize-core' });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
-      resolveFragmentChoice: (choice) =>
-        set((state) => {
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'resolve-fragment-overflow', choice });
-          return resolution.accepted ? applyRoguelikeState(state, resolution.state, resolution.events) : state;
-        }),
+      moveToNode: (nodeId) => { get().dispatchRunAction({ type: 'move-to-node', nodeId }); },
+      beginCurrentEncounter: () => { get().dispatchRunAction({ type: 'begin-node' }); },
+      resolveEncounterChoice: (choiceId) => { get().dispatchRunAction({ type: 'resolve-encounter', choiceId }); },
+      purchaseShopOffer: (offerId) => { get().dispatchRunAction({ type: 'purchase-offer', offerId }); },
+      sellRunFragment: (fragmentId) => { get().dispatchRunAction({ type: 'sell-fragment', fragmentId }); },
+      useExplorationPower: (action) => { get().dispatchRunAction({ type: 'use-exploration-power', action }); },
+      spendScoutPoint: (nodeId) => { get().dispatchRunAction({ type: 'spend-scout-point', nodeId }); },
+      advanceRunFloor: () => { get().dispatchRunAction({ type: 'advance-floor' }); },
+      useGreatsword: (action) => { get().dispatchRunAction({ type: 'use-greatsword', action }); },
+      completeCurrentNode: (fragment) => { get().dispatchRunAction({ type: 'complete-node', fragment }); },
+      applyRunVitals: (sanityDelta, overloadDelta) => {
+        get().dispatchRunAction({ type: 'apply-vitals', sanityDelta, overloadDelta });
+      },
+      stabilizeMemoryCore: () => { get().dispatchRunAction({ type: 'stabilize-core' }); },
+      resolveFragmentChoice: (choice) => { get().dispatchRunAction({ type: 'resolve-fragment-overflow', choice }); },
       resetRun: () =>
         set((state) => {
           const next = createRun({
@@ -1059,7 +1016,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
       migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),

@@ -1,4 +1,5 @@
 import { validateMaze } from '../game/maze';
+import { createRun } from '../game/run';
 import type { MazeGraph } from '../game/types';
 import { restoreLlmDirectorState } from '../llm/directorState';
 import type { GameDataState } from '../types/game';
@@ -38,6 +39,9 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
   merged.runHistory = Array.isArray(persisted.runHistory)
     ? persisted.runHistory
     : current.runHistory;
+  merged.pendingDiaryDrafts = Array.isArray(persisted.pendingDiaryDrafts)
+    ? persisted.pendingDiaryDrafts
+    : current.pendingDiaryDrafts;
   merged.economy = isRecord(persisted.economy)
     && typeof persisted.economy.echoes === 'number'
     && typeof persisted.economy.scoutPoints === 'number'
@@ -60,15 +64,28 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
     ? persisted.pendingEncounter
     : null;
 
-  if (!hasValidRoguelikeState(persisted)) {
-    const savedProgression = isRecord(persisted.progression)
-      && typeof persisted.progression.firstClear === 'boolean'
-      && typeof persisted.progression.completedRuns === 'number'
-      ? {
-          firstClear: persisted.progression.firstClear,
-          completedRuns: persisted.progression.completedRuns,
-        }
-      : current.progression;
+  const savedProgression = readProgression(persisted, current);
+  if (isThreeFloorSave(persisted)) {
+    const persistedRun = persisted.run as Record<string, unknown>;
+    const seed = typeof persistedRun.seed === 'string' ? persistedRun.seed : current.run.seed;
+    const requestedMode = persistedRun.mode;
+    const mode = (requestedMode === 'endless' || requestedMode === 'novel') && savedProgression.firstClear
+      ? requestedMode
+      : 'preset';
+    const rebuilt = createRun({
+      seed,
+      mode,
+      progression: savedProgression,
+      llmEnabled: mode === 'novel',
+    });
+    for (const key of roguelikeKeys) {
+      (merged as unknown as Record<string, unknown>)[key] = key === 'ruleLog'
+        ? []
+        : rebuilt[key as keyof typeof rebuilt];
+    }
+    merged.progression = savedProgression;
+    merged.ui = { ...merged.ui, migrationNotice: 'three-to-five-floors' };
+  } else if (!hasValidRoguelikeState(persisted)) {
     for (const key of roguelikeKeys) {
       (merged as unknown as Record<string, unknown>)[key] = current[key];
     }
@@ -93,6 +110,25 @@ export function migrateGameState(persisted: unknown, current: GameDataState): Ga
   }
   merged.llmDirector = restoreLlmDirectorState(persisted.llmDirector, merged.run.id);
   return merged;
+}
+
+function readProgression(persisted: Record<string, unknown>, current: GameDataState) {
+  return isRecord(persisted.progression)
+    && typeof persisted.progression.firstClear === 'boolean'
+    && typeof persisted.progression.completedRuns === 'number'
+    ? {
+        firstClear: persisted.progression.firstClear,
+        completedRuns: persisted.progression.completedRuns,
+      }
+    : current.progression;
+}
+
+function isThreeFloorSave(value: Record<string, unknown>) {
+  if (!isRecord(value.run) || !isRecord(value.maze)) return false;
+  if (typeof value.run.maxFloor === 'number' && value.run.maxFloor < 5) return true;
+  return Array.isArray(value.maze.nodes) && value.maze.nodes.some((node) => (
+    isRecord(node) && (node.type === 'rest' || node.type === 'wonder')
+  ));
 }
 
 function hasValidRoguelikeState(value: Record<string, unknown>) {

@@ -11,6 +11,33 @@ function withoutRoguelikeSlices() {
 }
 
 describe('versioned game state migration', () => {
+  test('rebuilds a V5 three-floor Run as a five-floor Run with the same seed', () => {
+    const current = buildDemoState();
+    const previous = structuredClone(current) as any;
+    previous.run.seed = 'LEGACY-V5-SEED';
+    previous.run.id = 'run-legacy-v5';
+    previous.run.maxFloor = 3;
+    previous.run.turn = 17;
+    previous.progression = { firstClear: true, completedRuns: 4 };
+    previous.memoryCompendium = [{
+      id: 'legacy-memory', name: '被保存的旧记忆', kind: 'standard', tags: ['旧档案'],
+      discoveredRunId: 'run-legacy-v5', discoveries: 2,
+    }];
+    previous.runHistory = [{ id: 'legacy-history' }];
+    previous.ui.preferences.density = 'compact';
+
+    const migrated = migrateGameState(previous, current);
+
+    expect(migrated.run).toMatchObject({ seed: 'LEGACY-V5-SEED', maxFloor: 5, floor: 1, turn: 1 });
+    expect(migrated.run.currentNodeId).toBe(migrated.maze.startNodeId);
+    expect(migrated.maze.nodes.find((node) => node.id === migrated.maze.startNodeId)?.type).toBe('safehouse');
+    expect(migrated.ui).toMatchObject({ migrationNotice: 'three-to-five-floors' });
+    expect(migrated.progression).toEqual({ firstClear: true, completedRuns: 4 });
+    expect(migrated.memoryCompendium[0]?.id).toBe('legacy-memory');
+    expect(migrated.runHistory[0]?.id).toBe('legacy-history');
+    expect(migrated.ui.preferences.density).toBe('compact');
+  });
+
   test('migrates legacy prototype state while preserving preferences and Tavern projections', () => {
     const current = buildDemoState();
     const legacy = withoutRoguelikeSlices() as any;

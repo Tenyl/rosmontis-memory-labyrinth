@@ -77,6 +77,29 @@ test('starts and advances a deterministic Run through store adapters', () => {
   expect(state.ruleLog.at(-1)).toMatchObject({ type: 'run.moved', targetNodeId: target });
 });
 
+test('dispatches a Run action as one atomic cross-slice transaction and leaves rejected snapshots untouched', () => {
+  useGameStore.getState().startRun('ATOMIC-RUN', 'preset', false);
+  useGameStore.getState().useGreatsword({ swordId: 'watch', target: 'self', nodeType: 'safehouse' });
+  useGameStore.getState().resolveEncounterChoice('rest-rehearse');
+  const before = useGameStore.getState();
+  const target = before.maze.edges.find((edge) => edge.sourceId === before.run.currentNodeId && !edge.locked)!.targetId;
+
+  const accepted = (before as any).dispatchRunAction({ type: 'move-to-node', nodeId: target });
+  const after = useGameStore.getState();
+
+  expect(accepted.accepted).toBe(true);
+  expect(after.run).toMatchObject({ currentNodeId: target, turn: before.run.turn + 1 });
+  expect(after.rosmontis.actionPoints).toBe(4);
+  expect(after.maze.nodes.find((node) => node.id === target)?.state).toBe('current');
+  expect(after.pendingEncounter?.nodeId).toBe(target);
+  expect(after.ruleLog.at(-1)).toMatchObject({ type: 'run.moved', targetNodeId: target });
+
+  const snapshot = useGameStore.getState();
+  const rejected = (snapshot as any).dispatchRunAction({ type: 'move-to-node', nodeId: 'missing-node' });
+  expect(rejected.accepted).toBe(false);
+  expect(useGameStore.getState()).toBe(snapshot);
+});
+
 test('persists encounter, economy, modules, and exploration actions through store adapters', () => {
   useGameStore.getState().startRun('STORE-INTEGRATED', 'preset', false);
   let state = useGameStore.getState();
@@ -277,9 +300,9 @@ test('persists the explicit roguelike schema version', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 44);
   const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
 
-  expect(persisted.version).toBe(5);
+  expect(persisted.version).toBe(6);
   expect(persisted.state.run.seed).toBeTruthy();
-  expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(8);
+  expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(9);
   expect(persisted.state.runHistory).toEqual(expect.any(Array));
   expect(persisted.state.memoryCompendium).toEqual(expect.any(Array));
 });
