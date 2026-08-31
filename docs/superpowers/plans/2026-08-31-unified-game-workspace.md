@@ -24,7 +24,7 @@
 - Zustand persistence advances from version 7 to version 8; Tavern IndexedDB remains version 5.
 - Preserve the existing localStorage key for migration compatibility and preserve Tavern characters, personas, lorebooks, presets, chats, messages, settings, and diary entries.
 - Use Lucide icons only; no Emoji may be used as a structural icon.
-- Each task starts with a failing test, ends with its focused tests plus `npm run typecheck`, and is committed and pushed to `origin/codex/rosemary-memory-maze`.
+- Each behavior-changing task starts with a failing test. Pure deletion/refactor tasks rely on the already-green consumer tests that make the old files unreachable, then use type checking and an explicit source audit. Every task ends with focused tests plus `npm run typecheck`, and is committed and pushed to `origin/codex/rosemary-memory-maze`.
 
 ---
 
@@ -52,7 +52,6 @@
 - `src/features/records/RecordsPage.test.tsx` — record content and timeline absence tests.
 - `src/features/records/formatRuleEvent.ts` — user-readable RuleEvent projection.
 - `src/features/records/formatRuleEvent.test.ts` — exhaustive formatter tests.
-- `src/test/legacyRemovalContract.test.ts` — production-source ban on removed modules and titles.
 - `e2e/unified-game-workspace.spec.ts` — routing, node entry, return, refresh, mobile, and reduced-motion coverage.
 
 ### Principal modified modules
@@ -944,45 +943,18 @@ git push origin codex/rosemary-memory-maze
 - Modify: `src/sillytavern/default-content.ts`
 - Modify: `src/sillytavern/default-content.test.ts`
 - Modify: `src/sillytavern/character-card.test.ts`
-- Create: `src/test/legacyRemovalContract.test.ts`
 
 **Interfaces:**
-- Consumes: production source tree.
-- Produces: a source contract that fails when deleted UI concepts or dead imports return.
+- Consumes: the already-green route, compendium, records, settings, Tavern runtime, and game-page consumer tests from Tasks 3–9.
+- Produces: no production imports or runtime references to the removed pages, data, or story fixtures.
 
-- [ ] **Step 1: Write the source-removal contract**
+- [ ] **Step 1: Capture the remaining production references before deletion**
 
-```ts
-import fs from 'node:fs';
-import path from 'node:path';
+Run: `rg -n -g '!**/*.test.*' -g '!src/test/**' "叙事档案|情报关系图|证据推理台|战术时间线|罗德岛意识战术终端|护理员伊莲|R-09|03:17|失温病历|潮湿的儿童病历|墙体后的儿童合唱" src index.html`
 
-test('production source contains no removed archive timeline or old product title', () => {
-  const forbidden = ['叙事档案', '情报关系图', '证据推理台', '战术时间线', '罗德岛意识战术终端'];
-  const files = productionFiles(path.resolve('src'));
-  for (const file of files) {
-    const source = fs.readFileSync(file, 'utf8');
-    for (const token of forbidden) expect(source, `${file} contains ${token}`).not.toContain(token);
-  }
-});
+Expected before refactor: matches name the old AppShell, archive, log, settings reset copy, default content, demo data, and obsolete styles. This is an audit command, not a source-text unit test.
 
-function productionFiles(root: string): string[] {
-  return fs.readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
-    const target = path.join(root, entry.name);
-    if (entry.isDirectory()) return entry.name === 'test' ? [] : productionFiles(target);
-    return /\.(ts|tsx|css)$/.test(entry.name) && !/\.test\./.test(entry.name) ? [target] : [];
-  });
-}
-```
-
-`productionFiles` must exclude `*.test.*`, `src/test`, generated output, and documentation, while including `.ts`, `.tsx`, and `.css` production files.
-
-- [ ] **Step 2: Run and capture the expected list of remaining sources**
-
-Run: `npm test -- src/test/legacyRemovalContract.test.ts`
-
-Expected: FAIL and name the old AppShell, archive, log, settings reset copy, and obsolete styles.
-
-- [ ] **Step 3: Delete unreferenced legacy files**
+- [ ] **Step 2: Delete unreferenced legacy files**
 
 Before each deletion group run:
 
@@ -992,7 +964,7 @@ rg -n "OperationPage|MemoryPage|OperatorsPage|ArchivePage|LogPage|MemoryGraph|Me
 
 Delete only files whose remaining matches are their own definitions or tests being removed in the same commit. Delete `NarrativeStream`, `narrativeEngine`, and their tests because the Tavern runtime already owns the active command and narrative path. Keep `CommandConsole`, Tavern history, Session manager, diary, game rules, and current encounter components.
 
-- [ ] **Step 4: Remove obsolete CSS selectors and old narrative copy**
+- [ ] **Step 3: Remove obsolete CSS selectors and old narrative copy**
 
 Remove `.terminal-sidebar`, old six-column mobile navigation, archive relation canvas, reasoning board, tactical timeline, old memory projection canvas, and TacticalOverview selectors. Do not remove styles used by the new `CompendiumPage`, `RecordsPage`, or Tavern managers; move the minimal required declarations to their owning feature styles.
 
@@ -1003,19 +975,19 @@ scenario: '博士陪同迷迭香进入记忆迷宫。她需要在指挥与陪伴
 creatorNotes: '迷迭香的记忆迷宫默认角色卡，适用于单主角中文肉鸽叙事。',
 ```
 
-- [ ] **Step 5: Correct reset copy**
+- [ ] **Step 4: Correct reset copy**
 
 The reset dialog lists Run progress, current maze, Rosmontis status, collection, UI preferences, and notifications. It must not mention pins, relationships, archive records, or tactical projection.
 
-- [ ] **Step 6: Verify source, tests, and type graph**
+- [ ] **Step 5: Verify consumer behavior, source audit, and type graph**
 
-Run: `npm test -- src/test/legacyRemovalContract.test.ts src/test/noEmoji.test.ts src/test/singleProtagonistContract.test.ts && npm run typecheck`
+Run: `npm test -- src/app/AppShell.test.tsx src/features/game/GamePage.test.tsx src/features/compendium/CompendiumPage.test.tsx src/features/records/RecordsPage.test.tsx src/features/settings/SettingsPage.test.tsx src/features/tavern/runtime/tavern-runtime.test.tsx src/test/noEmoji.test.ts src/test/singleProtagonistContract.test.ts && npm run typecheck`
 
 Run: `rg -n -g '!**/*.test.*' -g '!src/test/**' "叙事档案|情报关系图|证据推理台|战术时间线|罗德岛意识战术终端|护理员伊莲|R-09|03:17|失温病历|潮湿的儿童病历|墙体后的儿童合唱" src index.html`
 
 Expected: no production matches; assertion strings are allowed only in tests excluded by the contract.
 
-- [ ] **Step 7: Commit and push**
+- [ ] **Step 6: Commit and push**
 
 ```bash
 git add -A src index.html
@@ -1041,15 +1013,17 @@ git push origin codex/rosemary-memory-maze
 - Consumes: final top bar and game workspace DOM.
 - Produces: stable 375, 768, 1024, and 1440 layouts and motion fallbacks.
 
-- [ ] **Step 1: Update structural contract tests**
+- [ ] **Step 1: Update accessible layout behavior tests**
 
-```ts
-test('mobile rules keep one top menu and one scroll owner', () => {
-  expect(css).toContain('@media (max-width: 767px)');
-  expect(css).toContain('.app-topbar');
-  expect(css).toContain('.game-stage');
-  expect(css).not.toContain('.terminal-sidebar');
-  expect(css).not.toMatch(/grid-template-columns:\s*repeat\(6/);
+```tsx
+test('keeps the menu and gameplay regions in a logical reading order', async () => {
+  renderApp('/game');
+  const menu = await screen.findByRole('navigation', { name: '顶部菜单' });
+  const hud = screen.getByLabelText('迷迭香 Run 状态');
+  const stage = screen.getByRole('region', { name: '记忆迷宫' });
+  expect(menu.compareDocumentPosition(hud) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(hud.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(screen.getByRole('button', { name: '展开顶部菜单' })).toHaveAttribute('aria-controls', 'global-top-menu');
 });
 ```
 
@@ -1057,9 +1031,9 @@ Add component assertions that route focus lands on `main-content`, node entry fo
 
 - [ ] **Step 2: Run and confirm residual responsive assumptions fail**
 
-Run: `npm test -- src/test/responsive-contract.test.ts src/test/accessibility.test.tsx src/test/interactive-source-ids.test.ts src/test/uniqueIds.test.tsx`
+Run: `npm test -- src/test/accessibility.test.tsx src/test/interactive-source-ids.test.ts src/test/uniqueIds.test.tsx`
 
-Expected: FAIL on old sidebar/mobile-grid selectors or missing new control IDs.
+Expected: FAIL on the old shell order, missing top-menu control, or missing new control IDs.
 
 - [ ] **Step 3: Implement desktop and mobile composition**
 
