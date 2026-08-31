@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useReducer, useRef } from 'react';
 import { PageHeader } from '../../components/PageHeader';
 import { useGameStore } from '../../store/gameStore';
 import { FragmentOverflowDialog } from '../operation/FragmentOverflowDialog';
@@ -46,6 +46,7 @@ export default function GamePage() {
   const resetRun = useGameStore((state) => state.resetRun);
   const stabilizeMemoryCore = useGameStore((state) => state.stabilizeMemoryCore);
   const [scene, dispatchScene] = useReducer(gameSceneReducer, pendingEncounter, restoreGameSceneState);
+  const pendingFocus = useRef<{ kind: 'map' | 'node'; nodeId: string } | null>(null);
   const currentNode = maze.nodes.find((node) => node.id === run.currentNodeId) ?? maze.nodes[0];
   const currentBrief = run.mode === 'novel'
     ? novel?.content.nodeBriefs.find((brief) => brief.nodeId === currentNode.id)
@@ -75,6 +76,18 @@ export default function GamePage() {
     return () => window.removeEventListener('keydown', cancelEntry);
   }, [scene.commitState, scene.phase]);
 
+  useLayoutEffect(() => {
+    const target = pendingFocus.current;
+    if (!target) return;
+    if (target.kind === 'node' && scene.phase === 'node') {
+      document.getElementById('game-node-scene-title')?.focus({ preventScroll: true });
+      pendingFocus.current = null;
+    } else if (target.kind === 'map' && scene.phase === 'map') {
+      document.getElementById(`game-maze-node-${target.nodeId}`)?.focus({ preventScroll: true });
+      pendingFocus.current = null;
+    }
+  }, [scene.phase]);
+
   const returnToMaze = () => {
     if (scene.phase === 'node') dispatchScene({ type: 'settle-node' });
     dispatchScene({ type: 'request-map' });
@@ -89,13 +102,13 @@ export default function GamePage() {
   const openNode = useCallback((nodeId: string) => {
     const state = useGameStore.getState();
     if (state.run.currentNodeId !== nodeId || state.pendingEncounter?.nodeId !== nodeId) return;
+    pendingFocus.current = { kind: 'node', nodeId };
     dispatchScene({ type: 'open-node', nodeId });
-    window.requestAnimationFrame(() => document.getElementById('game-node-scene-title')?.focus());
   }, []);
 
   const finishReturn = useCallback(() => {
+    pendingFocus.current = { kind: 'map', nodeId: useGameStore.getState().run.currentNodeId };
     dispatchScene({ type: 'finish-return' });
-    window.requestAnimationFrame(() => document.getElementById(`game-maze-node-${useGameStore.getState().run.currentNodeId}`)?.focus());
   }, []);
 
   const systemReducedMotion = typeof window !== 'undefined'

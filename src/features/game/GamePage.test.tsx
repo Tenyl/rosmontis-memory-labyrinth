@@ -31,6 +31,10 @@ test('commits movement once during a themed transition without changing route', 
   act(() => useGameStore.getState().completeCurrentNode());
   fireEvent.click(screen.getByRole('button', { name: '返回迷宫' }));
   act(() => vi.advanceTimersByTime(420));
+  act(() => vi.advanceTimersByTime(16));
+
+  const currentNodeButton = document.getElementById(`game-maze-node-${initialNodeId}`);
+  expect(document.activeElement).toBe(currentNodeButton);
 
   const target = useGameStore.getState().maze.nodes.find((node) => node.state === 'reachable');
   expect(target).toBeDefined();
@@ -44,6 +48,8 @@ test('commits movement once during a themed transition without changing route', 
   act(() => vi.advanceTimersByTime(1));
   expect(useGameStore.getState().run.currentNodeId).toBe(target!.id);
   act(() => vi.advanceTimersByTime(1000));
+  act(() => vi.advanceTimersByTime(16));
   expect(useGameStore.getState().run.currentNodeId).toBe(target!.id);
+  expect(document.activeElement).toBe(document.getElementById('game-node-scene-title'));
   expect(window.location.pathname).toBe('/game');
 });

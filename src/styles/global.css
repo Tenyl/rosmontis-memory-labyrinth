@@ -262,9 +262,9 @@ a {
   *::before,
   *::after {
     scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
+    animation: none !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 120ms !important;
   }
 }
 
@@ -272,9 +272,9 @@ a {
 [data-motion="reduced"] *::before,
 [data-motion="reduced"] *::after {
   scroll-behavior: auto !important;
-  animation-duration: 0.01ms !important;
+  animation: none !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
+  transition-duration: 120ms !important;
 }
 
 [data-motion="reduced"] .route-page,

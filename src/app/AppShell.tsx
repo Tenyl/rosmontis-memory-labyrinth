@@ -5,7 +5,7 @@ import {
   Wifi,
 } from 'lucide-react';
 import { Suspense, useEffect, useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { NotificationCenter } from '../components/NotificationCenter';
 import { ShortcutDialog } from '../components/ShortcutDialog';
 import { DiaryDirector } from '../features/diary/DiaryDirector';
@@ -24,6 +24,7 @@ const navItems = [
 ] as const;
 
 export function AppShell() {
+  const location = useLocation();
   const navigate = useNavigate();
   const preferences = useGameStore((state) => state.ui.preferences);
   const overload = useGameStore((state) => state.rosmontis.overload);
@@ -42,6 +43,10 @@ export function AppShell() {
     root.dataset.contrast = preferences.highContrast ? 'high' : 'standard';
     root.dataset.textSpeed = preferences.textSpeed;
   }, [preferences]);
+
+  useEffect(() => {
+    document.getElementById('main-content')?.focus({ preventScroll: true });
+  }, [location.pathname]);
 
   useEffect(() => {
     const root = document.documentElement;

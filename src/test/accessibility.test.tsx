@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderApp } from './renderApp';
 
@@ -30,6 +30,30 @@ test('provides keyboard skip navigation and a perceivable top-menu state', async
   expect(screen.getByRole('link', { name: '跳至主内容' })).toHaveAttribute('href', '#main-content');
   expect(screen.getByRole('navigation', { name: '顶部菜单' })).toBeInTheDocument();
   expect(container.querySelector('#nav-game-open')).toHaveAttribute('aria-current', 'page');
+});
+
+test('keeps the top menu, Run state, and maze in a logical reading order', async () => {
+  renderApp('/game');
+
+  const menu = await screen.findByRole('navigation', { name: '顶部菜单' });
+  const hud = screen.getByLabelText('迷迭香 Run 状态');
+  const stage = screen.getByRole('region', { name: '记忆迷宫' });
+  const toggle = screen.getByRole('button', { name: '展开顶部菜单' });
+
+  expect(menu.compareDocumentPosition(hud) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(hud.compareDocumentPosition(stage) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(toggle).toHaveAttribute('aria-controls', 'global-top-menu');
+});
+
+test('moves focus to main content after top-menu route navigation', async () => {
+  const user = userEvent.setup();
+  renderApp('/game');
+  await screen.findByRole('heading', { level: 1, name: '迷迭香的记忆迷宫' });
+
+  await user.click(screen.getByRole('link', { name: '记忆图鉴' }));
+  await screen.findByRole('heading', { level: 1, name: '记忆图鉴' });
+
+  await waitFor(() => expect(document.activeElement).toBe(document.getElementById('main-content')));
 });
 
 test('global shell and settings both show the non-commercial fan-work disclaimer', async () => {

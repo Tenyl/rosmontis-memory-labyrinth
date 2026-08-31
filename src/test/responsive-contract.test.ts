@@ -2,9 +2,11 @@ import responsiveCss from '../styles/responsive.css?raw';
 import globalCss from '../styles/global.css?raw';
 import tokensCss from '../styles/tokens.css?raw';
 import componentsCss from '../components/components.css?raw';
+import appShellCss from '../app/app-shell.css?raw';
+import gameCss from '../features/game/game.css?raw';
 
 test('统一工作区定义移动端触控与系统减少动效规则', () => {
-  const css = `${responsiveCss}\n${globalCss}`;
+  const css = `${responsiveCss}\n${globalCss}\n${appShellCss}\n${gameCss}`;
   expect(css).toContain('@media (max-width: 767px)');
   expect(css).toContain('@media (prefers-reduced-motion: reduce)');
   expect(css).toContain('overflow-wrap: anywhere');
@@ -13,6 +15,17 @@ test('统一工作区定义移动端触控与系统减少动效规则', () => {
   expect(css).toContain('[data-overload-band="berserk"]');
   expect(css).toContain('.overload-sensory-layer');
   expect(css).toMatch(/prefers-reduced-motion[\s\S]*overload-sensory-layer[\s\S]*display:\s*none/);
+  expect(css).toMatch(/\[data-motion="reduced"\][\s\S]*\.maze-camera[\s\S]*transition(?:-duration)?:\s*(?:none|120ms)/);
+  expect(css).toMatch(/prefers-reduced-motion[\s\S]*\.node-transition-layer[\s\S]*transition-duration:\s*120ms/);
+});
+
+test('统一工作区覆盖 1024、768 与 375 宽度的布局契约', () => {
+  expect(appShellCss).toContain('@media (max-width: 1180px)');
+  expect(appShellCss).toContain('@media (max-width: 900px)');
+  expect(appShellCss).toContain('@media (max-width: 375px)');
+  expect(appShellCss).toMatch(/@media \(max-width: 767px\)[\s\S]*\.terminal-main[\s\S]*padding-bottom:\s*max\(/);
+  expect(gameCss).toMatch(/@media \(max-width: 767px\)[\s\S]*\.node-scene[\s\S]*grid-template-columns:\s*minmax\(0,1fr\)/);
+  expect(gameCss).toMatch(/@media \(max-width: 767px\)[\s\S]*\.maze-viewport[\s\S]*min-height:\s*520px/);
 });
 
 test('过载视觉只动画合成属性并使用目标浅蓝 token', () => {
