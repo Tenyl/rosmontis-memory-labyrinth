@@ -1,36 +1,42 @@
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderApp } from '../test/renderApp';
 
+test('uses a five-item top menu and no global sidebar', async () => {
+  renderApp('/game');
+
+  expect(await screen.findByRole('navigation', { name: '顶部菜单' })).toBeVisible();
+  for (const label of ['游戏', '记忆图鉴', '迷迭香手记', '行动记录', '系统设置']) {
+    expect(screen.getByRole('link', { name: label })).toBeVisible();
+  }
+  expect(document.querySelector('.terminal-sidebar')).toBeNull();
+  expect(screen.queryByLabelText('终端主导航')).not.toBeInTheDocument();
+});
+
+test('collapses secondary links into an accessible mobile top menu', async () => {
+  const user = userEvent.setup();
+  renderApp('/game');
+
+  const toggle = await screen.findByRole('button', { name: '展开顶部菜单' });
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await user.click(toggle);
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  expect(screen.getByRole('link', { name: '系统设置' })).toBeVisible();
+});
+
+test.each(['/operation', '/memory', '/operators'])('%s redirects to the game route', async (path) => {
+  renderApp(path);
+
+  expect(await screen.findByRole('heading', { name: '迷迭香的记忆迷宫' })).toBeVisible();
+  expect(window.location.pathname).toBe('/game');
+});
+
 test.each([
-  ['/operation', '作战主控台'],
-  ['/memory', '意识战场'],
-  ['/operators', '迷迭香状态'],
-  ['/archive', '记忆图鉴'],
-  ['/log', '行动记录'],
-  ['/settings', '系统设置'],
-])('renders %s with active navigation', async (path, heading) => {
+  ['/archive', '/compendium', '记忆图鉴'],
+  ['/log', '/records', '探索记录'],
+] as const)('%s redirects to its focused replacement', async (path, destination, heading) => {
   renderApp(path);
 
   expect(await screen.findByRole('heading', { name: heading })).toBeVisible();
-  expect(screen.getByRole('link', { name: new RegExp(heading) })).toHaveAttribute(
-    'aria-current',
-    'page',
-  );
-});
-
-test('顶部栏以文字公开酒馆连接、模型、角色和预设状态', async () => {
-  renderApp('/operation');
-
-  const tavernButton = await screen.findByRole('button', { name: /当前会话：雨幕回声/ });
-  expect(tavernButton).toHaveTextContent('本地模拟');
-  expect(tavernButton).toHaveTextContent('迷迭香');
-  expect(tavernButton).toHaveTextContent('认知战术叙事');
-  expect(tavernButton).toHaveTextContent('gpt-3.5-turbo');
-});
-
-test('主导航只公开迷迭香的单主角状态入口', async () => {
-  renderApp('/operation');
-
-  expect(await screen.findByRole('link', { name: /迷迭香状态/ })).toBeVisible();
-  expect(document.body).not.toHaveTextContent(/干员与小队|随行小队|小队链路/);
+  expect(window.location.pathname).toBe(destination);
 });
