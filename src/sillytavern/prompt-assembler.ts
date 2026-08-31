@@ -8,6 +8,7 @@ import { formatVariablesForPrompt } from './variables';
 
 export interface AssembleOptions {
   userInput: string;
+  scanText?: string;
   history: ChatMessage[];
   preset: ChatPreset;
   lorebooks: Lorebook[];
@@ -32,7 +33,7 @@ export function assemblePrompt(options: AssembleOptions): AssembleResult {
   const characterName = character?.name ?? options.characterName ?? '角色';
 
   const allMatchedEntries: MatchedEntry[] = [];
-  const scanText = userInput + ' ' + history.slice(-3).map(m => m.content).join(' ');
+  const scanText = options.scanText ?? (userInput + ' ' + history.slice(-3).map(m => m.content).join(' '));
 
   for (const book of lorebooks) {
     const engine = createLorebookEngine(book);

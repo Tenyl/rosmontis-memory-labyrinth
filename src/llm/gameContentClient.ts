@@ -28,6 +28,9 @@ interface StructuredGameContentRequest<T> {
   api: ApiSettings;
   task: GameContentTask;
   messages: readonly GamePromptMessage[];
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
   parse: (value: unknown) => T;
   signal: AbortSignal;
 }
@@ -37,11 +40,14 @@ export async function requestStructuredGameContent<T>({
   api,
   task,
   messages,
+  model,
+  temperature,
+  maxTokens,
   parse,
   signal,
 }: StructuredGameContentRequest<T>): Promise<T> {
   if (signal.aborted) throw new GameContentRequestError('aborted');
-  if (!api.baseUrl.trim() || !api.apiKey.trim() || !api.model.trim()) {
+  if (!api.baseUrl.trim() || !api.apiKey.trim() || !(model?.trim() || api.model.trim())) {
     throw new GameContentRequestError('configuration');
   }
 
@@ -60,7 +66,9 @@ export async function requestStructuredGameContent<T>({
       gameTask: task,
       messages: messages.map((message) => ({ ...message })),
       api,
-      model: api.model,
+      model: model?.trim() || api.model,
+      temperature,
+      maxTokens,
       stream: true,
     }, requestController.signal)) {
       chunks.push(chunk);

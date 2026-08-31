@@ -2,7 +2,7 @@ import type { MazeNodeType } from '../game/types';
 import { DIRECTOR_INTENTS, type AuthoritativeNovelNode } from './gameContent';
 
 export interface GamePromptMessage {
-  role: 'system' | 'user';
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
 

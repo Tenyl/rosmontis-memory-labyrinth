@@ -46,6 +46,35 @@ describe('structured LLM game content client', () => {
     expect(parseCalls).toBe(1);
   });
 
+  test('uses the bound preset transport parameters without changing API settings', async () => {
+    let captured: Parameters<TavernTransport['stream']>[0] | null = null;
+    const transport: TavernTransport = {
+      mode: 'remote',
+      async *stream(request) {
+        captured = request;
+        yield '{"text":"我在这里。"}';
+      },
+    };
+
+    await requestStructuredGameContent({
+      transport, api, task: 'quote', messages, signal: new AbortController().signal,
+      model: 'bound-preset-model', temperature: 0.23, maxTokens: 456,
+      parse: parseTemporaryQuote,
+    });
+
+    expect(captured).toMatchObject({ model: 'bound-preset-model', temperature: 0.23, maxTokens: 456 });
+    expect(api.model).toBe('story-model');
+  });
+
+  test('accepts a bound preset model when the global model field is empty', async () => {
+    await expect(requestStructuredGameContent({
+      transport: transportFrom(['{"text":"我会回应。"}']),
+      api: { ...api, model: '' },
+      task: 'quote', messages, signal: new AbortController().signal,
+      model: 'bound-model', parse: parseTemporaryQuote,
+    })).resolves.toEqual({ text: '我会回应。' });
+  });
+
   test('extracts one JSON object from an optional Markdown fence', async () => {
     await expect(requestStructuredGameContent({
       transport: transportFrom(['```json\n{"text":"我记得。"}\n```']),

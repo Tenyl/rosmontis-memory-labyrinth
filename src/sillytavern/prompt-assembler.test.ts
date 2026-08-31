@@ -31,6 +31,28 @@ describe('assemblePrompt formatPrompt injection', () => {
     expect(sysJoined).toMatch(/42/);
   });
 
+  it('can scan an explicit read-only director snapshot for lorebook matches', () => {
+    const out = assemblePrompt({
+      userInput: '生成节点。',
+      scanText: '雨声覆盖了走廊。',
+      history: [],
+      preset: {
+        id: 'p', name: 'p', settings: { prompt_order: [{ identifier: 'worldInfoBefore', enabled: true }] },
+        createdAt: 0, updatedAt: 0,
+      },
+      lorebooks: [{
+        id: 'book', name: 'book', recursiveScanning: false, caseSensitive: false, matchWholeWords: false,
+        createdAt: 0, updatedAt: 0,
+        entries: [{ id: 'rain', keys: ['雨'], secondaryKeys: [], content: '命中的雨幕条目', order: 1,
+          position: 'before_char', selective: false, selectiveLogic: 'and_any', constant: false,
+          probability: 100, addMemo: false }],
+      }],
+    });
+
+    expect(out.matchedEntries.map((match) => match.entry.id)).toEqual(['rain']);
+    expect(out.systemPrompt).toContain('命中的雨幕条目');
+  });
+
   it('assembles character card and persona fields into ordered prompts', () => {
     const out = assemblePrompt({
       userInput: '检查雨声',
