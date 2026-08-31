@@ -18,10 +18,10 @@ const RUN_MODE_LABELS: Record<RunState['mode'], string> = {
 };
 
 function getOverloadState(overload: number) {
-  if (overload >= 100) return { level: 'critical', label: '链路中断 · 立即终止潜入' };
-  if (overload >= 85) return { level: 'danger', label: '神经警告 · 认知撕裂风险' };
-  if (overload >= 70) return { level: 'warning', label: '过载警戒 · 边缘信号干扰' };
-  return { level: 'stable', label: '认知同步稳定' };
+  if (overload >= 100) return { level: 'critical', label: '博士……声音断掉了……不要离开我。' };
+  if (overload >= 80) return { level: 'danger', label: '好痛……但我还听得到你。' };
+  if (overload >= 70) return { level: 'warning', label: '博士，周围开始摇晃了……' };
+  return { level: 'stable', label: '博士，我还能清楚地听见你。' };
 }
 
 export function RunStatusBar({

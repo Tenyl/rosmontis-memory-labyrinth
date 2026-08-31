@@ -61,9 +61,9 @@ test('renders the replaceable Rosmontis portrait and complete Run telemetry', ()
 });
 
 test.each([
-  [70, '过载警戒 · 边缘信号干扰'],
-  [85, '神经警告 · 认知撕裂风险'],
-  [100, '链路中断 · 立即终止潜入'],
+  [70, '博士，周围开始摇晃了……'],
+  [85, '好痛……但我还听得到你。'],
+  [100, '博士……声音断掉了……不要离开我。'],
 ])('shows the explicit overload warning at %i%%', (overload, warning) => {
   render(
     <RunStatusBar

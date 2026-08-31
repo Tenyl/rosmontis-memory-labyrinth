@@ -160,16 +160,16 @@ export function NodeIntelPanel({
 
         {isReachable ? (
           <>
-            {movementLocked ? <p className="node-movement-lock">请先在作战主控台完成当前节点遭遇。</p> : null}
+            {movementLocked ? <p className="node-movement-lock">博士……眼前的残响还没消散，我的剑还没收回来……等我一下，好吗？</p> : null}
             <button
               id={`btn-enter-node-${node.id}`}
               type="button"
               className="terminal-button is-primary node-enter-action"
               disabled={movementLocked}
-              aria-label={movementLocked ? '请先完成当前节点遭遇' : '进入节点'}
+              aria-label={movementLocked ? '迷迭香请求先完成眼前的残响' : '进入节点'}
               onClick={() => onMove(node.id)}
             >
-              {movementLocked ? '当前遭遇未完成' : '进入节点'}
+              {movementLocked ? '等我收回巨剑' : '进入节点'}
               <ArrowRight size={18} aria-hidden />
             </button>
           </>

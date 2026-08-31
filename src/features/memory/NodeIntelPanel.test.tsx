@@ -64,8 +64,8 @@ test('reveals the generated type only after a local scan', () => {
 test('blocks movement with an explicit instruction while the current encounter is unresolved', () => {
   const { onMove } = renderIntel(unknownNode, true);
 
-  expect(screen.getByRole('button', { name: '请先完成当前节点遭遇' })).toBeDisabled();
-  expect(screen.getByText('请先在作战主控台完成当前节点遭遇。')).toBeVisible();
+  expect(screen.getByRole('button', { name: '迷迭香请求先完成眼前的残响' })).toBeDisabled();
+  expect(screen.getByText(/眼前的残响还没消散/)).toBeVisible();
   expect(onMove).not.toHaveBeenCalled();
 });
 

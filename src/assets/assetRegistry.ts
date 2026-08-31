@@ -20,6 +20,7 @@ export const gameAssets = {
     combatBgm: null,
     bossBgm: null,
     nodeOpenSfx: null,
+    comfortSfx: null,
   },
 } as const;
 

@@ -12,6 +12,7 @@ import { RunLifecycleDialog } from './RunLifecycleDialog';
 import { RunStatusBar } from './RunStatusBar';
 import { RosmontisQuotePanel } from './RosmontisQuotePanel';
 import { TacticalOverview } from './TacticalOverview';
+import { CompanionInteractionBar } from './CompanionInteractionBar';
 import './operation.css';
 
 export default function OperationPage() {
@@ -77,6 +78,11 @@ export default function OperationPage() {
         moduleCount={modules.length}
       />
       <RosmontisQuotePanel />
+      <CompanionInteractionBar
+        rosmontis={runRosmontis}
+        bossPhase={pendingEncounter?.kind === 'boss' ? pendingEncounter.phase : null}
+        onAction={resolveEncounterAction}
+      />
 
       <div className="operation-workbench">
         <div className="operation-primary">
