@@ -20,7 +20,7 @@ test('快捷键说明弹层支持 Escape 并恢复焦点', async ({ page }) => {
 test('意识战场仅允许沿生成拓扑进入可抵达节点', async ({ page }) => {
   await page.goto('/memory');
   await page.locator('[id^="run-maze-node-"][data-node-state="reachable"]').first().click();
-  await expect(page.getByRole('button', { name: '请先完成当前节点遭遇' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: '迷迭香请求先完成眼前的残响' })).toBeDisabled();
 
   await page.locator('#nav-operation-open').click();
   await page.locator('#btn-encounter-rest-stabilize').click();

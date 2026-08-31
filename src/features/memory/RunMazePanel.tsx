@@ -133,7 +133,7 @@ function RunMazeNodeButton({
 }
 
 function NodeTypeIcon({ type }: { type: MazeNodeType }) {
-  const props = { size: 18, weight: 'regular' as const, 'aria-hidden': true };
+  const props = { size: 18, 'aria-hidden': true } as const;
   if (type === 'combat' || type === 'emergency-combat') return <Crosshair {...props} />;
   if (type === 'safehouse') return <FirstAid {...props} />;
   if (type === 'shop') return <Storefront {...props} />;

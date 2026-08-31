@@ -106,6 +106,7 @@ export default function OperationPage() {
             onAction={resolveEncounterAction}
             onSellFragment={sellRunFragment}
             onAdvanceFloor={advanceRunFloor}
+            actionPoints={runRosmontis.actionPoints}
             canAdvanceFloor={Boolean(
               pendingEncounter?.resolved
               && currentNode.id === maze.coreNodeId

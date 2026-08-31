@@ -14,18 +14,18 @@ test('新会话可完成本地回合、刷新恢复变量并建立来源分支',
 
   await page.getByRole('button', { name: '让迷迭香读取残留意识' }).click();
   await page.getByRole('button', { name: '发送战术指令' }).click();
-  await expect(page.getByRole('button', { name: '选择：检查门牌背面的刻痕' })).toBeVisible();
-  await page.getByRole('button', { name: '选择：检查门牌背面的刻痕' }).click();
-  await expect(page.locator('#operation-command-input')).toHaveValue('检查门牌背面的刻痕');
+  await expect(page.getByRole('button', { name: '选择：在温室边缘短暂休息' })).toBeVisible();
+  await page.getByRole('button', { name: '选择：在温室边缘短暂休息' }).click();
+  await expect(page.locator('#operation-command-input')).toHaveValue('在温室边缘短暂休息');
   await page.getByRole('button', { name: '发送战术指令' }).click();
   await expect(page.getByText('回合完成').last()).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole('button', { name: /当前会话：低温病历复核/ })).toBeVisible();
-  await expect(page.getByText(/门后传来三个频率完全相同的呼吸声/)).toBeVisible();
+  await expect(page.getByText(/透明墙面后长满没有气味的迷迭香/)).toBeVisible();
   await page.locator('#global-tavern-open').click();
   await page.locator('#tavern-tab-variables').click();
-  await expect(page.getByLabel('变量 rosmontis_stress 的值')).toHaveValue('43');
+  await expect(page.getByLabel('变量 rosmontis_stress 的值')).toHaveValue('0');
   await page.locator('#tavern-orchestrator-dialog-close').click();
 
   await page.locator('#tavern-history-open').click();

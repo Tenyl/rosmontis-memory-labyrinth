@@ -9,10 +9,11 @@ import type { EncounterAction, PendingEncounter } from '../../game/types';
 
 interface BossEncounterProps {
   encounter: Extract<PendingEncounter, { kind: 'boss' }>;
+  actionPoints: number;
   onAction: (action: EncounterAction) => void;
 }
 
-export function BossEncounter({ encounter, onAction }: BossEncounterProps) {
+export function BossEncounter({ encounter, actionPoints, onAction }: BossEncounterProps) {
   const definition = encounter.bossKind === 'closed-heart'
     ? getBossDefinition(5)
     : encounter.bossKind === 'gatekeeper'
@@ -36,8 +37,8 @@ export function BossEncounter({ encounter, onAction }: BossEncounterProps) {
       </div>
       {reconciliation && !encounter.resolved ? (
         <div className="boss-comfort-actions" aria-label="陪伴交互">
-          <button id="btn-boss-touch-forehead" type="button" onClick={() => onAction({ type: 'comfort', gesture: 'touch-forehead' })}><HandHeart size={17} aria-hidden /><span><strong>轻触额头</strong><small>1 AP · 共鸣 +10</small></span></button>
-          <button id="btn-boss-hold-hand" type="button" onClick={() => onAction({ type: 'comfort', gesture: 'hold-hand' })}><HandHeart size={17} aria-hidden /><span><strong>握住手</strong><small>2 AP · 共鸣 +20</small></span></button>
+          <button id="btn-boss-touch-forehead" type="button" disabled={actionPoints < 1} onClick={() => onAction({ type: 'comfort', gesture: 'touch-forehead' })}><HandHeart size={17} aria-hidden /><span><strong>轻触额头</strong><small>{actionPoints < 1 ? '行动点不足' : '1 AP · 共鸣 +10'}</small></span></button>
+          <button id="btn-boss-hold-hand" type="button" disabled={actionPoints < 2} onClick={() => onAction({ type: 'comfort', gesture: 'hold-hand' })}><HandHeart size={17} aria-hidden /><span><strong>握住手</strong><small>{actionPoints < 2 ? '行动点不足' : '2 AP · 共鸣 +20'}</small></span></button>
         </div>
       ) : null}
       {encounter.glitch ? <p className="boss-glitch-warning">高过载正在干扰她辨认博士的声音。</p> : null}

@@ -23,6 +23,7 @@ interface EncounterPanelProps {
   onSellFragment: (fragmentId: string) => void;
   onAdvanceFloor: () => void;
   canAdvanceFloor: boolean;
+  actionPoints?: number;
 }
 
 const ENCOUNTER_COPY = {
@@ -73,6 +74,7 @@ export function EncounterPanel({
   onSellFragment,
   onAdvanceFloor,
   canAdvanceFloor,
+  actionPoints = 0,
 }: EncounterPanelProps) {
   if (!encounter) {
     return (
@@ -172,7 +174,7 @@ export function EncounterPanel({
       )}
 
       {encounter.kind === 'boss' && (
-        <BossEncounter encounter={encounter} onAction={onAction} />
+        <BossEncounter encounter={encounter} actionPoints={actionPoints} onAction={onAction} />
       )}
 
       {!['shop', 'combat', 'boss'].includes(encounter.kind) && !encounter.resolved && (
