@@ -5,6 +5,7 @@ import type {
   TemporaryQuoteContent,
 } from './gameContent';
 import type { GameContentRequestErrorCode, GameContentTask } from './gameContentClient';
+import type { NodePresentation } from './schemas/gameDirectorV1';
 
 export type DirectorContentSource = 'remote' | 'local-fallback';
 export type DirectorRequestStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -41,6 +42,7 @@ export interface LlmDirectorState {
   event: DirectorEventRecord | null;
   quote: DirectorQuoteRecord | null;
   novel: DirectorNovelRecord | null;
+  presentations: Record<string, NodePresentation>;
 }
 
 const idleRequest = (): DirectorRequestSlot => ({ status: 'idle', token: null, errorCode: null });
@@ -53,6 +55,7 @@ export function createLlmDirectorState(runId: string): LlmDirectorState {
     event: null,
     quote: null,
     novel: null,
+    presentations: {},
   };
 }
 
@@ -123,6 +126,29 @@ export function markDirectorTriggerHandled(state: LlmDirectorState, triggerKey: 
   return { ...state, handledTriggers: [...state.handledTriggers, triggerKey] };
 }
 
+export function acceptNodePresentation(
+  state: LlmDirectorState,
+  presentation: NodePresentation,
+): LlmDirectorState {
+  if (state.runId !== presentation.runId) return state;
+  return {
+    ...state,
+    presentations: {
+      ...state.presentations,
+      [presentationKey(presentation.runId, presentation.nodeId)]: presentation,
+    },
+  };
+}
+
+export function getNodePresentation(
+  state: LlmDirectorState,
+  runId: string,
+  nodeId: string,
+): NodePresentation | null {
+  if (state.runId !== runId) return null;
+  return state.presentations[presentationKey(runId, nodeId)] ?? null;
+}
+
 export function resolveIntentEffect(
   intent: DirectorIntent,
   _vitals: { sanity: number; overload: number },
@@ -149,7 +175,22 @@ export function restoreLlmDirectorState(value: unknown, currentRunId: string): L
     event: isRecord(value.event) ? value.event as unknown as DirectorEventRecord : null,
     quote: isRecord(value.quote) ? value.quote as unknown as DirectorQuoteRecord : null,
     novel: isRecord(value.novel) ? value.novel as unknown as DirectorNovelRecord : null,
+    presentations: normalizePresentations(value.presentations, currentRunId),
   };
+}
+
+function presentationKey(runId: string, nodeId: string) {
+  return `${runId}:${nodeId}`;
+}
+
+function normalizePresentations(value: unknown, runId: string): Record<string, NodePresentation> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter(([, presentation]) => (
+    isRecord(presentation)
+    && presentation.version === 1
+    && presentation.runId === runId
+    && typeof presentation.nodeId === 'string'
+  ))) as Record<string, NodePresentation>;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

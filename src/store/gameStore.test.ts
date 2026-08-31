@@ -1,6 +1,7 @@
 import { buildDemoState } from '../data/demoData';
 import { projectTavernTurn } from '../features/tavern/projection/tavern-turn-projector';
 import type { MemoryFragment } from '../game/types';
+import { LocalContentDriver } from '../llm/contentDriver';
 import { sanitizeSingleProtagonistState, useGameStore } from './gameStore';
 
 beforeEach(() => {
@@ -152,6 +153,17 @@ test('binds director requests to the active Run and settles event intent through
   useGameStore.getState().resolveDirectorChoice('scan-rain');
   expect(useGameStore.getState().rosmontis).toMatchObject({ sanity: 99, overload: 7 });
   expect(useGameStore.getState().llmDirector.event?.resolvedChoiceId).toBe('scan-rain');
+});
+
+test('persists one shared node presentation through the director store', () => {
+  useGameStore.getState().startRun('PRESENTATION-RUN', 'preset', false);
+  const state = useGameStore.getState();
+  const node = state.maze.nodes.find((item) => item.id === state.run.currentNodeId)!;
+  const presentation = new LocalContentDriver().resolveNode({ run: state.run, node });
+
+  useGameStore.getState().acceptNodePresentation(presentation);
+
+  expect(useGameStore.getState().llmDirector.presentations[`${state.run.id}:${node.id}`]).toEqual(presentation);
 });
 
 test('rejects stale director responses and resets director content for a new Run', () => {
@@ -314,7 +326,7 @@ test('persists the explicit roguelike schema version', () => {
   useGameStore.getState().setOperatorStress('rosmontis', 44);
   const persisted = JSON.parse(localStorage.getItem('rhodes-cognition-terminal-state') ?? '{}');
 
-  expect(persisted.version).toBe(8);
+  expect(persisted.version).toBe(9);
   expect(persisted.state.run.seed).toBeTruthy();
   expect(persisted.state.maze.nodes.length).toBeGreaterThanOrEqual(9);
   expect(persisted.state.runHistory).toEqual(expect.any(Array));

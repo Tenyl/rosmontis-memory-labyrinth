@@ -15,6 +15,7 @@ import type {
 } from '../game/types';
 import {
   acceptForRun,
+  acceptNodePresentation as acceptNodePresentationState,
   beginDirectorRequest as beginDirectorRequestState,
   completeDirectorRequest as completeDirectorRequestState,
   createLlmDirectorState,
@@ -24,6 +25,7 @@ import {
   type DirectorContentSource,
 } from '../llm/directorState';
 import type { IndependentEventContent, NovelBlueprintContent, TemporaryQuoteContent } from '../llm/gameContent';
+import type { NodePresentation } from '../llm/schemas/gameDirectorV1';
 import type { GameContentRequestErrorCode, GameContentTask } from '../llm/gameContentClient';
 import type {
   GameDataState,
@@ -71,6 +73,7 @@ interface GameActions {
   acceptDirectorEvent: (token: string, triggerKey: string, content: IndependentEventContent, source: DirectorContentSource) => void;
   acceptDirectorQuote: (token: string, triggerKey: string, content: TemporaryQuoteContent, source: DirectorContentSource) => void;
   acceptNovelBlueprint: (token: string, triggerKey: string, content: NovelBlueprintContent, source: DirectorContentSource, task?: 'novel' | 'mindsea') => void;
+  acceptNodePresentation: (presentation: NodePresentation) => void;
   failDirectorRequest: (kind: GameContentTask, token: string, errorCode: GameContentRequestErrorCode) => void;
   markDirectorTriggerHandled: (triggerKey: string) => void;
   resolveDirectorChoice: (choiceId: string) => void;
@@ -445,6 +448,10 @@ export const useGameStore = create<GameStore>()(
             novel: { triggerKey, content, source },
           })),
         })),
+      acceptNodePresentation: (presentation) =>
+        set((state) => ({
+          llmDirector: acceptNodePresentationState(state.llmDirector, presentation),
+        })),
       failDirectorRequest: (kind, token, errorCode) =>
         set((state) => ({
           llmDirector: failDirectorRequestState(state.llmDirector, state.run.id, kind, token, errorCode),
@@ -629,7 +636,7 @@ export const useGameStore = create<GameStore>()(
     }),
     {
       name: 'rhodes-cognition-terminal-state',
-      version: 8,
+      version: 9,
       storage: createJSONStorage(() => localStorage),
       partialize: buildPersistedState,
       migrate: (persistedState) => migrateGameState(persistedState, buildDemoState()),

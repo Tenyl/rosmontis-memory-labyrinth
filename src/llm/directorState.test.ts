@@ -46,6 +46,21 @@ describe('LLM director pure state', () => {
     expect(initial.handledTriggers).toEqual([]);
   });
 
+  test('stores node presentations by Run and node key', async () => {
+    const { acceptNodePresentation, getNodePresentation } = await import('./directorState');
+    const initial = createLlmDirectorState('run-a');
+    const presentation = {
+      version: 1 as const, runId: 'run-a', nodeId: 'node-a', nodeType: 'safehouse' as const,
+      source: 'local' as const, title: '休息处', description: '短暂稳定神经链路。',
+      choiceIds: ['rest-stabilize'], modifierIds: [], quote: '我想休息一下。',
+    };
+    const next = acceptNodePresentation(initial, presentation);
+
+    expect(getNodePresentation(next, 'run-a', 'node-a')).toEqual(presentation);
+    expect(getNodePresentation(next, 'run-b', 'node-a')).toBeNull();
+    expect(initial.presentations).toEqual({});
+  });
+
   test.each([
     ['guard', { sanityDelta: 1, overloadDelta: 5 }],
     ['scan', { sanityDelta: -1, overloadDelta: 7 }],
