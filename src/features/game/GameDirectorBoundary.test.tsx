@@ -35,7 +35,10 @@ test('keeps AI mode in the same node template and shows one fused director capab
 
 test('fuses a validated remote presentation from the bound Tavern session', async () => {
   useGameStore.getState().resetDemoState();
-  useGameStore.getState().startRun('AI-BOUND', 'preset', true, false, { contentMode: 'ai-director' });
+  useGameStore.getState().startRun('AI-BOUND', 'preset', true, false, {
+    contentMode: 'ai-director',
+    aiFailurePolicy: 'auto-fallback',
+  });
   const state = useGameStore.getState();
   const node = state.maze.nodes.find((item) => item.id === state.run.currentNodeId)!;
   await initializeDatabase();

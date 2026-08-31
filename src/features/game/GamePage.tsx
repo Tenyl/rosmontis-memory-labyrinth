@@ -31,7 +31,8 @@ export default function GamePage() {
   const explorationCharges = useGameStore((state) => state.explorationCharges);
   const routeEffects = useGameStore((state) => state.routeEffects);
   const pendingEncounter = useGameStore((state) => state.pendingEncounter);
-  const novel = useGameStore((state) => state.llmDirector.novel);
+  const llmDirector = useGameStore((state) => state.llmDirector);
+  const novel = llmDirector.novel;
   const viewMode = useGameStore((state) => state.ui.mazeViewMode);
   const motionPreference = useGameStore((state) => state.ui.preferences.motion);
   const moveToNode = useGameStore((state) => state.moveToNode);
@@ -61,7 +62,7 @@ export default function GamePage() {
   useEffect(() => {
     const slotId = getActiveSaveSlotId(localStorage);
     if (slotId) createSaveSlot(slotId, useGameStore.getState(), localStorage);
-  }, [economy, inventory, maze, modules, pendingEncounter, rosmontis, run]);
+  }, [economy, inventory, llmDirector, maze, modules, pendingEncounter, rosmontis, run]);
 
   useEffect(() => {
     if (pendingEncounter && !pendingEncounter.resolved && scene.phase !== 'entering-node' && scene.phase !== 'node') {

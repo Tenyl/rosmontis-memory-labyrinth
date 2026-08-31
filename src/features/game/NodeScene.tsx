@@ -12,6 +12,7 @@ import type {
   RunState,
 } from '../../game/types';
 import type { NovelNodeBrief } from '../../llm/gameContent';
+import { getModifierLabel } from '../../llm/gameplayRegistry';
 import type { NodePresentation } from '../../llm/schemas/gameDirectorV1';
 import { EncounterPanel } from '../operation/EncounterPanel';
 import { GreatswordActions } from '../operation/GreatswordActions';
@@ -63,6 +64,7 @@ export function NodeScene(props: NodeSceneProps) {
     onAdvanceFloor={props.onAdvanceFloor}
     canAdvanceFloor={props.canAdvanceFloor}
     actionPoints={props.rosmontis.actionPoints}
+    allowedChoiceIds={props.presentation.choiceIds}
   />;
 
   return (
@@ -72,6 +74,11 @@ export function NodeScene(props: NodeSceneProps) {
           <span>{nodeName} / RISK {props.node.risk}</span>
           <h2 id="game-node-scene-title" tabIndex={-1}>{props.presentation.title || nodeName}</h2>
           <p>{props.brief?.description ?? props.presentation.description}</p>
+          {props.presentation.modifierIds.length ? (
+            <div className="node-scene-modifiers" aria-label="环境词条">
+              {props.presentation.modifierIds.map((modifierId) => <span key={modifierId}>{getModifierLabel(modifierId)}</span>)}
+            </div>
+          ) : null}
         </div>
         <div className="node-scene-header-actions">
           <strong>{props.brief?.title ?? props.presentation.quote ?? props.node.id}</strong>

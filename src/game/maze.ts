@@ -237,8 +237,11 @@ export function validateMaze(
   }
 
   const currentNodes = graph.nodes.filter((node) => node.state === 'current');
-  if (currentNodes.length !== 1 || currentNodes[0]?.id !== expectedCurrentNodeId) {
-    issues.push('迷宫必须包含与对局进度一致的唯一当前节点。');
+  const expectedNode = nodeById.get(expectedCurrentNodeId);
+  const activeCheckpoint = currentNodes.length === 1 && currentNodes[0]?.id === expectedCurrentNodeId;
+  const settledCheckpoint = currentNodes.length === 0 && expectedNode?.state === 'completed';
+  if (!activeCheckpoint && !settledCheckpoint) {
+    issues.push('迷宫必须包含与对局进度一致的当前节点或已结算节点。');
   }
   const edgeIds = new Set<string>();
   for (const edge of graph.edges) {

@@ -23,6 +23,14 @@ export const REGISTERED_MODIFIER_IDS = Object.freeze([
   'two-phase-core',
 ] as const);
 
+const MODIFIER_LABELS: Record<typeof REGISTERED_MODIFIER_IDS[number], string> = {
+  'high-threat': '高威胁',
+  'overload-surge': '过载加剧',
+  'reinforced-shield': '强化壁障',
+  'memory-transmutation': '记忆蜕变',
+  'two-phase-core': '双阶段核心',
+};
+
 export const REGISTERED_COMBAT_INTENT_IDS = Object.freeze([
   'assault',
   'charge',
@@ -45,6 +53,12 @@ export function isRegisteredChoice(nodeType: MazeNodeType, id: string): boolean 
 
 export function isRegisteredModifier(id: string): boolean {
   return modifiers.has(id);
+}
+
+export function getModifierLabel(id: string): string {
+  return isRegisteredModifier(id)
+    ? MODIFIER_LABELS[id as keyof typeof MODIFIER_LABELS]
+    : id;
 }
 
 export function isRegisteredIntent(id: string): id is RegisteredCombatIntentId {

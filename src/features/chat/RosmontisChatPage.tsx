@@ -2,15 +2,18 @@ import {
   GitBranch,
   History,
   MessageCircleMore,
+  Pencil,
   Plus,
   RefreshCw,
   Send,
   Square,
+  Trash2,
   WifiOff,
 } from 'lucide-react';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { resolveImageAsset } from '../../assets/assetRegistry';
+import { Dialog } from '../../components/Dialog';
 import { DEFAULT_CHARACTER_ID } from '../../sillytavern/default-content';
 import { HistoryDrawer } from '../tavern/game/HistoryDrawer';
 import { MainTextPane } from '../tavern/game/MainTextPane';
@@ -23,6 +26,9 @@ export default function RosmontisChatPage() {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [renameDraft, setRenameDraft] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const chats = useMemo(
     () => runtime.chats
@@ -31,9 +37,12 @@ export default function RosmontisChatPage() {
     [runtime.chats],
   );
   const chat = chats.find((item) => item.id === selectedChatId) ?? chats[0] ?? null;
-  const character = runtime.characters.find((item) => item.id === DEFAULT_CHARACTER_ID)
+  const configuredCharacter = runtime.activeCharacter
+    ?? runtime.characters.find((item) => item.id === DEFAULT_CHARACTER_ID)
     ?? runtime.characters.find((item) => item.name === '迷迭香')
     ?? null;
+  const character = runtime.characters.find((item) => item.id === chat?.characterId)
+    ?? configuredCharacter;
   const remotelyReady = runtime.initialized
     && runtime.transportMode === 'remote'
     && Boolean(runtime.settings?.api.apiKey.trim())
@@ -48,12 +57,12 @@ export default function RosmontisChatPage() {
   }, [chats, selectedChatId]);
 
   const createConversation = async () => {
-    if (!character) throw new Error('没有找到迷迭香角色卡');
+    if (!configuredCharacter) throw new Error('没有找到迷迭香角色卡');
     const id = await runtime.createChat(`迷迭香对话 ${chats.length + 1}`, {
       purpose: 'character-chat',
       runId: null,
       activate: false,
-      characterId: character.id,
+      characterId: configuredCharacter.id,
     });
     setSelectedChatId(id);
     return id;
@@ -86,11 +95,35 @@ export default function RosmontisChatPage() {
     }
   };
 
+  const openRename = () => {
+    if (!chat) return;
+    setRenameDraft(chat.name);
+    setLocalError(null);
+    setRenameOpen(true);
+  };
+
+  const saveName = async () => {
+    const name = renameDraft.trim();
+    if (!chat || !name) {
+      setLocalError('请输入对话名称');
+      return;
+    }
+    await runtime.renameChat(chat.id, name);
+    setRenameOpen(false);
+  };
+
+  const removeConversation = async () => {
+    if (!chat) return;
+    await runtime.removeChat(chat.id);
+    setDeleteOpen(false);
+  };
+
   if (!runtime.initialized) {
     return <section className="rosmontis-chat-loading" role="status">正在读取角色卡与会话记录</section>;
   }
 
   return (
+    <>
     <section id="rosmontis-character-chat-page" className="rosmontis-chat-page">
       <header className="rosmontis-chat-hero">
         <div>
@@ -147,6 +180,8 @@ export default function RosmontisChatPage() {
                 <button id="character-chat-history" type="button" disabled={!chat} onClick={() => setHistoryOpen(true)}><History size={16} aria-hidden />历史</button>
                 <button id="character-chat-retry" type="button" disabled={!chat?.messages.some((message) => message.role === 'user') || busy} onClick={() => void runtime.retryLastTurn(chat?.id)}><RefreshCw size={16} aria-hidden />重试</button>
                 <button id="character-chat-branch" type="button" aria-label="从当前回复创建分支" disabled={!chat?.messages.length || busy} onClick={() => void branch()}><GitBranch size={16} aria-hidden />分支</button>
+                <button id="character-chat-rename" type="button" aria-label="重命名当前对话" disabled={!chat || busy} onClick={openRename}><Pencil size={16} aria-hidden />重命名</button>
+                <button id="character-chat-delete" type="button" aria-label="删除当前对话" disabled={!chat || busy} onClick={() => setDeleteOpen(true)}><Trash2 size={16} aria-hidden />删除</button>
               </div>
             </header>
 
@@ -191,5 +226,31 @@ export default function RosmontisChatPage() {
 
       <HistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} chatId={chat?.id} />
     </section>
+    <Dialog
+      id="character-chat-rename-dialog"
+      title="重命名对话"
+      eyebrow="CHARACTER CHAT / LOCAL SESSION"
+      open={renameOpen}
+      onClose={() => setRenameOpen(false)}
+      footer={<><button id="character-chat-rename-cancel" className="terminal-button" type="button" onClick={() => setRenameOpen(false)}>取消</button><button id="character-chat-rename-confirm" className="terminal-button is-primary" type="button" onClick={() => void saveName()}>保存名称</button></>}
+    >
+      <label className="rosmontis-chat-dialog-field" htmlFor="character-chat-rename-input">
+        对话名称
+        <input id="character-chat-rename-input" value={renameDraft} onChange={(event) => { setRenameDraft(event.target.value); setLocalError(null); }} />
+      </label>
+      {localError === '请输入对话名称' ? <p className="rosmontis-chat-dialog-error" role="alert">{localError}</p> : null}
+    </Dialog>
+    <Dialog
+      id="character-chat-delete-dialog"
+      title="删除对话"
+      eyebrow="CHARACTER CHAT / DESTRUCTIVE"
+      open={deleteOpen}
+      onClose={() => setDeleteOpen(false)}
+      danger
+      footer={<><button id="character-chat-delete-cancel" className="terminal-button" type="button" onClick={() => setDeleteOpen(false)}>取消</button><button id="character-chat-delete-confirm" className="terminal-button is-danger" type="button" onClick={() => void removeConversation()}>确认删除</button></>}
+    >
+      <p>将从当前浏览器删除“{chat?.name}”及其消息记录。其他对话和游戏存档不受影响。</p>
+    </Dialog>
+    </>
   );
 }

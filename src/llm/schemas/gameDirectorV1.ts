@@ -38,10 +38,15 @@ const forbiddenNumericKeys = new Set([
   'overload', 'sanityDelta', 'overloadDelta', 'enemyHp', 'enemyIntegrity', 'stagger', 'topology',
   'edges', 'unlocks', 'victory', 'defeat', 'effect', 'effects',
 ]);
+const directorKeys = new Set([
+  'version', 'nodeId', 'nodeType', 'title', 'description', 'choiceIds', 'modifierIds', 'enemyPlan', 'quote',
+]);
+const enemyPlanKeys = new Set(['intentIds']);
 
 export function parseGameDirectorV1(value: unknown, context: GameDirectorParseContext): NodePresentation {
   const record = requireRecord(value, '游戏导演输出必须是 JSON 对象。');
   rejectForbiddenFields(record);
+  rejectUnknownFields(record, directorKeys, '游戏导演');
   if (record.version !== 1) throw new TypeError('游戏导演 Schema 版本必须为 1。');
   if (record.nodeId !== context.nodeId || record.nodeType !== context.nodeType) {
     throw new TypeError('游戏导演输出的节点与本地节点不一致。');
@@ -58,11 +63,17 @@ export function parseGameDirectorV1(value: unknown, context: GameDirectorParseCo
     if (!isRegisteredModifier(id)) throw new TypeError(`未知的节点修饰词 ID：${id}。`);
   }
 
+  const usesIntentPlan = context.nodeType === 'combat' || context.nodeType === 'emergency-combat';
+  if (usesIntentPlan && record.enemyPlan === undefined) throw new TypeError('战斗节点必须提供敌方计划。');
+  if (!usesIntentPlan && record.enemyPlan !== undefined) throw new TypeError('不使用意图轮转的节点不得提供敌方计划。');
+
   let enemyPlan: ValidatedEnemyPlan | undefined;
   if (record.enemyPlan !== undefined) {
     const plan = requireRecord(record.enemyPlan, '敌方计划必须是对象。');
+    rejectUnknownFields(plan, enemyPlanKeys, '敌方计划');
     const intentIds = requireStringArray(plan.intentIds, '敌方计划必须包含意图 ID。', 1, 3);
     if (intentIds.length > 3) throw new TypeError('敌方计划最多包含 3 个意图。');
+    if (new Set(intentIds).size !== intentIds.length) throw new TypeError('检测到重复的敌方意图 ID。');
     if (!intentIds.every(isRegisteredIntent)) throw new TypeError('敌方计划包含未知意图 ID。');
     enemyPlan = { intentIds };
   }
@@ -81,6 +92,11 @@ export function parseGameDirectorV1(value: unknown, context: GameDirectorParseCo
     ...(enemyPlan ? { enemyPlan } : {}),
     ...(quote ? { quote } : {}),
   };
+}
+
+function rejectUnknownFields(record: Record<string, unknown>, allowed: ReadonlySet<string>, label: string) {
+  const unknown = Object.keys(record).find((key) => !allowed.has(key));
+  if (unknown) throw new TypeError(`${label}包含未知字段：${unknown}。`);
 }
 
 function rejectForbiddenFields(value: unknown, path = 'root') {

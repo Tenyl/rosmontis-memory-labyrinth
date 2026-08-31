@@ -38,4 +38,30 @@ describe('local run save slots', () => {
     clearSaveSlots(localStorage);
     expect(getActiveSaveSlotId(localStorage)).toBeNull();
   });
+
+  test('migrates a legacy slot through the shared state migration before continuing', () => {
+    const legacy = structuredClone(buildDemoState()) as unknown as { run: Record<string, unknown> };
+    delete legacy.run.contentMode;
+    delete legacy.run.narrativeStyle;
+    delete legacy.run.aiFailurePolicy;
+    delete legacy.run.aiBinding;
+    localStorage.setItem('rosmontis-run-save-slots', JSON.stringify({
+      'slot-1': {
+        version: 9,
+        savedAt: '2026-08-30T10:00:00.000Z',
+        summary: { floor: 1, mode: 'preset', nodeId: legacy.run.currentNodeId },
+        state: legacy,
+      },
+    }));
+
+    const restored = loadSaveSlot('slot-1', localStorage);
+
+    expect(restored).toMatchObject({ version: 10, summary: { contentMode: 'local' } });
+    expect(restored?.state.run).toMatchObject({
+      contentMode: 'local',
+      narrativeStyle: 'tactical',
+      aiFailurePolicy: 'ask',
+      aiBinding: { chatId: null, lorebookIds: [] },
+    });
+  });
 });

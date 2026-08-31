@@ -64,7 +64,7 @@ export function installStructuredLlmMock(
         description: '潮湿的金属门后传来一段已经遗忘的呼吸声。',
         choiceIds: choiceIds[nodeType] ?? ['unknown-enter'],
         modifierIds: [],
-        ...(['combat', 'emergency-combat', 'boss'].includes(nodeType) ? { enemyPlan: { intentIds: ['assault', 'charge', 'erosion'] } } : {}),
+        ...(['combat', 'emergency-combat'].includes(nodeType) ? { enemyPlan: { intentIds: ['assault', 'charge', 'erosion'] } } : {}),
         quote: '博士，我听见那段雨声了。',
       };
     } else if (task === 'quote') {

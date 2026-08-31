@@ -31,6 +31,7 @@ interface EncounterPanelProps {
   onAdvanceFloor: () => void;
   canAdvanceFloor: boolean;
   actionPoints?: number;
+  allowedChoiceIds?: readonly string[];
 }
 
 const ENCOUNTER_COPY = {
@@ -117,6 +118,7 @@ export function EncounterPanel({
   onAdvanceFloor,
   canAdvanceFloor,
   actionPoints = 0,
+  allowedChoiceIds,
 }: EncounterPanelProps) {
   if (!encounter) {
     return (
@@ -128,6 +130,9 @@ export function EncounterPanel({
   }
 
   const copy = ENCOUNTER_COPY[encounter.kind];
+  const visibleChoices = allowedChoiceIds
+    ? encounter.choices.filter((choice) => allowedChoiceIds.includes(choice.id))
+    : encounter.choices;
   return (
     <section
       id="game-encounter-panel"
@@ -222,7 +227,7 @@ export function EncounterPanel({
 
       {!['shop', 'combat', 'boss'].includes(encounter.kind) && !encounter.resolved && (
         <div className="encounter-choice-grid">
-          {encounter.choices.map((choice) => {
+          {visibleChoices.map((choice) => {
             const requirement = choiceRequirement(encounter, choice, inventory, resonanceActive);
             const phaseLocked = encounter.kind === 'boss'
               && ((choice.id === 'boss-breach' && encounter.phase !== 'shield')
@@ -245,7 +250,7 @@ export function EncounterPanel({
         </div>
       )}
 
-      {encounter.kind === 'shop' && !encounter.resolved && (
+      {encounter.kind === 'shop' && !encounter.resolved && (!allowedChoiceIds || allowedChoiceIds.includes('leave-shop')) && (
         <button id="btn-leave-encounter-shop" className="encounter-leave-button" type="button" onClick={() => onResolve('leave-shop')}>离开认知黑市</button>
       )}
 

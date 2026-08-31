@@ -22,10 +22,9 @@ import {
   createLlmDirectorState,
   failDirectorRequest as failDirectorRequestState,
   markDirectorTriggerHandled as markDirectorTriggerHandledState,
-  resolveIntentEffect,
   type DirectorContentSource,
 } from '../llm/directorState';
-import type { IndependentEventContent, NovelBlueprintContent, TemporaryQuoteContent } from '../llm/gameContent';
+import type { NovelBlueprintContent, TemporaryQuoteContent } from '../llm/gameContent';
 import type { NodePresentation } from '../llm/schemas/gameDirectorV1';
 import type { GameContentRequestErrorCode, GameContentTask } from '../llm/gameContentClient';
 import type {
@@ -41,7 +40,6 @@ import type {
 import { migrateGameState } from './gameStateMigration';
 import { createLocalDiaryDraft } from '../diary/localDiary';
 import { getFloorDefinition } from '../game/floors';
-import { resolveD20Check } from '../game/checks';
 import { toEncounterAction } from '../llm/tacticalCommand';
 import type { TacticalCommandPlan } from '../llm/schemas/tacticalCommandV1';
 
@@ -74,14 +72,12 @@ interface GameActions {
   resetRun: () => void;
   beginDirectorRequest: (kind: GameContentTask, triggerKey: string) => string;
   completeDirectorRequest: (kind: GameContentTask, token: string) => void;
-  acceptDirectorEvent: (token: string, triggerKey: string, content: IndependentEventContent, source: DirectorContentSource) => void;
   acceptDirectorQuote: (token: string, triggerKey: string, content: TemporaryQuoteContent, source: DirectorContentSource) => void;
   acceptNovelBlueprint: (token: string, triggerKey: string, content: NovelBlueprintContent, source: DirectorContentSource, task?: 'novel' | 'mindsea') => void;
   acceptNodePresentation: (presentation: NodePresentation) => void;
   setAiFailurePolicy: (policy: AiFailurePolicy) => void;
   failDirectorRequest: (kind: GameContentTask, token: string, errorCode: GameContentRequestErrorCode) => void;
   markDirectorTriggerHandled: (triggerKey: string) => void;
-  resolveDirectorChoice: (choiceId: string) => void;
   resetDirectorForRun: () => void;
   setNarrativeDraft: (draft: string) => void;
   setInputMode: (inputMode: InputMode) => void;
@@ -436,13 +432,6 @@ export const useGameStore = create<GameStore>()(
         set((state) => ({
           llmDirector: completeDirectorRequestState(state.llmDirector, state.run.id, kind, token),
         })),
-      acceptDirectorEvent: (token, triggerKey, content, source) =>
-        set((state) => ({
-          llmDirector: acceptForRun(state.llmDirector, state.run.id, 'event', token, (director) => ({
-            ...director,
-            event: { triggerKey, content, source, resolvedChoiceId: null },
-          })),
-        })),
       acceptDirectorQuote: (token, triggerKey, content, source) =>
         set((state) => ({
           llmDirector: acceptForRun(state.llmDirector, state.run.id, 'quote', token, (director) => ({
@@ -474,35 +463,6 @@ export const useGameStore = create<GameStore>()(
         })),
       markDirectorTriggerHandled: (triggerKey) =>
         set((state) => ({ llmDirector: markDirectorTriggerHandledState(state.llmDirector, triggerKey) })),
-      resolveDirectorChoice: (choiceId) =>
-        set((state) => {
-          const event = state.llmDirector.event;
-          if (!event || event.resolvedChoiceId) return state;
-          const choice = event.content.choices.find((item) => item.id === choiceId);
-          if (!choice) return state;
-          const check = choice.check ? resolveD20Check({
-            attribute: choice.check.attribute,
-            modifier: choice.check.attribute === 'perception'
-              ? state.rosmontis.insight
-              : Math.floor((state.rosmontis.sanity - 50) / 10),
-            difficulty: choice.check.threshold,
-          }, state.randomState) : null;
-          const effect = check && !check.result.passed
-            ? { sanityDelta: -2, overloadDelta: 4 }
-            : resolveIntentEffect(choice.intent, state.rosmontis);
-          const resolution = reduceRunAction(selectRoguelikeState(state), { type: 'apply-vitals', ...effect });
-          if (!resolution.accepted) return state;
-          return {
-            ...applyRoguelikeState(state, {
-              ...resolution.state,
-              randomState: check?.randomState ?? resolution.state.randomState,
-            }, [...(check?.events ?? []), ...resolution.events]),
-            llmDirector: {
-              ...state.llmDirector,
-              event: { ...event, resolvedChoiceId: choiceId },
-            },
-          };
-        }),
       resetDirectorForRun: () =>
         set((state) => ({ llmDirector: createLlmDirectorState(state.run.id) })),
       setNarrativeDraft: (draft) =>

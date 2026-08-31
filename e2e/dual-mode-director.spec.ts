@@ -43,6 +43,11 @@ test('AI 存档使用绑定会话生成节点并在刷新后复用已接受内�
     return persisted.state?.run?.contentMode ?? 'missing';
   })).toBe('ai-director');
 
+  await page.locator('#global-brand-home').click();
+  await page.getByRole('button', { name: '继续游戏' }).click();
+  await expect(page.getByRole('heading', { name: '被雨声留下的门' })).toBeVisible();
+  await expect.poll(() => requests.filter((request) => request.task === 'event').length).toBe(1);
+
   await page.reload();
   await expect(page.getByRole('heading', { name: '被雨声留下的门' })).toBeVisible();
   await expect.poll(() => requests.filter((request) => request.task === 'event').length).toBe(1);

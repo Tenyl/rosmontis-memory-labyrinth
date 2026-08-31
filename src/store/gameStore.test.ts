@@ -131,30 +131,6 @@ test('persists encounter, economy, modules, and exploration actions through stor
   expect(useGameStore.getState().economy.echoes).toBe(20);
 });
 
-test('binds director requests to the active Run and settles event intent through local rules', () => {
-  useGameStore.getState().startRun('DIRECTOR-RUN', 'preset', true);
-  const token = useGameStore.getState().beginDirectorRequest('event', 'node-trigger');
-  useGameStore.getState().markDirectorTriggerHandled('event:node-trigger');
-  useGameStore.getState().acceptDirectorEvent(token, 'node-trigger', {
-    title: '逆流雨幕',
-    situation: '雨滴带走倒影。',
-    choices: [
-      { id: 'scan-rain', label: '读取雨声', description: '确认记忆残留。', intent: 'scan' },
-      { id: 'hold-line', label: '守住边界', description: '拒绝异常靠近。', intent: 'guard' },
-    ],
-  }, 'remote');
-
-  expect(useGameStore.getState().llmDirector).toMatchObject({
-    runId: useGameStore.getState().run.id,
-    handledTriggers: ['event:node-trigger'],
-    event: { triggerKey: 'node-trigger', source: 'remote', resolvedChoiceId: null },
-  });
-
-  useGameStore.getState().resolveDirectorChoice('scan-rain');
-  expect(useGameStore.getState().rosmontis).toMatchObject({ sanity: 99, overload: 7 });
-  expect(useGameStore.getState().llmDirector.event?.resolvedChoiceId).toBe('scan-rain');
-});
-
 test('persists one shared node presentation through the director store', () => {
   useGameStore.getState().startRun('PRESENTATION-RUN', 'preset', false);
   const state = useGameStore.getState();

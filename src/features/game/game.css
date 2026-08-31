@@ -103,6 +103,8 @@
 .node-scene-header span { color: var(--color-memory-blue); font: 600 .6rem/1 var(--font-data); letter-spacing: .08em; }
 .node-scene-header h2 { margin: var(--space-3) 0 var(--space-2); scroll-margin-top: 96px; font-size: clamp(1.25rem,3vw,2rem); }
 .node-scene-header p { max-width: 68ch; margin: 0; color: var(--color-text-secondary); font-size: .72rem; line-height: 1.7; }
+.node-scene-modifiers { display:flex; flex-wrap:wrap; gap:6px; margin-top:var(--space-3); }
+.node-scene-header .node-scene-modifiers span { padding:6px 9px; border:1px solid color-mix(in srgb,var(--scene-accent) 42%,var(--color-line-subtle)); background:color-mix(in srgb,var(--scene-accent) 9%,transparent); color:var(--color-text-secondary); font-size:.54rem; }
 .node-scene-header>strong { color: var(--color-text-tertiary); font: 500 .62rem/1.4 var(--font-data); }
 .node-scene-header-actions { display: grid; justify-items: end; gap: var(--space-4); flex: 0 0 auto; }
 .node-scene-header-actions>strong { color: var(--color-text-tertiary); font: 500 .62rem/1.4 var(--font-data); }

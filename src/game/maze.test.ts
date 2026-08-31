@@ -83,6 +83,18 @@ describe('memory maze generation', () => {
     }
   });
 
+  test('accepts the between-nodes checkpoint after the current node is completed', () => {
+    const graph = generateMaze({ seed: 'BETWEEN-NODES', mode: 'preset', floor: 1, maxFloor: 5, targetNodeCount: 11 });
+    const checkpoint = {
+      ...graph,
+      nodes: graph.nodes.map((node) => node.id === graph.startNodeId
+        ? { ...node, state: 'completed' as const }
+        : node),
+    };
+
+    expect(validateMaze(checkpoint, graph.startNodeId)).toEqual({ valid: true, issues: [] });
+  });
+
   test('unknown results are deterministic but hidden from the public type', () => {
     const input = {
       seed: 'HIDDEN',

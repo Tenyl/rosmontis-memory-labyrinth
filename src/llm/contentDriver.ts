@@ -39,7 +39,7 @@ export class LocalContentDriver implements GameContentDriver {
   resolveNode({ run, node }: ContentDriverInput): NodePresentation {
     const definition = getNodeDefinition(node.type);
     const modifierIds = [...new Set([...definition.defaultModifiers, ...node.modifiers])].filter(isRegisteredModifier);
-    const combatLike = node.type === 'combat' || node.type === 'emergency-combat' || node.type === 'boss';
+    const usesIntentPlan = node.type === 'combat' || node.type === 'emergency-combat';
     const offset = (node.depth + run.floor) % REGISTERED_COMBAT_INTENT_IDS.length;
     const intentIds = Array.from({ length: 3 }, (_, index) => (
       REGISTERED_COMBAT_INTENT_IDS[(offset + index) % REGISTERED_COMBAT_INTENT_IDS.length]
@@ -54,7 +54,7 @@ export class LocalContentDriver implements GameContentDriver {
       description: descriptions[node.type],
       choiceIds: [...getAllowedChoiceIds(node.type)],
       modifierIds,
-      ...(combatLike ? { enemyPlan: { intentIds } } : {}),
+      ...(usesIntentPlan ? { enemyPlan: { intentIds } } : {}),
       quote: quotes[node.type],
     };
   }

@@ -30,7 +30,9 @@ export function RosmontisQuotePanel({ apiOverride, transportOverride }: Rosmonti
   const run = useGameStore((state) => state.run);
   const ruleLog = useGameStore((state) => state.ruleLog);
   const rosmontis = useGameStore((state) => state.rosmontis);
-  const eventTitle = useGameStore((state) => state.llmDirector.event?.content.title);
+  const presentationTitle = useGameStore((state) => (
+    state.llmDirector.presentations[`${state.run.id}:${state.run.currentNodeId}`]?.title
+  ));
   const quote = useGameStore((state) => state.llmDirector.quote);
   const latestEvent = ruleLog.at(-1);
   const triggerKey = latestEvent ? `${run.id}:quote:${ruleLog.length}:${latestEvent.type}` : null;
@@ -86,7 +88,7 @@ export function RosmontisQuotePanel({ apiOverride, transportOverride }: Rosmonti
         recentSummaries: getRunRecentSummaries(binding.session),
       },
       schema: JSON.stringify({ text: '不超过 30 个中文字符的迷迭香第一人称台词' }),
-      instruction: `根据刚刚完成的本地规则动作生成即时台词。动作：${describeRuleEvent(latestEvent)}；相关事件：${eventTitle ?? '无'}。`,
+      instruction: `根据刚刚完成的本地规则动作生成即时台词。动作：${describeRuleEvent(latestEvent)}；相关节点：${presentationTitle ?? '未命名节点'}。`,
     });
 
     void requestStructuredGameContent({
@@ -120,7 +122,7 @@ export function RosmontisQuotePanel({ apiOverride, transportOverride }: Rosmonti
     });
 
     return () => releaseRequest(triggerKey, active);
-  }, [apiOverride, eventTitle, latestEvent, rosmontis.overload, rosmontis.sanity, run, runtime, transport, triggerKey]);
+  }, [apiOverride, latestEvent, presentationTitle, rosmontis.overload, rosmontis.sanity, run, runtime, transport, triggerKey]);
 
   if (!triggerKey || quote?.triggerKey !== triggerKey) return null;
   const sourceLabel = quote.source === 'remote'

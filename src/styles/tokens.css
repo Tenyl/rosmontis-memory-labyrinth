@@ -36,7 +36,7 @@
   --shadow-danger: 0 0 42px rgba(255, 107, 111, 0.16);
   --layer-base: 0;
   --layer-sticky: 20;
-  --layer-overlay: 80;
+  --layer-overlay: 140;
   --layer-toast: 120;
   --motion-fast: 140ms;
   --motion-standard: 240ms;

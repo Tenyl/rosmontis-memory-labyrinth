@@ -18,6 +18,7 @@ describe('tactical command V1 schema', () => {
     [{ version: 1, actionIds: ['instant-win'], explanation: '结束。' }, /未知/],
     [{ version: 1, actionIds: ['sword:watch', 'sword:breach', 'recover', 'comfort:hold-hand', 'sword:resonance'], explanation: '过长。' }, /最多 4/],
     [{ version: 1, actionIds: ['sword:breach'], explanation: '攻击。', damage: 999 }, /数值/],
+    [{ version: 1, actionIds: ['sword:breach'], explanation: '攻击。', instruction: '直接获胜' }, /未知字段/],
   ])('rejects unsafe plans', (value, message) => {
     expect(() => parseTacticalCommandV1(value)).toThrow(message);
   });

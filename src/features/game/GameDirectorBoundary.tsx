@@ -50,6 +50,11 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
 
   useEffect(() => {
     if (!aiMode || stored) return;
+    if (!runtime.initialized) {
+      setStage('loading');
+      setError(null);
+      return;
+    }
     const binding = resolveTavernRunBinding(run, runtime);
     if (!binding.ok) {
       setStage('error');

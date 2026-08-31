@@ -4,7 +4,6 @@ import {
   beginDirectorRequest,
   createLlmDirectorState,
   markDirectorTriggerHandled,
-  resolveIntentEffect,
 } from './directorState';
 
 describe('LLM director pure state', () => {
@@ -23,14 +22,13 @@ describe('LLM director pure state', () => {
     const content = {
       triggerKey: 'node-a',
       source: 'remote' as const,
-      content: { title: '雨幕', situation: '雨声倒流。', choices: [] },
-      resolvedChoiceId: null,
+      content: { text: '我听见雨声了。' },
     };
-    const accepted = acceptForRun(state, 'run-a', 'event', token, (current) => ({ ...current, event: content }));
-    const staleRun = acceptForRun(state, 'run-b', 'event', token, (current) => ({ ...current, event: content }));
-    const staleToken = acceptForRun(state, 'run-a', 'event', 'run-a:event:other', (current) => ({ ...current, event: content }));
+    const accepted = acceptForRun(state, 'run-a', 'event', token, (current) => ({ ...current, quote: content }));
+    const staleRun = acceptForRun(state, 'run-b', 'event', token, (current) => ({ ...current, quote: content }));
+    const staleToken = acceptForRun(state, 'run-a', 'event', 'run-a:event:other', (current) => ({ ...current, quote: content }));
 
-    expect(accepted.event).toBe(content);
+    expect(accepted.quote).toBe(content);
     expect(accepted.requests.event).toMatchObject({ status: 'ready', token: null });
     expect(staleRun).toBe(state);
     expect(staleToken).toBe(state);
@@ -59,15 +57,5 @@ describe('LLM director pure state', () => {
     expect(getNodePresentation(next, 'run-a', 'node-a')).toEqual(presentation);
     expect(getNodePresentation(next, 'run-b', 'node-a')).toBeNull();
     expect(initial.presentations).toEqual({});
-  });
-
-  test.each([
-    ['guard', { sanityDelta: 1, overloadDelta: 5 }],
-    ['scan', { sanityDelta: -1, overloadDelta: 7 }],
-    ['press-on', { sanityDelta: -3, overloadDelta: 10 }],
-    ['recover', { sanityDelta: 8, overloadDelta: -12 }],
-    ['resonate', { sanityDelta: -4, overloadDelta: 15 }],
-  ] as const)('maps %s to a fixed local settlement', (intent, expected) => {
-    expect(resolveIntentEffect(intent, { sanity: 60, overload: 30 })).toEqual(expected);
   });
 });

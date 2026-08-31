@@ -1,4 +1,6 @@
 import type { GameDataState } from '../types/game';
+import { buildDemoState } from '../data/demoData';
+import { migrateGameState } from '../store/gameStateMigration';
 
 export type SaveSlotId = 'slot-1' | 'slot-2' | 'slot-3';
 
@@ -41,21 +43,7 @@ export function createSaveSlot(
   storage: Storage,
   savedAt = new Date().toISOString(),
 ): SaveSnapshot {
-  const snapshot: SaveSnapshot = {
-    version: 10,
-    savedAt,
-    summary: {
-      floor: state.run.floor,
-      mode: state.run.mode,
-      contentMode: state.run.contentMode,
-      nodeId: state.run.currentNodeId,
-      sanity: state.rosmontis.sanity,
-      overload: state.rosmontis.overload,
-      fragments: state.memoryInventory.fragments.length + state.memoryInventory.coreFragments.length,
-      turns: state.run.turn,
-    },
-    state,
-  };
+  const snapshot = toSnapshot(state, savedAt);
   storage.setItem(SAVE_KEY, JSON.stringify({ ...readSnapshots(storage), [id]: snapshot }));
   return snapshot;
 }
@@ -80,9 +68,36 @@ export function clearSaveSlots(storage: Storage) {
 
 function readSnapshots(storage: Storage): Partial<Record<SaveSlotId, SaveSnapshot>> {
   try {
-    const value = JSON.parse(storage.getItem(SAVE_KEY) ?? '{}') as Partial<Record<SaveSlotId, SaveSnapshot>>;
-    return value && typeof value === 'object' ? value : {};
+    const value = JSON.parse(storage.getItem(SAVE_KEY) ?? '{}') as unknown;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    const current = buildDemoState();
+    return Object.fromEntries(SLOT_IDS.flatMap((id) => {
+      const snapshot = (value as Record<string, unknown>)[id];
+      if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) return [];
+      const record = snapshot as Record<string, unknown>;
+      if (!record.state || typeof record.state !== 'object' || typeof record.savedAt !== 'string') return [];
+      const state = migrateGameState(record.state, current);
+      return [[id, toSnapshot(state, record.savedAt)]];
+    }));
   } catch {
     return {};
   }
+}
+
+function toSnapshot(state: GameDataState, savedAt: string): SaveSnapshot {
+  return {
+    version: 10,
+    savedAt,
+    summary: {
+      floor: state.run.floor,
+      mode: state.run.mode,
+      contentMode: state.run.contentMode,
+      nodeId: state.run.currentNodeId,
+      sanity: state.rosmontis.sanity,
+      overload: state.rosmontis.overload,
+      fragments: state.memoryInventory.fragments.length + state.memoryInventory.coreFragments.length,
+      turns: state.run.turn,
+    },
+    state,
+  };
 }

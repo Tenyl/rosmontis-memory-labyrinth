@@ -40,6 +40,9 @@
 .rosmontis-chat-user-message span { color:var(--color-arts-green); font:600 .54rem/1 var(--font-data); letter-spacing:.08em; }
 .rosmontis-chat-user-message p { margin:9px 0 0; color:var(--color-text-secondary); font-size:.76rem; line-height:1.75; white-space:pre-wrap; }
 .rosmontis-chat-error { margin:0; padding:var(--space-3) var(--space-5); border-top:1px solid rgba(255,107,111,.28); background:var(--color-danger-soft); color:#ffb7b9; font-size:.64rem; }
+.rosmontis-chat-dialog-field { display:grid; gap:var(--space-2); color:var(--color-text-secondary); font-size:.68rem; }
+.rosmontis-chat-dialog-field input { width:100%; min-height:44px; border:1px solid var(--color-line-strong); background:var(--color-background-deep); padding:0 var(--space-3); color:var(--color-text-primary); }
+.rosmontis-chat-dialog-error { margin:var(--space-3) 0 0; color:var(--color-danger-red); font-size:.64rem; }
 .rosmontis-chat-composer { display:grid; align-items:end; gap:var(--space-3); grid-template-columns:minmax(0,1fr) auto; padding:var(--space-4); border-top:1px solid var(--color-line-subtle); background:rgba(0,0,0,.16); }
 .rosmontis-chat-composer label { grid-column:1/-1; color:var(--color-text-tertiary); font:600 .54rem/1 var(--font-data); letter-spacing:.08em; }
 .rosmontis-chat-composer textarea { width:100%; min-height:76px; border:1px solid var(--color-line-strong); background:rgba(0,0,0,.3); padding:var(--space-3); color:var(--color-text-primary); font:.74rem/1.65 var(--font-ui); resize:vertical; }

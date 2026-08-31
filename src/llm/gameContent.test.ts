@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest';
 import {
-  parseIndependentEvent,
   parseNovelBlueprint,
   parseTemporaryQuote,
 } from './gameContent';
@@ -13,48 +12,6 @@ const expectedNodes = [
   { id: 'maze-1-unknown', type: 'unknown' as const },
   { id: 'maze-1-core', type: 'boss' as const },
 ];
-
-describe('LLM independent event contract', () => {
-  test('accepts a fresh event with two or three allowlisted choices', () => {
-    const raw = {
-      title: '逆流雨幕',
-      situation: '雨滴正在带走走廊里的倒影。',
-      choices: [
-        { id: 'scan-rain', label: '读取雨声', description: '确认雨滴中的记忆残留。', intent: 'scan' },
-        { id: 'hold-line', label: '维持边界', description: '拒绝让异常接近。', intent: 'guard' },
-      ],
-    };
-
-    const parsed = parseIndependentEvent(raw);
-
-    expect(parsed).toEqual(raw);
-    expect(parsed).not.toBe(raw);
-    expect(parsed.choices).not.toBe(raw.choices);
-  });
-
-  test('rejects option counts outside two to three', () => {
-    expect(() => parseIndependentEvent({
-      title: '逆流雨幕',
-      situation: '雨滴正在带走倒影。',
-      choices: [{ id: 'scan', label: '读取雨声', description: '确认残留记忆。', intent: 'scan' }],
-    })).toThrow(/2 至 3/);
-  });
-
-  test.each([
-    { id: 'bad-effect', label: '读取', description: '读取雨声。', intent: 'scan', effect: { overloadDelta: 20 } },
-    { id: 'bad-threshold', label: '读取', description: '读取雨声。', intent: 'scan', threshold: 16 },
-    { id: 'bad-intent', label: '读取', description: '读取雨声。', intent: 'erase-save' },
-  ])('rejects numeric authority or unknown intent in an event choice', (choice) => {
-    expect(() => parseIndependentEvent({
-      title: '非法事件',
-      situation: '模型试图越过本地规则。',
-      choices: [
-        choice,
-        { id: 'safe', label: '维持边界', description: '保持当前状态。', intent: 'guard' },
-      ],
-    })).toThrow(/数值|意图/);
-  });
-});
 
 describe('LLM temporary quote contract', () => {
   test('accepts a concise Rosmontis first-person line', () => {

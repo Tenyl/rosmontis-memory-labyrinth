@@ -1,13 +1,15 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, expect, test } from 'vitest';
 import { buildDemoState } from '../../data/demoData';
 import {
   clearAllData,
+  getCharacters,
   getChats,
   getSettings,
   initializeDatabase,
+  saveCharacter,
   saveSettings,
 } from '../../sillytavern/database';
 import { useGameStore } from '../../store/gameStore';
@@ -53,13 +55,25 @@ test('shows only a settings path when no remote LLM is configured', async () => 
 test('creates an isolated character chat, streams the reply, and supports branching', async () => {
   await initializeDatabase();
   const settings = await getSettings();
+  const defaultCharacter = (await getCharacters()).find((character) => character.name === '迷迭香');
   if (!settings) throw new Error('测试设置未初始化');
-  await saveSettings({ ...settings, api: { ...settings.api, apiKey: 'remote-test-key' } });
+  if (!defaultCharacter) throw new Error('测试角色卡未初始化');
+  await saveCharacter({
+    ...defaultCharacter,
+    id: 'character-imported-rosmontis',
+    personality: '这是用户导入并设为当前项的迷迭香角色设定。',
+  });
+  await saveSettings({
+    ...settings,
+    activeCharacterId: 'character-imported-rosmontis',
+    api: { ...settings.api, apiKey: 'remote-test-key' },
+  });
   const before = useGameStore.getState().rosmontis;
   const user = userEvent.setup();
   renderPage(remoteTransport);
 
   const input = await screen.findByRole('textbox', { name: '发送给迷迭香' });
+  expect(screen.getByText('这是用户导入并设为当前项的迷迭香角色设定。')).toBeVisible();
   await user.type(input, '你还好吗？');
   await user.click(screen.getByRole('button', { name: '发送消息' }));
 
@@ -80,5 +94,20 @@ test('creates an isolated character chat, streams the reply, and supports branch
   await waitFor(async () => {
     const chats = (await getChats()).filter((chat) => chat.purpose === 'character-chat');
     expect(chats).toHaveLength(2);
+  });
+
+  await user.click(screen.getByRole('button', { name: '重命名当前对话' }));
+  const renameDialog = screen.getByRole('dialog', { name: '重命名对话' });
+  await user.clear(screen.getByRole('textbox', { name: '对话名称' }));
+  await user.type(screen.getByRole('textbox', { name: '对话名称' }), '雨后的私人通讯');
+  await user.click(within(renameDialog).getByRole('button', { name: '保存名称' }));
+  expect(await screen.findByRole('option', { name: '雨后的私人通讯' })).toBeVisible();
+
+  await user.click(screen.getByRole('button', { name: '删除当前对话' }));
+  const deleteDialog = screen.getByRole('dialog', { name: '删除对话' });
+  await user.click(within(deleteDialog).getByRole('button', { name: '确认删除' }));
+  await waitFor(async () => {
+    const chats = (await getChats()).filter((chat) => chat.purpose === 'character-chat');
+    expect(chats).toHaveLength(1);
   });
 });

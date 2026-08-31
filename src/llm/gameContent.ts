@@ -1,22 +1,5 @@
 import type { MazeNodeType } from '../game/types';
 
-export const DIRECTOR_INTENTS = ['guard', 'scan', 'press-on', 'recover', 'resonate'] as const;
-export type DirectorIntent = typeof DIRECTOR_INTENTS[number];
-
-export interface IndependentEventChoice {
-  id: string;
-  label: string;
-  description: string;
-  intent: DirectorIntent;
-  check?: { attribute: 'stability' | 'perception' | 'will'; threshold: 8 | 10 | 12 | 14 | 16 | 18 };
-}
-
-export interface IndependentEventContent {
-  title: string;
-  situation: string;
-  choices: IndependentEventChoice[];
-}
-
 export interface TemporaryQuoteContent {
   text: string;
 }
@@ -44,8 +27,6 @@ export interface NovelBlueprintContent {
 const nodeTypes = new Set<MazeNodeType>([
   'combat', 'emergency-combat', 'safehouse', 'shop', 'encounter', 'dilemma', 'unknown', 'boss',
 ]);
-const directorIntents = new Set<string>(DIRECTOR_INTENTS);
-const forbiddenChoiceKeys = ['effect', 'effects', 'threshold', 'difficulty', 'reward', 'damage', 'sanityDelta', 'overloadDelta'];
 const forbiddenNovelBriefKeys = [
   'hiddenType',
   'revealed',
@@ -62,39 +43,6 @@ const forbiddenNovelBriefKeys = [
   'edges',
   'unlocks',
 ];
-
-export function parseIndependentEvent(value: unknown): IndependentEventContent {
-  const record = requireRecord(value, '独立事件必须是 JSON 对象。');
-  if (!Array.isArray(record.choices) || record.choices.length < 2 || record.choices.length > 3) {
-    throw new TypeError('独立事件必须提供 2 至 3 个选择。');
-  }
-
-  const choices = record.choices.map((choice, index) => {
-    const item = requireRecord(choice, `第 ${index + 1} 个事件选择必须是对象。`);
-    if (forbiddenChoiceKeys.some((key) => Object.hasOwn(item, key))) {
-      throw new TypeError('LLM 事件选择不得携带阈值、奖励或数值效果。');
-    }
-    const intent = requireString(item.intent, '事件选择意图不能为空。', 24);
-    if (!directorIntents.has(intent)) throw new TypeError(`未知的事件选择意图：${intent}。`);
-    const id = requireString(item.id, '事件选择 ID 不能为空。', 48);
-    if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) throw new TypeError('事件选择 ID 只能包含小写字母、数字和连字符。');
-    return {
-      id,
-      label: requireString(item.label, '事件选择名称不能为空。', 36),
-      description: requireString(item.description, '事件选择描述不能为空。', 120),
-      intent: intent as DirectorIntent,
-    };
-  });
-  if (new Set(choices.map((choice) => choice.id)).size !== choices.length) {
-    throw new TypeError('事件选择 ID 不得重复。');
-  }
-
-  return {
-    title: requireString(record.title, '独立事件标题不能为空。', 48),
-    situation: requireString(record.situation, '独立事件情境不能为空。', 320),
-    choices,
-  };
-}
 
 export function parseTemporaryQuote(value: unknown): TemporaryQuoteContent {
   const record = requireRecord(value, '临时台词必须是 JSON 对象。');

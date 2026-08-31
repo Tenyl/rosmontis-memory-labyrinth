@@ -18,11 +18,13 @@ export interface TacticalCommandPlan {
 
 const actionIds = new Set<string>(TACTICAL_ACTION_IDS);
 const forbiddenKeys = new Set(['damage', 'reward', 'ap', 'actionPoints', 'sanity', 'overload', 'effect', 'effects']);
+const allowedKeys = new Set(['version', 'actionIds', 'explanation']);
 
 export function parseTacticalCommandV1(value: unknown): TacticalCommandPlan {
   if (!isRecord(value)) throw new TypeError('战术指令必须是 JSON 对象。');
   for (const key of Object.keys(value)) {
     if (forbiddenKeys.has(key)) throw new TypeError('战术指令不得携带数值效果。');
+    if (!allowedKeys.has(key)) throw new TypeError(`战术指令包含未知字段：${key}。`);
   }
   if (value.version !== 1) throw new TypeError('战术指令版本必须为 1。');
   if (!Array.isArray(value.actionIds) || value.actionIds.length === 0) throw new TypeError('战术指令至少包含一个动作。');

@@ -25,8 +25,10 @@ describe('local content driver parity', () => {
     expect(result.title.length).toBeGreaterThan(0);
     expect(result.description.length).toBeGreaterThan(0);
     expect(result.choiceIds.length).toBeGreaterThan(0);
-    if (type === 'combat' || type === 'emergency-combat' || type === 'boss') {
+    if (type === 'combat' || type === 'emergency-combat') {
       expect(result.enemyPlan?.intentIds.length).toBeGreaterThan(0);
+    } else {
+      expect(result.enemyPlan).toBeUndefined();
     }
   });
 });

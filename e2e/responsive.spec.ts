@@ -14,6 +14,7 @@ const routes = [
   ['/diary', '迷迭香手记'],
   ['/records', '探索记录'],
   ['/settings', '系统设置'],
+  ['/chat', '迷迭香对话'],
 ] as const;
 
 for (const viewport of viewports) {

@@ -107,6 +107,37 @@ test('keeps unavailable wonder choices visible with an explicit requirement', ()
   expect(screen.getByRole('button', { name: /激活共鸣层.*需要预备共鸣/ })).toBeDisabled();
 });
 
+test('shows only the validated presentation choices without changing their local effects', () => {
+  const encounter: PendingEncounter = {
+    kind: 'encounter', nodeId: 'wonder-directed', resolved: false,
+    choices: [
+      { id: 'wonder-observe', label: '观察异常', description: '回收残响。' },
+      { id: 'wonder-anchor', label: '建立锚点', description: '稳定场景。' },
+      { id: 'wonder-resonate', label: '激活共鸣层', description: '共振场景。' },
+    ],
+  };
+
+  render(
+    <EncounterPanel
+      encounter={encounter}
+      inventory={inventory}
+      echoes={0}
+      modules={[]}
+      resonanceActive={false}
+      allowedChoiceIds={['wonder-observe']}
+      onResolve={vi.fn()}
+      onAction={vi.fn()}
+      onSellFragment={vi.fn()}
+      onAdvanceFloor={vi.fn()}
+      canAdvanceFloor={false}
+    />,
+  );
+
+  expect(screen.getByRole('button', { name: /观察异常/ })).toBeVisible();
+  expect(screen.queryByRole('button', { name: /建立锚点/ })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /激活共鸣层/ })).not.toBeInTheDocument();
+});
+
 test('reveals an unknown result only after local settlement', () => {
   const unresolved: PendingEncounter = {
     kind: 'unknown', nodeId: 'unknown-1', resolved: false, hiddenType: 'combat',

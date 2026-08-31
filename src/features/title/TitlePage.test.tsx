@@ -55,7 +55,13 @@ test('creates one distinct bound game-run chat per AI save and none for a local 
   fireEvent.click(screen.getByRole('radio', { name: /^AI 导演模式/ }));
   fireEvent.click(screen.getByRole('button', { name: /存档槽 1/ }));
   await waitFor(() => expect(window.location.pathname).toBe('/game'));
-  const firstBinding = loadSaveSlot('slot-1', localStorage)?.state.run.aiBinding.chatId;
+  const rawFirstSlot = JSON.parse(localStorage.getItem('rosmontis-run-save-slots') ?? '{}') as {
+    'slot-1'?: { state?: { run?: { id?: string; aiBinding?: { chatId?: string | null } } } };
+  };
+  expect(rawFirstSlot['slot-1']?.state?.run?.aiBinding?.chatId).toBeTruthy();
+  const migratedFirstSlot = loadSaveSlot('slot-1', localStorage);
+  expect(migratedFirstSlot?.state.run.id).toBe(rawFirstSlot['slot-1']?.state?.run?.id);
+  const firstBinding = migratedFirstSlot?.state.run.aiBinding.chatId;
   expect(firstBinding).toBeTruthy();
   first.unmount();
 
