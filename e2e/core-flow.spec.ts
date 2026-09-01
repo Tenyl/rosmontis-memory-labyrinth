@@ -3,15 +3,12 @@ import { configureMockApi, installStructuredLlmMock, type MockLlmRequest } from 
 import { settleVisibleEncounter } from './helpers/run';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.clear());
 });
 
 test('AI 导演节点结算写入当前 Run 的独立会话摘要', async ({ page }) => {
   const requests: MockLlmRequest[] = [];
   await installStructuredLlmMock(page, requests);
-  await page.goto('/game');
   await configureMockApi(page);
-  await page.locator('#global-brand-home').click();
   await page.getByRole('button', { name: '开始游戏' }).click();
   await page.locator('#title-content-ai').check();
   await page.getByRole('button', { name: /存档槽 3/ }).click();

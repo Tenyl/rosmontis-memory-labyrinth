@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearPresetRun, enterReachableNode, settleVisibleEncounter } from './helpers/run';
+import { clearPresetRun, enterReachableNode, settleVisibleEncounter, startLocalRun } from './helpers/run';
 import { configureMockApi, installStructuredLlmMock, type MockLlmRequest } from './helpers/mockLlm';
 
 test.setTimeout(240_000);
@@ -11,8 +11,7 @@ test('LLM 返回越权蓝图时保留本地拓扑与 Run 进度', async ({ page 
       ? { ...content, nodeBriefs: [], damage: 9999 }
       : content
   ));
-  await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/game');
+  await startLocalRun(page);
 
   await clearPresetRun(page);
   const victory = page.getByRole('dialog', { name: '潜入完成：记忆迷宫已逃离' });

@@ -1,5 +1,5 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { renderApp } from '../../test/renderApp';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderPlayableApp } from '../../test/renderApp';
 import { useGameStore } from '../../store/gameStore';
 import { clearAllData, getChats, getSettings, initializeDatabase, saveChat, saveSettings } from '../../sillytavern/database';
 import { DEFAULT_CHARACTER_ID, DEFAULT_PERSONA_ID, DEFAULT_PRESET_ID } from '../../sillytavern/default-content';
@@ -16,11 +16,12 @@ afterEach(async () => {
 });
 
 test('keeps AI mode in the same node template and shows one fused director capability slot', async () => {
-  renderApp('/game');
-  act(() => useGameStore.getState().startRun('AI-SHARED', 'preset', true, false, {
-    contentMode: 'ai-director',
-    aiFailurePolicy: 'ask',
-  }));
+  renderPlayableApp('/game', () => {
+    useGameStore.getState().startRun('AI-SHARED', 'preset', true, false, {
+      contentMode: 'ai-director',
+      aiFailurePolicy: 'ask',
+    });
+  });
 
   expect(await screen.findByTestId('shared-node-template')).toBeVisible();
   expect(document.querySelectorAll('#game-encounter-panel')).toHaveLength(1);

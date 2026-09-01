@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { startLocalRun } from './helpers/run';
 
 const viewports = [
   { name: 'desktop-1440x900', width: 1440, height: 900 },
@@ -22,7 +23,7 @@ test('生成四组视口的完整视觉验收联络表', async ({ page }, testIn
     if (message.type() === 'error') runtimeErrors.push(`console: ${message.text()}`);
   });
   page.on('pageerror', (error) => runtimeErrors.push(`page: ${error.message}`));
-  await page.addInitScript(() => window.localStorage.clear());
+  await startLocalRun(page, false);
 
   for (const viewport of viewports) {
     await page.setViewportSize(viewport);

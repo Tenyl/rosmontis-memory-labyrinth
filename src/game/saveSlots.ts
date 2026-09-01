@@ -61,6 +61,11 @@ export function getActiveSaveSlotId(storage: Storage): SaveSlotId | null {
   return SLOT_IDS.includes(value as SaveSlotId) ? value as SaveSlotId : null;
 }
 
+export function hasActiveRunSave(storage: Storage): boolean {
+  const activeId = getActiveSaveSlotId(storage);
+  return Boolean(activeId && loadSaveSlot(activeId, storage));
+}
+
 export function clearSaveSlots(storage: Storage) {
   storage.removeItem(SAVE_KEY);
   storage.removeItem(ACTIVE_KEY);

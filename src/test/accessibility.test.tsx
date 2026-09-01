@@ -1,6 +1,6 @@
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderApp } from './renderApp';
+import { renderApp, renderPlayableApp } from './renderApp';
 
 const routes = [
   ['/game', 'game-page-title', '迷迭香的记忆迷宫'],
@@ -11,7 +11,7 @@ const routes = [
 ] as const;
 
 test.each(routes)('%s 具有清晰的页面地标与控件名称', async (path, titleId, title) => {
-  const { container } = renderApp(path);
+  const { container } = path === '/game' ? renderPlayableApp(path) : renderApp(path);
   const heading = await screen.findByRole('heading', { level: 1, name: title }, { timeout: 8_000 });
 
   expect(heading).toHaveAttribute('id', titleId);
@@ -24,7 +24,7 @@ test.each(routes)('%s 具有清晰的页面地标与控件名称', async (path, 
 });
 
 test('provides keyboard skip navigation and a perceivable top-menu state', async () => {
-  const { container } = renderApp('/game');
+  const { container } = renderPlayableApp('/game');
   await screen.findByRole('heading', { level: 1, name: '迷迭香的记忆迷宫' }, { timeout: 8_000 });
 
   expect(screen.getByRole('link', { name: '跳至主内容' })).toHaveAttribute('href', '#main-content');
@@ -33,7 +33,7 @@ test('provides keyboard skip navigation and a perceivable top-menu state', async
 });
 
 test('keeps the top menu, Run state, and maze in a logical reading order', async () => {
-  renderApp('/game');
+  renderPlayableApp('/game');
 
   const menu = await screen.findByRole('navigation', { name: '顶部菜单' });
   const hud = screen.getByLabelText('迷迭香 Run 状态');
@@ -47,7 +47,7 @@ test('keeps the top menu, Run state, and maze in a logical reading order', async
 
 test('moves focus to main content after top-menu route navigation', async () => {
   const user = userEvent.setup();
-  renderApp('/game');
+  renderPlayableApp('/game');
   await screen.findByRole('heading', { level: 1, name: '迷迭香的记忆迷宫' });
 
   await user.click(screen.getByRole('link', { name: '记忆图鉴' }));

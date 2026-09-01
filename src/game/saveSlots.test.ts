@@ -4,6 +4,7 @@ import {
   clearSaveSlots,
   createSaveSlot,
   getActiveSaveSlotId,
+  hasActiveRunSave,
   listSaveSlots,
   loadSaveSlot,
   setActiveSaveSlotId,
@@ -37,6 +38,17 @@ describe('local run save slots', () => {
 
     clearSaveSlots(localStorage);
     expect(getActiveSaveSlotId(localStorage)).toBeNull();
+  });
+
+  test('requires a valid snapshot in the active slot without coupling access to a transient Run id', () => {
+    const state = buildDemoState();
+
+    setActiveSaveSlotId('slot-1', localStorage);
+    expect(hasActiveRunSave(localStorage)).toBe(false);
+
+    createSaveSlot('slot-1', state, localStorage);
+    state.run.id = 'RUN-RESTARTED-BEFORE-AUTOSAVE';
+    expect(hasActiveRunSave(localStorage)).toBe(true);
   });
 
   test('migrates a legacy slot through the shared state migration before continuing', () => {

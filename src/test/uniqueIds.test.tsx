@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderApp } from './renderApp';
+import { renderApp, renderPlayableApp } from './renderApp';
 
 const routes = [
   ['/game', '迷迭香的记忆迷宫'],
@@ -11,7 +11,7 @@ const routes = [
 ] as const;
 
 test.each(routes)('%s 为每个交互元素提供唯一描述性 ID', async (path, title) => {
-  const { container } = renderApp(path);
+  const { container } = path === '/game' ? renderPlayableApp(path) : renderApp(path);
   await screen.findByRole('heading', { level: 1, name: title }, { timeout: 8_000 });
 
   assertUniqueControlIds(container);
@@ -19,7 +19,7 @@ test.each(routes)('%s 为每个交互元素提供唯一描述性 ID', async (pat
 
 test('expanded top menu keeps one uniquely identified copy of each route link', async () => {
   const user = userEvent.setup();
-  const { container } = renderApp('/game');
+  const { container } = renderPlayableApp('/game');
   await user.click(await screen.findByRole('button', { name: '展开顶部菜单' }));
 
   assertUniqueControlIds(container);

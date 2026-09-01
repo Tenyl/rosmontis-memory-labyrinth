@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearPresetRun } from './helpers/run';
+import { clearPresetRun, startLocalRun } from './helpers/run';
 
 test.setTimeout(200_000);
 
@@ -10,8 +10,7 @@ test('离线预设迷宫完整通过五层并覆盖八类节点', async ({ page 
   });
   page.on('pageerror', (error) => browserProblems.push(error.message));
 
-  await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/game');
+  await startLocalRun(page);
   await expect(page.getByRole('heading', { level: 1, name: '迷迭香的记忆迷宫' })).toBeVisible();
 
   const encountered = new Set<string>();
@@ -48,6 +47,6 @@ test('离线预设迷宫完整通过五层并覆盖八类节点', async ({ page 
   await expect(page.getByRole('heading', { name: '记忆图鉴' })).toBeVisible();
   await expect(page.getByText('核心记忆：仍被呼唤的名字')).toBeVisible();
   await page.locator('#nav-records-open').click();
-  await expect(page.getByRole('region', { name: 'Run 历史' })).toContainText('PRESET-RAIN-ECHO');
+  await expect(page.getByRole('region', { name: 'Run 历史' })).toContainText(/RUN-[A-Z0-9]+-SLOT-1/);
   expect(browserProblems).toEqual([]);
 });

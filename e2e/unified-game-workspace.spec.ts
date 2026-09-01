@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
-import { settleVisibleEncounter } from './helpers/run';
+import { settleVisibleEncounter, startLocalRun } from './helpers/run';
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.clear());
+  await page.goto('/');
 });
 
 test('在同一游戏路由进入并结算节点', async ({ page }) => {
-  await page.goto('/game');
+  await startLocalRun(page);
   await expect(page.getByRole('heading', { level: 1, name: '迷迭香的记忆迷宫' })).toBeVisible();
 
   await settleVisibleEncounter(page);
@@ -25,6 +25,7 @@ test('在同一游戏路由进入并结算节点', async ({ page }) => {
 });
 
 test('旧游玩路由回到游戏且旧工作区不再渲染', async ({ page }) => {
+  await startLocalRun(page, false);
   for (const path of ['/operation', '/memory', '/operators']) {
     await page.goto(path);
     await expect(page).toHaveURL(/\/game$/);

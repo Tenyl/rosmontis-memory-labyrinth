@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { hasActiveRunSave } from '../game/saveSlots';
 import { AppShell } from './AppShell';
 
 const GamePage = lazy(() => import('../features/game/GamePage'));
@@ -17,7 +18,7 @@ export function createAppRouter() {
       element: <AppShell />,
       children: [
         { index: true, element: <TitlePage /> },
-        { path: 'game', element: <GamePage /> },
+        { path: 'game', element: <GameRoute /> },
         { path: 'chat', element: <RosmontisChatPage /> },
         { path: 'compendium', element: <CompendiumPage /> },
         { path: 'diary', element: <DiaryPage /> },
@@ -32,4 +33,10 @@ export function createAppRouter() {
       ],
     },
   ]);
+}
+
+function GameRoute() {
+  return hasActiveRunSave(localStorage)
+    ? <GamePage />
+    : <Navigate to="/" replace />;
 }

@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react';
-import { renderApp } from '../../test/renderApp';
+import { renderPlayableApp } from '../../test/renderApp';
 import { useGameStore } from '../../store/gameStore';
 
 afterEach(() => {
@@ -7,7 +7,7 @@ afterEach(() => {
 });
 
 test('shows map character state and node actions on the same route', async () => {
-  renderApp('/game');
+  renderPlayableApp('/game');
 
   expect(await screen.findByRole('heading', { name: '迷迭香的记忆迷宫' })).toBeVisible();
   expect(screen.getByLabelText('迷迭香 Run 状态')).toBeVisible();
@@ -18,7 +18,7 @@ test('shows map character state and node actions on the same route', async () =>
 });
 
 test('uses the shared node template without any AI interaction surface in local mode', async () => {
-  renderApp('/game');
+  renderPlayableApp('/game');
 
   expect(await screen.findByTestId('shared-node-template')).toBeVisible();
   expect(document.querySelectorAll('#game-encounter-panel')).toHaveLength(1);
@@ -29,7 +29,7 @@ test('uses the shared node template without any AI interaction surface in local 
 });
 
 test('restores an unresolved current encounter without navigating away', async () => {
-  renderApp('/game');
+  renderPlayableApp('/game');
 
   expect(await screen.findByRole('heading', { name: /安全屋|常规作战|奇境/ })).toBeVisible();
   expect(window.location.pathname).toBe('/game');
@@ -37,7 +37,7 @@ test('restores an unresolved current encounter without navigating away', async (
 
 test('commits movement once during a themed transition without changing route', async () => {
   vi.useFakeTimers();
-  renderApp('/game');
+  renderPlayableApp('/game');
   const initialNodeId = useGameStore.getState().run.currentNodeId;
 
   act(() => useGameStore.getState().completeCurrentNode());

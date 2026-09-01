@@ -4,8 +4,7 @@ import { installStructuredLlmMock, type MockLlmRequest } from './helpers/mockLlm
 test('顶部迷迭香对话仅在连接 LLM 后开放并保持独立会话', async ({ page }) => {
   const requests: MockLlmRequest[] = [];
   await installStructuredLlmMock(page, requests);
-  await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/game');
+  await page.goto('/chat');
 
   await page.locator('#nav-chat-open').click();
   await expect(page.getByRole('heading', { name: '迷迭香对话' })).toBeVisible();

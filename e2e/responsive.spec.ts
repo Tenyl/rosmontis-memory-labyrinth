@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { settleVisibleEncounter } from './helpers/run';
+import { settleVisibleEncounter, startLocalRun } from './helpers/run';
 
 const viewports = [
   { name: 'mobile', width: 375, height: 812 },
@@ -23,8 +23,8 @@ for (const viewport of viewports) {
 
     for (const [route, title] of routes) {
       test(`${route} 不产生页面级水平溢出`, async ({ page }) => {
-        await page.addInitScript(() => window.localStorage.clear());
-        await page.goto(route);
+        if (route === '/game') await startLocalRun(page, false);
+        else await page.goto(route);
         await expect(page.getByRole('heading', { level: 1, name: title })).toBeVisible();
         const overflow = await page.evaluate(() => ({
           client: document.documentElement.clientWidth,
@@ -38,8 +38,7 @@ for (const viewport of viewports) {
 
 test('375 像素下顶部菜单、地图列表和节点动作均可操作', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/game');
+  await startLocalRun(page);
   await settleVisibleEncounter(page);
   await page.locator('#game-return-to-maze').click();
   await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();
@@ -56,8 +55,7 @@ test('375 像素下顶部菜单、地图列表和节点动作均可操作', asyn
 
 test('系统减少动效时节点转场在 200ms 内完成且没有无限动画', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/game');
+  await startLocalRun(page);
   await settleVisibleEncounter(page);
   await page.locator('#game-return-to-maze').click();
   await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();

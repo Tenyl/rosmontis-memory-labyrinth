@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearPresetRun, settleVisibleEncounter } from './helpers/run';
+import { clearPresetRun, settleVisibleEncounter, startLocalRun } from './helpers/run';
 import { configureMockApi, installStructuredLlmMock, type MockLlmRequest } from './helpers/mockLlm';
 
 test.setTimeout(240_000);
@@ -7,8 +7,7 @@ test.setTimeout(240_000);
 test('接入 LLM 后从第五层进入无垠心海并生成第六层主题', async ({ page }) => {
   const requests: MockLlmRequest[] = [];
   await installStructuredLlmMock(page, requests);
-  await page.addInitScript(() => window.localStorage.clear());
-  await page.goto('/game');
+  await startLocalRun(page);
   await configureMockApi(page);
 
   await clearPresetRun(page);

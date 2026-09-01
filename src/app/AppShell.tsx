@@ -11,6 +11,7 @@ import { ShortcutDialog } from '../components/ShortcutDialog';
 import { DiaryDirector } from '../features/diary/DiaryDirector';
 import { useTavern } from '../features/tavern/runtime/useTavern';
 import { getOverloadBand } from '../game/overload';
+import { hasActiveRunSave } from '../game/saveSlots';
 import { useGameStore } from '../store/gameStore';
 import './app-shell.css';
 import '../components/components.css';
@@ -35,6 +36,7 @@ export function AppShell() {
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const overloadBand = getOverloadBand(overload);
   const isTitleScreen = location.pathname === '/';
+  const hasActiveRun = hasActiveRunSave(localStorage);
   const connectionLabel = tavern.transportMode === 'remote' ? '远程连接' : '本地模拟';
 
   useEffect(() => {
@@ -74,13 +76,13 @@ export function AppShell() {
         setShortcutsOpen(true);
       } else if (event.key === '/') {
         event.preventDefault();
-        navigate('/game');
+        navigate(hasActiveRun ? '/game' : '/');
       }
     };
 
     document.addEventListener('keydown', handleShortcut);
     return () => document.removeEventListener('keydown', handleShortcut);
-  }, [navigate]);
+  }, [hasActiveRun, navigate]);
 
   return (
     <div className="terminal-shell" data-overload-band={overloadBand}>
@@ -107,22 +109,27 @@ export function AppShell() {
         </button>
 
         <nav id="global-top-menu" className="app-top-menu" aria-label="顶部菜单" data-open={menuOpen}>
-          {navItems.map((item) => (
+          {navItems.map((item) => {
+            const isGame = item.path === '/game';
+            const path = isGame && !hasActiveRun ? '/' : item.path;
+            const label = isGame && !hasActiveRun ? '开始游戏' : item.label;
+            return (
             <NavLink
               id={`nav-${item.path.slice(1)}-open`}
               key={item.path}
-              to={item.path}
+              to={path}
               className={({ isActive }) => `app-top-menu-link${isActive ? ' is-active' : ''}`}
               onClick={() => setMenuOpen(false)}
             >
-              {item.label}
+              {label}
             </NavLink>
-          ))}
+            );
+          })}
         </nav>
 
         <div className="app-topbar-status" aria-label="当前探索状态">
-          <span className="app-run-status">第 {run.floor} 层 · 回合 {run.turn}</span>
-          <span className={`app-overload-status is-${overloadBand}`}><TriangleAlert size={15} aria-hidden />过载 {overload}%</span>
+          <span className="app-run-status">{hasActiveRun ? `第 ${run.floor} 层 · 回合 ${run.turn}` : '尚未建立存档'}</span>
+          {hasActiveRun ? <span className={`app-overload-status is-${overloadBand}`}><TriangleAlert size={15} aria-hidden />过载 {overload}%</span> : null}
           <NavLink id="global-connection-settings" className="app-connection-status" to="/settings" aria-label={`打开接口连接设置，当前${connectionLabel}`}>
             <Wifi size={15} aria-hidden />{connectionLabel}
           </NavLink>

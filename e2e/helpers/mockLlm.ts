@@ -10,7 +10,9 @@ export interface MockLlmRequest {
 }
 
 export async function configureMockApi(page: Page) {
-  await page.locator('#nav-settings-open').click();
+  if (!await page.locator('#settings-api-base-url').isVisible().catch(() => false)) {
+    await page.goto('/settings');
+  }
   await page.locator('#settings-api-base-url').fill('http://127.0.0.1:4617/mock-llm');
   await page.locator('#settings-api-model').fill('playwright-structured-model');
   await page.locator('#settings-api-key').fill('sk-playwright-only');

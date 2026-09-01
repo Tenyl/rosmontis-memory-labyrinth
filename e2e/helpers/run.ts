@@ -1,5 +1,16 @@
 import { expect, type Page } from '@playwright/test';
 
+export async function startLocalRun(page: Page, enterFirstNode = true) {
+  await page.goto('/');
+  await page.getByRole('button', { name: '开始游戏' }).click();
+  await page.getByRole('button', { name: /存档槽 1/ }).click();
+  await expect(page).toHaveURL(/\/game$/);
+  await expect(page.locator('[data-scene-phase="map"]')).toBeVisible();
+  if (!enterFirstNode) return;
+  await page.locator('button[data-node-state="reachable"]').first().click();
+  await expect(page.locator('[data-scene-phase="node"]')).toBeVisible();
+}
+
 async function encounterResolved(page: Page) {
   return page.locator('.node-settlement, .encounter-panel > header > strong.is-complete').first().isVisible().catch(() => false);
 }
