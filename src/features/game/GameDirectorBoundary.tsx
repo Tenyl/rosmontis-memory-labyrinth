@@ -2,7 +2,12 @@ import { RotateCcw, ShieldCheck, WifiOff } from 'lucide-react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { MazeNode, RunState } from '../../game/types';
 import { LocalContentDriver } from '../../llm/contentDriver';
-import { requestStructuredGameContent } from '../../llm/gameContentClient';
+import { GameContentRequestError, requestStructuredGameContent } from '../../llm/gameContentClient';
+import {
+  getAllowedChoiceIds,
+  REGISTERED_COMBAT_INTENT_IDS,
+  REGISTERED_MODIFIER_IDS,
+} from '../../llm/gameplayRegistry';
 import { parseGameDirectorV1, type NodePresentation } from '../../llm/schemas/gameDirectorV1';
 import { assembleGameDirectorPrompt } from '../../llm/tavernGamePromptBridge';
 import { getRunRecentSummaries, resolveTavernRunBinding } from '../../llm/tavernRunBinding';
@@ -19,18 +24,6 @@ interface GameDirectorBoundaryProps {
 type DirectorStage = 'idle' | 'loading' | 'ready' | 'error';
 const localDriver = new LocalContentDriver();
 const activeRequests = new Map<string, Promise<NodePresentation>>();
-
-const GAME_DIRECTOR_SCHEMA = JSON.stringify({
-  version: 1,
-  nodeId: '本地节点 ID',
-  nodeType: '本地节点类型',
-  title: '节点标题',
-  description: '节点叙事',
-  choiceIds: ['已注册选项 ID'],
-  modifierIds: ['已注册修饰词 ID'],
-  enemyPlan: { intentIds: ['assault', 'charge', 'erosion'] },
-  quote: '迷迭香第一人称短句',
-});
 
 export function GameDirectorBoundary({ run, node, children }: GameDirectorBoundaryProps) {
   const runtime = useTavern();
@@ -68,6 +61,7 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
     setError(null);
     let request = activeRequests.get(requestKey);
     if (!request) {
+      const responseContract = buildResponseContract(node);
       const prompt = assembleGameDirectorPrompt({
         session: binding.session,
         character: binding.character,
@@ -89,8 +83,8 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
           ].map((fragment) => fragment.name),
           recentSummaries: getRunRecentSummaries(binding.session),
         },
-        schema: GAME_DIRECTOR_SCHEMA,
-        instruction: '为当前节点生成与本地规则一致的中文展示内容，只能引用已注册 ID。',
+        schema: responseContract.schema,
+        instruction: responseContract.instruction,
       });
       request = requestStructuredGameContent({
         transport: runtime.transport,
@@ -117,10 +111,12 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
       if (!current) return;
       acceptPresentation(presentation);
       setStage('ready');
-    }).catch(() => {
+    }).catch((requestError: unknown) => {
       if (!current) return;
       setStage('error');
-      setError('AI 导演内容未能通过校验或网络连接暂时不可用。');
+      setError(requestError instanceof GameContentRequestError
+        ? requestError.message
+        : 'AI 导演请求发生了未知错误。');
       if (run.aiFailurePolicy === 'auto-fallback') acceptPresentation(asFallback(localPresentation));
     });
     return () => { current = false; };
@@ -159,6 +155,32 @@ export function GameDirectorBoundary({ run, node, children }: GameDirectorBounda
       </div> : null}
     </>
   );
+}
+
+function buildResponseContract(node: MazeNode) {
+  const choiceIds = getAllowedChoiceIds(node.type);
+  const usesIntentPlan = node.type === 'combat' || node.type === 'emergency-combat';
+  const schema = {
+    version: 1,
+    nodeId: node.id,
+    nodeType: node.type,
+    title: '节点标题（1-64 字）',
+    description: '节点叙事（1-360 字）',
+    choiceIds: [...choiceIds],
+    modifierIds: [],
+    ...(usesIntentPlan ? { enemyPlan: { intentIds: ['assault'] } } : {}),
+    quote: '迷迭香第一人称短句（不超过 60 字）',
+  };
+  const rules = [
+    '为当前节点生成与本地规则一致的中文展示内容，不得添加未列出的字段。',
+    `nodeId 必须原样返回 ${JSON.stringify(node.id)}，nodeType 必须原样返回 ${JSON.stringify(node.type)}。`,
+    `当前节点允许的 choiceIds：${JSON.stringify(choiceIds)}；必须从中选择 1 至 ${choiceIds.length} 个，不得自造或翻译 ID。`,
+    `当前节点允许的 modifierIds：${JSON.stringify(REGISTERED_MODIFIER_IDS)}；可选择 0 至 5 个，不得自造或翻译 ID。`,
+    usesIntentPlan
+      ? `enemyPlan.intentIds 仅允许从 ${JSON.stringify(REGISTERED_COMBAT_INTENT_IDS)} 中选择 1 至 3 个。`
+      : '当前节点禁止输出 enemyPlan。',
+  ];
+  return { schema: JSON.stringify(schema), instruction: rules.join('\n') };
 }
 
 function asFallback(presentation: NodePresentation): NodePresentation {

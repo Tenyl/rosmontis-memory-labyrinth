@@ -98,13 +98,24 @@ export async function requestStructuredGameContent<T>({
 }
 
 function extractJson(response: string): string {
-  const trimmed = response.trim();
-  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-  const json = (fenced?.[1] ?? trimmed).trim();
+  const unwrapped = unwrapKnownTavernEnvelope(response.trim());
+  const fenced = unwrapped.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const json = (fenced?.[1] ?? unwrapped).trim();
   if (!json.startsWith('{') || !json.endsWith('}')) {
     throw new GameContentRequestError('invalid-response');
   }
   return json;
+}
+
+function unwrapKnownTavernEnvelope(response: string): string {
+  if (!response.startsWith('<')) return response;
+  const auxiliaryTag = /<(thinking|think|sum)>[\s\S]*?<\/\1>/gi;
+  const maintextMatches = [...response.matchAll(/<maintext>([\s\S]*?)<\/maintext>/gi)];
+  if (maintextMatches.length === 0) return response.replace(auxiliaryTag, '').trim();
+  if (maintextMatches.length !== 1) return response;
+  const maintext = maintextMatches[0];
+  const outside = response.replace(maintext[0], '').replace(auxiliaryTag, '').trim();
+  return outside ? response : maintext[1].trim();
 }
 
 function isAbortError(error: unknown) {

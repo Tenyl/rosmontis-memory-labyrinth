@@ -60,6 +60,7 @@ test('AI 节点校验失败时提供重试与本地回退选择', async ({ page 
   await page.getByRole('button', { name: /存档槽 2/ }).click();
   await page.locator('button[data-node-state="reachable"]').first().click();
 
+  await expect(page.locator('#game-director-status')).toContainText('远程模型返回了无法使用的结构化内容。');
   await expect(page.getByRole('button', { name: '重试' })).toBeVisible();
   await expect(page.getByRole('button', { name: '本节点使用本地内容' })).toBeVisible();
   await page.getByRole('button', { name: '本节点使用本地内容' }).click();

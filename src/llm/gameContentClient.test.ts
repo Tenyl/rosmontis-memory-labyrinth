@@ -86,6 +86,21 @@ describe('structured LLM game content client', () => {
     })).resolves.toEqual({ text: '我记得。' });
   });
 
+  test('accepts structured JSON inside the known Tavern output envelope', async () => {
+    await expect(requestStructuredGameContent({
+      transport: transportFrom([
+        '<thinking>先遵循角色预设格式。</thinking>',
+        '<maintext>```json\n{"text":"我会继续。"}\n```</maintext>',
+        '<sum>本轮返回结构化内容</sum>',
+      ]),
+      api,
+      task: 'quote',
+      messages,
+      signal: new AbortController().signal,
+      parse: parseTemporaryQuote,
+    })).resolves.toEqual({ text: '我会继续。' });
+  });
+
   test('rejects prose, trailing content, and parser contract failures as invalid-response', async () => {
     for (const chunks of [
       ['这是回答，不是 JSON。'],

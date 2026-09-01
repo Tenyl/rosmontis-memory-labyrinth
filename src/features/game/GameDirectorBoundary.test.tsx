@@ -108,4 +108,6 @@ test('fuses a validated remote presentation from the bound Tavern session', asyn
   }));
   expect(promptText).toContain('绑定存档摘要：雨声已经远去。');
   expect(promptText).not.toContain('错误会话摘要');
+  expect(promptText).toContain('当前节点允许的 choiceIds：["rest-stabilize","rest-vent","rest-rehearse"]');
+  expect(promptText).toContain('当前节点禁止输出 enemyPlan');
 });
